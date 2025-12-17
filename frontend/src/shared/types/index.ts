@@ -65,7 +65,6 @@ export interface PersonalData {
   info: PersonalInfo;
   skills: Skill[];
   interests: Interest[];
-  articles: Article[];
   projects: Project[];
   crafts: Craft[];
 }

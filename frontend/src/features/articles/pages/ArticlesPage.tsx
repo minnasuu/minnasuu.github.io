@@ -2,18 +2,15 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../../shared/contexts/LanguageContext";
 import { useTranslations } from "../../../shared/hooks/useTranslations";
-// import { personalDataMultiLang } from "../../../data/personalData";
 import { fetchArticles } from "../../../shared/utils/backendClient";
 import type { Article } from "../../../shared/types";
 import "../styles/ArticlesPage.scss"; // 引入新的 SCSS 文件
 import { Icon } from "@suminhan/land-design";
-import ArtisticImage from "../components/ArtisticImage";
 import BackButton from "../../../shared/components/BackButton";
 
 const ArticlesPage: React.FC = () => {
   const { language } = useLanguage();
   const { t } = useTranslations();
-  // const data = personalDataMultiLang[language];
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -141,7 +138,7 @@ const ArticlesPage: React.FC = () => {
                         playsInline
                       />
                     ) : (
-                      <ArtisticImage
+                      <img
                         src={article.coverImage || ""}
                         alt={article.title}
                       />

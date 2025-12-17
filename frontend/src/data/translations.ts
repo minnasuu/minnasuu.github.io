@@ -41,19 +41,6 @@ export interface Translations {
     };
   };
   
-  // 文章部分
-  articles: {
-    title: string;
-    subtitle: string;
-    readMore: string;
-    externalLink: string;
-    summary: string;
-    content: string;
-    readOriginal: string;
-    backToArticles: string;
-    viewAll: string;
-  };
-  
   // 项目部分
   projects: {
     title: string;
@@ -144,17 +131,6 @@ export const translations: Record<Language, Translations> = {
         expert: "专家"
       }
     },
-    articles: {
-      title: "分享我的技术思考和经验",
-      subtitle: "技术洞察与实践总结",
-      readMore: "阅读更多",
-      externalLink: "外部链接",
-      summary: "摘要",
-      content: "内容",
-      readOriginal: "阅读原文",
-      backToArticles: "返回文章列表",
-      viewAll: "查看全部"
-    },
     projects: {
       title: "项目",
       subtitle: "我参与开发的一些项目",
@@ -236,17 +212,6 @@ export const translations: Record<Language, Translations> = {
         advanced: "Advanced",
         expert: "Expert"
       }
-    },
-    articles: {
-      title: "Sharing My Technical Thoughts and Experiences",
-      subtitle: "Technical Insights and Practice Summary",
-      readMore: "Read More",
-      externalLink: "External Link",
-      summary: "Summary",
-      content: "Content",
-      readOriginal: "Read Original",
-      backToArticles: "Back to Articles",
-      viewAll: "View All"
     },
     projects: {
       title: "Works",

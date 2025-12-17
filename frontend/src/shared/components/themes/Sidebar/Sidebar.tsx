@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { personalDataMultiLang } from '../../../../data/personalData';
 import { useTranslations } from '../../../hooks/useTranslations';
+import { fetchArticles } from '../../../utils/backendClient';
+import type { Article } from '../../../types';
 import StackedCardList from '../StackedCardList/StackedCardList';
 import type { StackedCardItem } from '../StackedCardList/StackedCardList';
 import type { SidebarThemeConfig } from './types';
@@ -16,6 +19,25 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
   const { language } = useLanguage();
   const { t } = useTranslations();
   const data = personalDataMultiLang[language];
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [isLoadingArticles, setIsLoadingArticles] = useState(true);
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        const fetchedArticles = await fetchArticles();
+        setArticles(fetchedArticles);
+      } catch (error) {
+        console.error('Failed to load articles:', error);
+        // 如果后端加载失败,显示空状态
+        setArticles([]);
+      } finally {
+        setIsLoadingArticles(false);
+      }
+    };
+
+    loadArticles();
+  }, []);
 
   const {
     themePrefix,
@@ -135,25 +157,36 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       <div className={sectionClass}>
         <div className="section-header">
           <h3>📄 {t('articles.title')}</h3>
-          {data.articles.length > 10 && <Link to="/articles" className="view-more-link">{t('articles.viewAll')}</Link>}
+          {articles.length > 10 && <Link to="/articles" className="view-more-link">{t('articles.viewAll')}</Link>}
         </div>
-        <StackedCardList
-          items={data.articles
-            .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()).filter((_i,idx) => idx < 10)
-            .map((article): StackedCardItem => ({
-              id: article.id,
-              title: article.title,
-              coverImage: article.coverImage,
-              link: `/articles/${article.id}`,
-              meta: {
-                date: article.publishDate,
-                readTime: article.readTime,
-              },
-            }))}
-          cardWidth={120}
-          overlapOffset={30}
-          themePrefix={themePrefix}
-        />
+        {isLoadingArticles ? (
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+            Loading articles...
+          </div>
+        ) : articles.length > 0 ? (
+          <StackedCardList
+            items={articles
+              .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+              .filter((_i, idx) => idx < 10)
+              .map((article): StackedCardItem => ({
+                id: article.id,
+                title: article.title,
+                coverImage: article.coverImage,
+                link: `/articles/${article.id}`,
+                meta: {
+                  date: article.publishDate,
+                  readTime: article.readTime,
+                },
+              }))}
+            cardWidth={120}
+            overlapOffset={30}
+            themePrefix={themePrefix}
+          />
+        ) : (
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+            No articles yet
+          </div>
+        )}
       </div>
 
       {/* 项目 - 卡片形式 */}

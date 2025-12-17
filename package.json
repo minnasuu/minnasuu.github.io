@@ -1,0 +1,34 @@
+{
+  "name": "i-m-minna-workspace",
+  "version": "1.0.0",
+  "description": "I'm Minna - Personal Blog & Portfolio",
+  "private": true,
+  "scripts": {
+    "start": "chmod +x start.sh && ./start.sh",
+    "stop": "chmod +x stop.sh && ./stop.sh",
+    "restart": "npm run stop && npm run start",
+    "logs": "docker-compose logs -f",
+    "logs:backend": "docker-compose logs -f backend",
+    "logs:frontend": "docker-compose logs -f frontend",
+    "logs:db": "docker-compose logs -f db",
+    "status": "docker-compose ps",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:clean": "docker-compose down -v && docker system prune -f",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install"
+  },
+  "keywords": [
+    "blog",
+    "portfolio",
+    "react",
+    "express",
+    "postgresql"
+  ],
+  "author": "minna",
+  "license": "MIT"
+}

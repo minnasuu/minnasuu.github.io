@@ -131,3 +131,45 @@ export const createArticle = async (article: CreateArticleRequest): Promise<Arti
     throw error;
   }
 };
+
+export const updateArticle = async (id: string, article: CreateArticleRequest): Promise<Article> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/articles/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(article),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update article: ${response.status}`);
+    }
+    const data: Article = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating article:', error);
+    throw error;
+  }
+};
+
+export const deleteArticle = async (id: string): Promise<void> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/articles/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to delete article: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    throw error;
+  }
+};

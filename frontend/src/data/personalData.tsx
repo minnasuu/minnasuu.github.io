@@ -1,22 +1,9 @@
 import type { PersonalData } from '../shared/types';
 import type { Language } from '../shared/contexts/LanguageContext';
-import {  svg_interactive_wheel } from '../features/articles/data/svg-interactive-wheel/svg_interactive_wheel';
-import { dark_mode_and_adaptation } from "../features/articles/data/dark_mode_and_adaptation/dark_mode_and_adaptation";
-import { deep_understanding_of_images } from "../features/articles/data/deep_understanding_of_images/deep_understanding_of_images";
-import css_implementation_of_morphing_animation from "../features/articles/data/css-implementation-of-morphing-animatio/css_implementation_of_morphing_animatio";
-import { build_a_smooth_ai_chat_layout } from "../features/articles/data/build-a-smooth-ai-chat-layout/build_a_smooth_ai_chat_layout";
-import { web_shortcut_key, web_shortcut_key_md } from "../features/articles/data/web-shortcut/web_shortcut";
 
 // Import assets
 import avatarImg from '../assets/images/avatar.png';
 import cktMiniprogramQr from '../assets/images/ckt-miniprogram-qr.jpg';
-import darkModeAdaptationCover from '../assets/articles/covers/dark_mode_and_adaptation.jpg';
-import svgInteractiveWheelCover from '../assets/articles/covers/svg-interactive-wheel.jpg';
-import deepUnderstandingImagesCover from '../assets/articles/covers/deep_understanding_of_images.jpg';
-// import buildAiChatLayoutCover from '../assets/articles/covers/build_a_smooth_ai_chat_layout.jpg'; // File doesn't exist
-import coverMock from '../assets/articles/covers/cover-mock.png';
-import nuovoCinemaParadisoCover from '../assets/articles/covers/nuovo_cinema_paradiso.jpg';
-import shortcutCover from '../assets/articles/covers/shortcut.png';
 
 // 多语言个人数据
 export const personalDataMultiLang: Record<Language, PersonalData> = {
@@ -77,100 +64,6 @@ export const personalDataMultiLang: Record<Language, PersonalData> = {
       },
       {
         name: "最近看过（天堂电影院）",
-      },
-    ],
-    articles: [
-      // {
-      //   id: "article-1763369707943",
-      //   title: "前端项目样式组织方案探索",
-      //   summary: "xxx",
-      //   content: article_1763369707943,
-      //   markdownContent: article_1763369707943_md,
-      //   publishDate: "2025-11-17",
-      //   tags: ["css", "原子类", "Material Design"],
-      //   readTime: 10,
-      //   link: "https://blog.example.com/article-1763369707943",
-      //   type: "tech",
-      // },
-      {
-        id: "dark-mode-and-adaptation",
-        title: "网页深色模式与适配 ☀️🌙",
-        summary: "探讨网页深色模式与适配，帮助你构建更高效、可维护的应用。",
-        content: dark_mode_and_adaptation,
-        publishDate: "2025-01-02",
-        tags: [
-          "CSS 自定义变量",
-          "CSS-in-JS",
-          "TDesign",
-          "Ant Design",
-          "Apple Developer",
-        ],
-        readTime: 5,
-        link: "https://blog.example.com/dark-mode-and-adaptation",
-        type: "tech",
-        coverImage: darkModeAdaptationCover,
-      },
-      {
-        id: "svg-interactive-wheel",
-        title: "SVG 实现可交互轮盘",
-        summary: "使用SVG实现可交互轮盘，支持自定义样式和交互效果。",
-        content: svg_interactive_wheel,
-        publishDate: "2025-01-16",
-        tags: ["SVG mask", "React"],
-        readTime: 2,
-        link: "https://blog.example.com/svg-interactive-wheel",
-        type: "tech",
-        coverImage: svgInteractiveWheelCover,
-      },
-      {
-        id: "deep-understanding-of-images",
-        title: "深刻认识图片",
-        summary: "深刻认识图片，了解图片的格式、大小、质量、加载方式等。",
-        content: deep_understanding_of_images,
-        publishDate: "2025-01-20",
-        tags: ["图片", "格式", "大小", "质量", "加载方式"],
-        readTime: 2,
-        link: "https://blog.example.com/know-more-about-image",
-        type: "tech",
-        coverImage: deepUnderstandingImagesCover,
-      },
-      {
-        id: "css-implementation-of-morphing-animation",
-        title: "CSS实现变形动画（Morph）的关键",
-        summary:
-          "CSS实现变形动画（Morph）的关键，了解变形动画的原理和实现方式。",
-        content: css_implementation_of_morphing_animation,
-        publishDate: "2025-02-22",
-        tags: ["clip-path", "SVG Path", "Morphing Animation"],
-        readTime: 15,
-        link: "https://blog.example.com/threejs-guide",
-        type: "tech",
-        coverImage: nuovoCinemaParadisoCover,
-      },
-      {
-        id: "build-a-smooth-ai-chat-layout",
-        title: "搭建流畅的 AI Chat布局",
-        summary: "搭建流畅的 AI Chat布局，了解AI Chat的布局和实现方式。",
-        content: build_a_smooth_ai_chat_layout,
-        publishDate: "2025-03-28",
-        tags: ["AI Chat", "布局", "实现方式"],
-        readTime: 18,
-        link: "https://blog.example.com/ai-chat-layout",
-        type: "tech",
-        coverImage: coverMock,
-      },
-      {
-        id: "web-shortcut-key",
-        title: "揭秘网页快捷键",
-        summary: "揭秘网页快捷键，了解网页快捷键的设计原则和实现方式。",
-        content: web_shortcut_key,
-        markdownContent: web_shortcut_key_md,
-        publishDate: "2025-09-15",
-        tags: ["网页快捷键", "Linear", "YouTuBe"],
-        readTime: 15,
-        link: "https://blog.example.com/web-shortcut-key",
-        type: "tech",
-        coverImage: shortcutCover,
       },
     ],
     projects: [
@@ -301,105 +194,6 @@ export const personalDataMultiLang: Record<Language, PersonalData> = {
       },
       {
         name: "Recently watched (Nuovo Cinema Paradiso)",
-      },
-    ],
-    articles: [
-      // {
-      //   id: "article-1763369707943",
-      //   title: "Frontend CSS",
-      //   summary: "xxx",
-      //   content: article_1763369707943,
-      //   markdownContent: article_1763369707943_md,
-      //   publishDate: "2025-11-17",
-      //   tags: ["css", "原子类", "Material Design"],
-      //   readTime: 10,
-      //   link: "https://blog.example.com/article-1763369707943",
-      //   type: "tech",
-      // },
-      {
-        id: "dark-mode-and-adaptation",
-        title: "Dark Mode and Adaptation",
-        summary:
-          "Explore key patterns and techniques in React development to help you build more efficient and maintainable applications.",
-        content: dark_mode_and_adaptation,
-        publishDate: "2025-01-02",
-        tags: [
-          "CSS Custom Properties",
-          "CSS-in-JS",
-          "TDesign",
-          "Ant Design",
-          "Apple Developer",
-        ],
-        readTime: 5,
-        link: "https://blog.example.com/dark-mode-and-adaptation",
-        type: "tech",
-        coverImage: darkModeAdaptationCover,
-      },
-      {
-        id: "svg-interactive-wheel",
-        title: "SVG Interactive Wheel (React Version)",
-        summary:
-          "Use SVG to implement an interactive wheel, support custom styles and interactive effects.",
-        content: svg_interactive_wheel,
-        publishDate: "2025-01-16",
-        tags: ["SVG mask", "React"],
-        readTime: 2,
-        link: "https://blog.example.com/svg-interactive-wheel",
-        type: "tech",
-        coverImage: svgInteractiveWheelCover,
-      },
-      {
-        id: "deep-understanding-of-images",
-        title: "Deep Understanding of Images",
-        summary:
-          "Deep understanding of images, understand the format, size, quality, loading method, etc. of images.",
-        content: deep_understanding_of_images,
-        publishDate: "2025-01-20",
-        tags: ["图片", "格式", "大小", "质量", "加载方式"],
-        readTime: 2,
-        link: "https://blog.example.com/know-more-about-image",
-        type: "tech",
-        coverImage: deepUnderstandingImagesCover,
-      },
-      {
-        id: "css-implementation-of-morphing-animation",
-        title: "CSS Implementation of Morphing Animation (Morph)",
-        summary:
-          "CSS implementation of morphing animation (Morph), understand the key points of morphing animation and its implementation method.",
-        content: css_implementation_of_morphing_animation,
-        publishDate: "2025-02-22",
-        tags: ["clip-path", "SVG Path", "Morphing Animation"],
-        readTime: 15,
-        link: "https://blog.example.com/threejs-guide",
-        type: "tech",
-        coverImage: coverMock,
-      },
-      {
-        id: "build-a-smooth-ai-chat-layout",
-        title: "Build a Smooth AI Chat Layout",
-        summary:
-          "Build a smooth AI Chat Layout, understand the layout and implementation method of AI Chat.",
-        content: build_a_smooth_ai_chat_layout,
-        publishDate: "2025-03-28",
-        tags: ["AI Chat", "布局", "实现方式"],
-        readTime: 18,
-        link: "https://blog.example.com/ai-chat-layout",
-        type: "tech",
-        coverImage: coverMock,
-      },
-      {
-        id: "web-shortcut-key",
-        title: "Web Shortcut Key",
-        summary:
-          "Web Shortcut Key, understand the shortcut key of web and how to use them.",
-        content: web_shortcut_key,
-        markdownContent: web_shortcut_key_md,
-        publishDate: "2025-09-15",
-        tags: ["网页快捷键", "Linear", "YouTuBe"],
-        readTime: 15,
-        link: "https://blog.example.com/web-shortcut-key",
-        type: "tech",
-        coverImage: coverMock,
       },
     ],
     projects: [
