@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './terminalTheme.scss';
-import type { PersonalData } from '../../../shared/types';
+import type { PersonalData, Article } from '../../../shared/types';
 import LanguageSwitcher from "../../../shared/components/LanguageSwitcher";
 import ThemeSwitcher from "../../../shared/components/ThemeSwitcher";
 import Sidebar from "../../../shared/components/themes/Sidebar";
 import type { SidebarThemeConfig } from "../../../shared/components/themes/Sidebar";
+import { fetchArticles } from '../../../shared/utils/backendClient';
 
 interface TerminalThemeProps {
   data: PersonalData;
@@ -17,11 +18,27 @@ const TerminalTheme: React.FC<TerminalThemeProps> = ({ data }) => {
     Array<{ type: string; content: string; link?: string }>
   >([]);
   const [isTyping, setIsTyping] = useState(true);
+  const [articles, setArticles] = useState<Article[]>([]);
 
   const sidebarConfig: SidebarThemeConfig = {
     themePrefix: 'terminal',
     linkColor: '#87ceeb',
   };
+
+  // 加载文章数据
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        const fetchedArticles = await fetchArticles();
+        setArticles(fetchedArticles);
+      } catch (error) {
+        console.error('Failed to load articles:', error);
+        setArticles([]);
+      }
+    };
+
+    loadArticles();
+  }, []);
 
   const terminalLines = [
     { type: "command", content: "whoami" },
@@ -41,15 +58,15 @@ const TerminalTheme: React.FC<TerminalThemeProps> = ({ data }) => {
       content: data.interests.map((interest) => interest.name).join("、"),
     },
     { type: "command", content: "cat articles/*.md | head -5" },
-    ...data.articles.slice(0, 5).map((article) => ({
+    ...articles.slice(0, 5).map((article) => ({
       type: "article-list",
       content: `${article.title} (${article.readTime}min)`,
     })),
-    ...(data.articles.length > 5
+    ...(articles.length > 5
       ? [
           {
             type: "view-more",
-            content: `... and ${data.articles.length - 5} more articles`,
+            content: `... and ${articles.length - 5} more articles`,
             link: "#articles",
           },
         ]
@@ -97,12 +114,12 @@ const TerminalTheme: React.FC<TerminalThemeProps> = ({ data }) => {
     { type: "command", content: "_" },
   ];
 
-  // 当data改变时，重置状态
+  // 当data或articles改变时，重置状态
   useEffect(() => {
     setCurrentLine(0);
     setDisplayedLines([]);
     setIsTyping(true);
-  }, [data]);
+  }, [data, articles]);
 
   useEffect(() => {
     if (currentLine < terminalLines.length) {

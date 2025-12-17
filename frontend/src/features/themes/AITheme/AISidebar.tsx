@@ -1,14 +1,35 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useLanguage } from '../../../shared/contexts/LanguageContext'
 import { personalDataMultiLang } from '../../../data/personalData'
 import { useTranslations } from '../../../shared/hooks/useTranslations'
 import StackedCardList from '../../../shared/components/themes/StackedCardList/StackedCardList'
 import type { StackedCardItem } from '../../../shared/components/themes/StackedCardList/StackedCardList'
+import { fetchArticles } from '../../../shared/utils/backendClient'
+import type { Article } from '../../../shared/types'
 
 export default function AISidebar() {
   const { language } = useLanguage()
   const { t } = useTranslations()
   const data = personalDataMultiLang[language]
+  const [articles, setArticles] = useState<Article[]>([])
+  const [isLoadingArticles, setIsLoadingArticles] = useState(true)
+
+  useEffect(() => {
+    const loadArticles = async () => {
+      try {
+        const fetchedArticles = await fetchArticles()
+        setArticles(fetchedArticles)
+      } catch (error) {
+        console.error('Failed to load articles:', error)
+        setArticles([])
+      } finally {
+        setIsLoadingArticles(false)
+      }
+    }
+
+    loadArticles()
+  }, [])
 
   return (
     <div className="ai-sidebar">
@@ -111,25 +132,35 @@ export default function AISidebar() {
         <div className="section-header">
           <h3>📄 {t("articles.title")}</h3>
         </div>
-        <StackedCardList
-          items={data.articles
-            .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
-            .map((article): StackedCardItem => ({
-              id: article.id,
-              title: article.title,
-              coverImage: article.coverImage,
-              link: `/articles/${article.id}`,
-              meta: {
-                date: article.publishDate,
-                readTime: article.readTime,
-              },
-            }))}
-          maxVisibleItems={10}
-          cardWidth={120}
-          overlapOffset={30}
-          viewMoreLink="/articles"
-          viewMoreText={t("articles.viewAll")}
-        />
+        {isLoadingArticles ? (
+          <div className="text-center py-4 text-sm text-gray-500">
+            {t("common.loading") || "Loading..."}
+          </div>
+        ) : articles.length === 0 ? (
+          <div className="text-center py-4 text-sm text-gray-500">
+            {t("articles.noArticles") || "No articles yet"}
+          </div>
+        ) : (
+          <StackedCardList
+            items={articles
+              .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime())
+              .map((article): StackedCardItem => ({
+                id: article.id,
+                title: article.title,
+                coverImage: article.coverImage,
+                link: `/articles/${article.id}`,
+                meta: {
+                  date: article.publishDate,
+                  readTime: article.readTime,
+                },
+              }))}
+            maxVisibleItems={10}
+            cardWidth={120}
+            overlapOffset={30}
+            viewMoreLink="/articles"
+            viewMoreText={t("articles.viewAll")}
+          />
+        )}
       </div>
 
       {/* 项目 - 卡片形式 */}
