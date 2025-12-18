@@ -39,7 +39,7 @@ services:
     container_name: minna-frontend
     restart: always
     ports:
-      - "80" # 映射容器80端口到宿主机8080端口
+      - "8080:80" # 映射容器80端口到宿主机8080端口（避免与Nginx冲突）
     depends_on:
       backend:
         condition: service_healthy

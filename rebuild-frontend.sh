@@ -34,9 +34,9 @@ docker compose logs --tail=50 frontend
 
 echo ""
 echo "✅ 重新构建完成！"
-echo "访问: http://你的服务器IP:80"
+echo "访问: http://你的服务器IP:8080"
 echo ""
 echo "💡 提示: 如果服务器有Nginx，可以配置反向代理："
 echo "   location / {"
-echo "       proxy_pass http://localhost:80;"
+echo "       proxy_pass http://localhost:8080;"
 echo "   }"
