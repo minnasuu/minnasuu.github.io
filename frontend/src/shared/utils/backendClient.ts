@@ -1,4 +1,5 @@
 import type { Article } from '../types';
+import { mockArticlesAPI } from './mockData';
 
 export interface ChatRequest {
   query: string;
@@ -21,6 +22,9 @@ export interface CreateArticleRequest {
   link?: string;
   type: string;
 }
+
+// Mock 模式配置
+const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'true' || false;
 
 const getBackendUrl = (): string => {
   // 如果设置了环境变量，优先使用
@@ -75,6 +79,12 @@ export const sendMessageToBackend = async (
 };
 
 export const fetchArticles = async (): Promise<Article[]> => {
+  // 如果启用 mock 模式或后端连接失败后的 fallback
+  if (USE_MOCK_DATA) {
+    console.log('📦 Using mock data for articles');
+    return mockArticlesAPI.fetchArticles();
+  }
+
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/articles`;
 
@@ -87,11 +97,17 @@ export const fetchArticles = async (): Promise<Article[]> => {
     return data;
   } catch (error) {
     console.error('Error fetching articles:', error);
-    throw error;
+    console.warn('⚠️ Backend unavailable, switching to mock data');
+    return mockArticlesAPI.fetchArticles();
   }
 };
 
 export const fetchArticleById = async (id: string): Promise<Article> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data for article ${id}`);
+    return mockArticlesAPI.fetchArticleById(id);
+  }
+
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/articles/${id}`;
 
@@ -104,11 +120,17 @@ export const fetchArticleById = async (id: string): Promise<Article> => {
     return data;
   } catch (error) {
     console.error(`Error fetching article ${id}:`, error);
-    throw error;
+    console.warn('⚠️ Backend unavailable, switching to mock data');
+    return mockArticlesAPI.fetchArticleById(id);
   }
 };
 
 export const createArticle = async (article: CreateArticleRequest): Promise<Article> => {
+  if (USE_MOCK_DATA) {
+    console.log('📦 Using mock data to create article');
+    return mockArticlesAPI.createArticle(article as any);
+  }
+
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/articles`;
 
@@ -128,11 +150,17 @@ export const createArticle = async (article: CreateArticleRequest): Promise<Arti
     return data;
   } catch (error) {
     console.error('Error creating article:', error);
-    throw error;
+    console.warn('⚠️ Backend unavailable, switching to mock data');
+    return mockArticlesAPI.createArticle(article as any);
   }
 };
 
 export const updateArticle = async (id: string, article: CreateArticleRequest): Promise<Article> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data to update article ${id}`);
+    return mockArticlesAPI.updateArticle(id, article as any);
+  }
+
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/articles/${id}`;
 
@@ -152,11 +180,17 @@ export const updateArticle = async (id: string, article: CreateArticleRequest): 
     return data;
   } catch (error) {
     console.error('Error updating article:', error);
-    throw error;
+    console.warn('⚠️ Backend unavailable, switching to mock data');
+    return mockArticlesAPI.updateArticle(id, article as any);
   }
 };
 
 export const deleteArticle = async (id: string): Promise<void> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data to delete article ${id}`);
+    return mockArticlesAPI.deleteArticle(id);
+  }
+
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/articles/${id}`;
 

@@ -7,7 +7,9 @@ import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteAr
 import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
-import { LandButton } from '@suminhan/land-design';
+import MockIndicator from '../../../shared/components/MockIndicator';
+import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect } from '@suminhan/land-design';
+import type { SelectItemType } from '@suminhan/land-design';
 
 const mdParser = new MarkdownIt(/* Markdown-it options */);
 
@@ -24,7 +26,6 @@ const ArticleEditorPage: React.FC = () => {
     link: '',
     type: 'tech',
   });
-  const [tagsInput, setTagsInput] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
@@ -67,7 +68,6 @@ const ArticleEditorPage: React.FC = () => {
             link: article.link || '',
             type: article.type,
           });
-          setTagsInput(article.tags.join(', '));
           setIsEditMode(true);
         } catch (error) {
           console.error('Failed to load article:', error);
@@ -79,6 +79,10 @@ const ArticleEditorPage: React.FC = () => {
     loadArticle();
   }, [currentArticleId]);
 
+  const handleSummaryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, summary: e.target.value }));
+  };
+
   const handleEditorChange = ({ text }: { text: string }) => {
     setFormData(prev => ({ ...prev, content: text }));
   };
@@ -88,9 +92,17 @@ const ArticleEditorPage: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTagsInput(e.target.value);
-    setFormData(prev => ({ ...prev, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }));
+  const handleTagsChange = (value: string[] | string) => {
+    const tags = Array.isArray(value) ? value : value.split(',').map(t => t.trim()).filter(Boolean);
+    setFormData(prev => ({ ...prev, tags }));
+  };
+
+  const handleReadTimeChange = (value: number) => {
+    setFormData(prev => ({ ...prev, readTime: value }));
+  };
+
+  const handleTypeChange = (item: SelectItemType) => {
+    setFormData(prev => ({ ...prev, type: item.key as 'tech' | 'essay' }));
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -128,7 +140,6 @@ const ArticleEditorPage: React.FC = () => {
       link: '',
       type: 'tech',
     });
-    setTagsInput('');
     setCurrentArticleId(undefined);
     setIsEditMode(false);
     setShowHistory(false);
@@ -187,6 +198,9 @@ const ArticleEditorPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] dark:bg-[#1a1a1a] flex flex-col relative transition-colors duration-300">
+      {/* Mock 数据指示器 */}
+      <MockIndicator />
+      
       {/* Top Bar */}
       <div className="flex items-center justify-between px-6 py-4 sticky top-0 z-50 bg-[#f9f9f9]/80 dark:bg-[#1a1a1a]/80 backdrop-blur-sm">
         <div className="flex items-center gap-4">
@@ -205,20 +219,14 @@ const ArticleEditorPage: React.FC = () => {
           <LandButton
             type='text'
             onClick={() => setShowHistory(!showHistory)}
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-              <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>}
+            icon={<Icon name='home' strokeWidth={4} size={18}/>}
           >
           </LandButton>
 
           <LandButton
             type='text'
             onClick={() => setShowSettings(!showSettings)}
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>}
+            icon={<Icon name='setting' strokeWidth={4} size={18}/>}
           >
           </LandButton>
           
@@ -281,49 +289,32 @@ const ArticleEditorPage: React.FC = () => {
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
             onClick={() => setShowSettings(false)}
           />
-          <div className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-[#202020] shadow-2xl z-50 p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out border-l dark:border-gray-800">
+          <div className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-[#202020] shadow-2xl z-50 p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out dark:border-gray-800">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">发布设置</h2>
-              <button 
-                onClick={() => setShowSettings(false)}
-                className="text-gray-500 hover:text-gray-900 dark:hover:text-white"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-              </button>
+              <LandButton type='transparent' icon={<Icon name='close' strokeWidth={4}/>} onClick={() => setShowSettings(false)}/>
             </div>
 
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">摘要</label>
-                <textarea
+                <LandHighlightTextarea
                   name="summary"
                   value={formData.summary}
-                  onChange={handleChange}
+                  onChange={handleSummaryChange}
                   rows={4}
-                  className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
                   placeholder="这篇文章讲了什么？"
+                  className='bg-[var(--color-bg-secondary)] dark:bg-[#1a1a1a] p-4 rounded-lg'
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">标签</label>
-                <input
-                  type="text"
-                  value={tagsInput}
+                <LandTagInput
+                  tags={formData.tags}
                   onChange={handleTagsChange}
-                  placeholder="React, Design, Tech"
-                  className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
+                  placeholder="添加标签..."
                 />
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.tags.map((tag, i) => (
-                    <span key={i} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -334,32 +325,30 @@ const ArticleEditorPage: React.FC = () => {
                     name="publishDate"
                     value={formData.publishDate}
                     onChange={handleChange}
-                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
+                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] dark:bg-gray-800/50 py-2.5 px-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">阅读时长 (分钟)</label>
-                  <input
-                    type="number"
-                    name="readTime"
+                  <LandNumberInput
+                  type='background'
                     value={formData.readTime}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
+                    onChange={handleReadTimeChange}
                   />
                 </div>
               </div>
 
               <div>
                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">类型</label>
-                 <select
-                   name="type"
-                   value={formData.type}
-                   onChange={handleChange}
-                   className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
-                 >
-                   <option value="tech">Tech</option>
-                   <option value="essay">Essay</option>
-                 </select>
+                 <LandSelect
+                 type='background'
+                   selected={formData.type}
+                   onChange={handleTypeChange}
+                   data={[
+                     { key: 'tech', label: 'Tech' },
+                     { key: 'essay', label: 'Essay' }
+                   ]}
+                 />
               </div>
 
                <div>
@@ -369,7 +358,7 @@ const ArticleEditorPage: React.FC = () => {
                     name="coverImage"
                     value={formData.coverImage}
                     onChange={handleChange}
-                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
+                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
                     placeholder="https://..."
                   />
                 </div>
@@ -397,33 +386,17 @@ const ArticleEditorPage: React.FC = () => {
             className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity"
             onClick={() => setShowHistory(false)}
           />
-          <div className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-[#202020] shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out border-r dark:border-gray-800">
+          <div className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-[#202020] shadow-2xl z-50 overflow-y-auto transform transition-transform duration-300 ease-in-out dark:border-gray-800">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">历史文章</h2>
-                <button 
-                  onClick={() => setShowHistory(false)}
-                  className="text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
+                <LandButton type='transparent' icon={<Icon name='close' strokeWidth={4}/>} onClick={() => setShowHistory(false)}/>
               </div>
 
-              <button
-                onClick={handleNewArticle}
-                className="w-full mb-4 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center justify-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                新建文章
-              </button>
+              <LandButton text='新建文章' type='background' icon={<Icon name='add' strokeWidth={4}/>}  onClick={handleNewArticle}/>
 
-              {isLoadingArticles ? (
+              <div className='mt-3'>
+                {isLoadingArticles ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                   加载中...
                 </div>
@@ -457,21 +430,19 @@ const ArticleEditorPage: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        <button
-                          onClick={(e) => handleDeleteArticle(article.id, e)}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-all"
-                          title="删除"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 dark:text-red-400">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          </svg>
-                        </button>
+                        <LandButton
+            type='transparent'
+            tip='删除'
+             onClick={(e) => handleDeleteArticle(article.id, e)}
+            icon={<Icon name='delete' strokeWidth={4}/>}
+          >
+          </LandButton>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
+              </div>
             </div>
           </div>
         </>
