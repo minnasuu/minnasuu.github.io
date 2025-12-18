@@ -20,7 +20,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/minna_blog
     depends_on:
       db:
-        condition: service_started
+        condition: service_healthy
     networks:
       - minna-network
     # 健康检查
@@ -59,6 +59,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - minna-network
+    # 健康检查
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 networks:
   minna-network:
     driver: bridge
