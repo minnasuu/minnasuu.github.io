@@ -215,6 +215,27 @@ export interface UploadImageResponse {
 }
 
 export const uploadImage = async (file: File): Promise<UploadImageResponse> => {
+  // Mock 模式下的图片上传模拟
+  if (USE_MOCK_DATA) {
+    console.log('📦 Using mock data for image upload');
+    await new Promise(resolve => setTimeout(resolve, 500)); // 模拟上传延迟
+    
+    // 使用 FileReader 将图片转换为 Data URL（Base64）
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        resolve({
+          success: true,
+          url: dataUrl, // 返回 Base64 格式的图片
+          filename: `mock-${Date.now()}-${file.name}`
+        });
+      };
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/upload`;
 
