@@ -3,7 +3,7 @@ import MdEditor from 'react-markdown-editor-lite';
 import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useParams } from 'react-router-dom';
-import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle } from '../../../shared/utils/backendClient';
+import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage } from '../../../shared/utils/backendClient';
 import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
@@ -32,6 +32,7 @@ const ArticleEditorPage: React.FC = () => {
   const [isLoadingArticles, setIsLoadingArticles] = useState(true);
   const [currentArticleId, setCurrentArticleId] = useState<string | undefined>(id);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // 加载历史文章列表
   useEffect(() => {
@@ -171,6 +172,35 @@ const ArticleEditorPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to delete article:', error);
       alert('Failed to delete article.');
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件');
+      return;
+    }
+
+    // 检查文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert('图片大小不能超过 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const result = await uploadImage(file);
+      setFormData(prev => ({ ...prev, coverImage: result.url }));
+      alert('图片上传成功！');
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('图片上传失败，请重试');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -352,15 +382,37 @@ const ArticleEditorPage: React.FC = () => {
               </div>
 
                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">封面图片 URL</label>
-                  <input
-                    type="text"
-                    name="coverImage"
-                    value={formData.coverImage}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
-                    placeholder="https://..."
-                  />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">封面图片</label>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <label className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                          disabled={isUploading}
+                        />
+                        <div className="w-full rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-[var(--color-bg-secondary)] dark:bg-gray-800/50 p-4 text-sm text-center cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-500 transition-colors">
+                          {isUploading ? (
+                            <span className="text-gray-500 dark:text-gray-400">上传中...</span>
+                          ) : (
+                            <span className="text-gray-600 dark:text-gray-400">
+                              点击上传图片 (最大 5MB)
+                            </span>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      name="coverImage"
+                      value={formData.coverImage}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border-gray-200 dark:border-gray-700 bg-[var(--color-bg-secondary)] dark:bg-gray-800/50 p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:text-white"
+                      placeholder="或输入图片 URL"
+                    />
+                  </div>
                 </div>
                 
                 {formData.coverImage && (

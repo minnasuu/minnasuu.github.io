@@ -207,3 +207,41 @@ export const deleteArticle = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+export interface UploadImageResponse {
+  success: boolean;
+  url: string;
+  filename: string;
+}
+
+export const uploadImage = async (file: File): Promise<UploadImageResponse> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/upload`;
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(errorData.error || `Failed to upload image: ${response.status}`);
+    }
+
+    const data: UploadImageResponse = await response.json();
+    
+    // 将相对路径转换为完整 URL
+    if (data.url && !data.url.startsWith('http')) {
+      data.url = `${backendUrl}${data.url}`;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+};

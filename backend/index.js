@@ -7,6 +7,7 @@ const fs = require('fs');
 const chatRoutes = require('./routes/chat');
 const healthRoutes = require('./routes/health');
 const articleRoutes = require('./routes/articles');
+const uploadRoutes = require('./routes/upload');
 
 // 加载环境变量 - 尝试多个可能的位置
 const possibleEnvPaths = [
@@ -53,6 +54,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// 静态文件服务 - 提供上传的图片访问
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // 请求日志中间件
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -63,6 +67,7 @@ app.use((req, res, next) => {
 app.use('/health', healthRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // 启动服务器
 app.listen(PORT, () => {
