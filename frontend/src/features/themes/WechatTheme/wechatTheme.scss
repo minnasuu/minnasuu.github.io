@@ -147,6 +147,15 @@
       &.user {
         flex-direction: row-reverse;
         align-self: flex-end;
+
+        .message-wrapper .message-bubble {
+          background: var(--wechat-bubble-user-bg);
+          color: #000;
+
+          .dark & {
+            color: #fff;
+          }
+        }
       }
 
       &.ai {
@@ -168,15 +177,20 @@
         }
 
         &.user-avatar {
-          background: #07c160;
+          background: #fff;
           display: flex;
           align-items: center;
           justify-content: center;
 
+          .dark & {
+            background: #2c2c2c;
+          }
+
           .user-avatar-placeholder {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
+            color: #b2b2b2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
         }
       }
@@ -201,15 +215,6 @@
           color: var(--wechat-text-primary);
           word-wrap: break-word;
           white-space: pre-wrap;
-
-          .user & {
-            background: var(--wechat-bubble-user-bg);
-            color: #000;
-
-            .dark & {
-              color: #fff;
-            }
-          }
 
           &.typing {
             padding: 10px 20px;
@@ -412,14 +417,6 @@
     &.moments-row {
       cursor: pointer;
       position: relative;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.03);
-        .dark & {
-          background-color: rgba(255, 255, 255, 0.03);
-        }
-      }
 
       .row-label-new {
         width: 60px;
@@ -435,7 +432,6 @@
         display: flex;
         gap: 6px;
         flex-wrap: nowrap;
-        overflow: hidden;
 
         .moment-img {
           width: 54px;

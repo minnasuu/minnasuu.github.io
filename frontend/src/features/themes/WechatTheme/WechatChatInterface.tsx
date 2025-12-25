@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../../shared/contexts/LanguageContext';
 import avatarImg from '../../../assets/images/wechat-avatar.jpg';
 import { sendMessageToBackend } from '../../../shared/utils/backendClient';
+import { Icon } from "@suminhan/land-design";
 import {
   saveChatMessages,
   loadChatMessages,
@@ -191,7 +192,9 @@ const WechatChatInterface: React.FC<WechatChatInterfaceProps> = ({ onToggleProfi
               {message.sender === "ai" ? (
                 <img src={avatarImg} alt="avatar" />
               ) : (
-                <div className="user-avatar-placeholder">你</div>
+                <div className="user-avatar-placeholder">
+                  <Icon name='avatar' size={20} />
+                </div>
               )}
             </div>
             <div className="message-wrapper">

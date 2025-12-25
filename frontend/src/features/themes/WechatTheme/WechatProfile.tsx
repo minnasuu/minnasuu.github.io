@@ -38,13 +38,6 @@ const WechatProfile: React.FC<WechatProfileProps> = ({ isOpen = true }) => {
         
         if (photos.length > 0) {
           setMomentsPhotos(photos);
-        } else {
-          // 如果没有文章封面，使用默认占位图
-          setMomentsPhotos([
-            { id: '1', coverImage: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200' },
-            { id: '2', coverImage: 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=200' },
-            { id: '3', coverImage: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=200' },
-          ]);
         }
       } catch (error) {
         console.error('Failed to load articles for moments:', error);
@@ -90,7 +83,7 @@ const WechatProfile: React.FC<WechatProfileProps> = ({ isOpen = true }) => {
       <div className="section-divider-line"></div>
 
       {/* 朋友圈区域 */}
-      <div className="profile-row-new moments-row" onClick={handleMomentsRowClick}>
+      {momentsPhotos.length > 0 && <div className="group profile-row-new moments-row" onClick={handleMomentsRowClick}>
         <div className="row-label-new">{language === "zh" ? "朋友圈" : "Moments"}</div>
         <div className="moments-photos">
           {momentsPhotos.map((photo) => (
@@ -103,12 +96,12 @@ const WechatProfile: React.FC<WechatProfileProps> = ({ isOpen = true }) => {
             />
           ))}
         </div>
-        <div className="row-arrow">
+        <div className="group-hover:opacity-100 opacity-0 row-arrow transition-opacity">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" fill="currentColor"/>
           </svg>
         </div>
-      </div>
+      </div>}
 
       <div className="section-divider-line"></div>
 
