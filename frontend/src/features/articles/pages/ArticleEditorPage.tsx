@@ -8,7 +8,7 @@ import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
-import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandUploader } from '@suminhan/land-design';
+import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandDialog } from '@suminhan/land-design';
 import type { SelectItemType } from '@suminhan/land-design';
 import '../styles/shared-markdown.css';
 
@@ -42,6 +42,57 @@ const ArticleEditorPage: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isParsingMarkdown, setIsParsingMarkdown] = useState(false);
+
+  // Dialog 状态管理
+  const [dialogConfig, setDialogConfig] = useState<{
+    show: boolean;
+    type: 'alert' | 'confirm';
+    title: string;
+    message: string;
+    onConfirm?: () => void;
+    confirmLabel?: string;
+    cancelLabel?: string;
+  }>({
+    show: false,
+    type: 'alert',
+    title: '',
+    message: '',
+  });
+
+  // 显示提示对话框
+  const showAlert = (title: string, message: string) => {
+    setDialogConfig({
+      show: true,
+      type: 'alert',
+      title,
+      message,
+      confirmLabel: '确定',
+    });
+  };
+
+  // 显示确认对话框
+  const showConfirm = (
+    title: string,
+    message: string,
+    onConfirm: () => void,
+    confirmLabel: string = '确定',
+    cancelLabel: string = '取消'
+  ) => {
+    setDialogConfig({
+      show: true,
+      type: 'confirm',
+      title,
+      message,
+      onConfirm,
+      confirmLabel,
+      cancelLabel,
+    });
+  };
+
+  // 关闭对话框
+  const closeDialog = () => {
+    setDialogConfig(prev => ({ ...prev, show: false }));
+  };
 
   // 编辑器访问密码已移至后端验证，前端不再需要存储
 
@@ -117,22 +168,30 @@ const ArticleEditorPage: React.FC = () => {
               const articleTime = new Date(article.publishDate);
               
               if (draftTime > articleTime) {
-                shouldUseDraft = confirm('检测到较新的本地草稿，是否恢复？\n\n选择"确定"恢复草稿\n选择"取消"加载已发布版本');
-              }
-              
-              if (shouldUseDraft) {
-                setFormData({
-                  title: draft.title || '',
-                  summary: draft.summary || '',
-                  content: draft.content || '',
-                  publishDate: draft.publishDate || article.publishDate,
-                  tags: draft.tags || [],
-                  readTime: draft.readTime || 5,
-                  coverImage: draft.coverImage || '',
-                  link: draft.link || '',
-                  type: draft.type || 'tech',
-                });
-                setIsEditMode(true);
+                showConfirm(
+                  '检测到较新的本地草稿',
+                  '选择"确定"恢复草稿\n选择"取消"加载已发布版本',
+                  () => {
+                    shouldUseDraft = true;
+                    if (shouldUseDraft) {
+                      setFormData({
+                        title: draft.title || '',
+                        summary: draft.summary || '',
+                        content: draft.content || '',
+                        publishDate: draft.publishDate || article.publishDate,
+                        tags: draft.tags || [],
+                        readTime: draft.readTime || 5,
+                        coverImage: draft.coverImage || '',
+                        link: draft.link || '',
+                        type: draft.type || 'tech',
+                      });
+                      setIsEditMode(true);
+                    }
+                    closeDialog();
+                  },
+                  '恢复草稿',
+                  '加载已发布版本'
+                );
                 return;
               }
             } catch (error) {
@@ -155,7 +214,7 @@ const ArticleEditorPage: React.FC = () => {
           setIsEditMode(true);
         } catch (error) {
           console.error('Failed to load article:', error);
-          alert('Failed to load article.');
+          showAlert('加载失败', '无法加载文章，请稍后重试');
         }
       }
     };
@@ -210,7 +269,7 @@ const ArticleEditorPage: React.FC = () => {
     try {
       if (isEditMode && currentArticleId) {
         await updateArticle(currentArticleId, formData);
-        alert('文章更新成功！');
+        showAlert('更新成功', '文章已成功更新！');
         setLastSavedTime(new Date());
         // 清除对应的草稿
         localStorage.removeItem(`draft_${currentArticleId}`);
@@ -218,7 +277,7 @@ const ArticleEditorPage: React.FC = () => {
         const newArticle = await createArticle(formData);
         setCurrentArticleId(newArticle.id);
         setIsEditMode(true);
-        alert('文章发布成功！');
+        showAlert('发布成功', '文章已成功发布！');
         setLastSavedTime(new Date());
         // 清除新建文章的草稿
         localStorage.removeItem('draft_new');
@@ -230,7 +289,7 @@ const ArticleEditorPage: React.FC = () => {
       ));
     } catch (error) {
       console.error('Failed to publish article:', error);
-      alert('操作失败，请重试');
+      showAlert('操作失败', '操作失败，请稍后重试');
     } finally {
       setIsSaving(false);
     }
@@ -264,19 +323,26 @@ const ArticleEditorPage: React.FC = () => {
       const draftData = localStorage.getItem('draft_new');
       if (draftData) {
         const draft = JSON.parse(draftData);
-        if (confirm('检测到未发布的草稿，是否恢复？')) {
-          setFormData({
-            title: draft.title || '',
-            summary: draft.summary || '',
-            content: draft.content || '',
-            publishDate: draft.publishDate || new Date().toISOString().split('T')[0],
-            tags: draft.tags || [],
-            readTime: draft.readTime || 5,
-            coverImage: draft.coverImage || '',
-            link: draft.link || '',
-            type: draft.type || 'tech',
-          });
-        }
+        showConfirm(
+          '检测到未发布的草稿',
+          '是否恢复草稿内容？',
+          () => {
+            setFormData({
+              title: draft.title || '',
+              summary: draft.summary || '',
+              content: draft.content || '',
+              publishDate: draft.publishDate || new Date().toISOString().split('T')[0],
+              tags: draft.tags || [],
+              readTime: draft.readTime || 5,
+              coverImage: draft.coverImage || '',
+              link: draft.link || '',
+              type: draft.type || 'tech',
+            });
+            closeDialog();
+          },
+          '恢复草稿',
+          '忽略'
+        );
       }
     } catch (error) {
       console.error('Failed to load draft:', error);
@@ -296,8 +362,17 @@ const ArticleEditorPage: React.FC = () => {
         const draftTime = new Date(draft.savedAt);
         const articleTime = new Date(article.publishDate);
         
-        if (draftTime > articleTime && confirm('检测到较新的草稿，是否恢复？')) {
-          // 不加载，等 useEffect 自动加载文章后再决定
+        if (draftTime > articleTime) {
+          showConfirm(
+            '检测到较新的草稿',
+            '是否恢复草稿内容？',
+            () => {
+              // 不加载，等 useEffect 自动加载文章后再决定
+              closeDialog();
+            },
+            '恢复草稿',
+            '忽略'
+          );
           return;
         }
       }
@@ -308,26 +383,34 @@ const ArticleEditorPage: React.FC = () => {
 
   const handleDeleteArticle = async (articleId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this article?')) return;
     
-    try {
-      await deleteArticle(articleId);
-      alert('Article deleted successfully!');
-      
-      // 重新加载文章列表
-      const fetchedArticles = await fetchArticles();
-      setArticles(fetchedArticles.sort((a, b) => 
-        new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
-      ));
-      
-      // 如果删除的是当前文章，清空编辑器
-      if (articleId === currentArticleId) {
-        handleNewArticle();
-      }
-    } catch (error) {
-      console.error('Failed to delete article:', error);
-      alert('Failed to delete article.');
-    }
+    showConfirm(
+      '确认删除',
+      '确定要删除这篇文章吗？此操作无法撤销。',
+      async () => {
+        try {
+          await deleteArticle(articleId);
+          showAlert('删除成功', '文章已成功删除');
+          
+          // 重新加载文章列表
+          const fetchedArticles = await fetchArticles();
+          setArticles(fetchedArticles.sort((a, b) => 
+            new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+          ));
+          
+          // 如果删除的是当前文章，清空编辑器
+          if (articleId === currentArticleId) {
+            handleNewArticle();
+          }
+        } catch (error) {
+          console.error('Failed to delete article:', error);
+          showAlert('删除失败', '无法删除文章，请稍后重试');
+        }
+        closeDialog();
+      },
+      '删除',
+      '取消'
+    );
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -336,13 +419,13 @@ const ArticleEditorPage: React.FC = () => {
 
     // 检查文件类型
     if (!file.type.startsWith('image/')) {
-      alert('请选择图片文件');
+      showAlert('文件类型错误', '请选择图片文件');
       return;
     }
 
     // 检查文件大小（5MB）
     if (file.size > 5 * 1024 * 1024) {
-      alert('图片大小不能超过 5MB');
+      showAlert('文件过大', '图片大小不能超过 5MB');
       return;
     }
 
@@ -350,10 +433,10 @@ const ArticleEditorPage: React.FC = () => {
     try {
       const result = await uploadImage(file);
       setFormData(prev => ({ ...prev, coverImage: result.url }));
-      alert('图片上传成功！');
+      showAlert('上传成功', '图片上传成功！');
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert('图片上传失败，请重试');
+      showAlert('上传失败', '图片上传失败，请稍后重试');
     } finally {
       setIsUploading(false);
     }
@@ -403,16 +486,39 @@ const ArticleEditorPage: React.FC = () => {
 
     // 检查文件类型
     if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown')) {
-      alert('请选择 Markdown 文件（.md 或 .markdown）');
+      showAlert('文件类型错误', '请选择 Markdown 文件（.md 或 .markdown）');
+      e.target.value = '';
       return;
     }
 
     // 检查文件大小（10MB）
     if (file.size > 10 * 1024 * 1024) {
-      alert('文件大小不能超过 10MB');
+      showAlert('文件过大', '文件大小不能超过 10MB');
+      e.target.value = '';
       return;
     }
 
+    // 检查是否已有内容，提示用户确认覆盖
+    const hasContent = formData.title.trim() || formData.content.trim() || formData.summary.trim();
+    if (hasContent) {
+      showConfirm(
+        '⚠️ 检测到当前编辑器中已有内容',
+        '上传新文件将会覆盖以下内容：\n• 标题\n• 摘要\n• 正文内容\n• 标签\n• 其他元数据\n\n是否继续上传？',
+        async () => {
+          closeDialog();
+          await parseAndFillMarkdown(file, e);
+        },
+        '继续上传',
+        '取消'
+      );
+      return;
+    }
+
+    await parseAndFillMarkdown(file, e);
+  };
+
+  // 解析并填充 Markdown 内容
+  const parseAndFillMarkdown = async (file: File, e: React.ChangeEvent<HTMLInputElement>) => {
     setIsParsingMarkdown(true);
     try {
       const text = await file.text();
@@ -436,13 +542,14 @@ const ArticleEditorPage: React.FC = () => {
                      prev.publishDate,
       }));
 
-      alert('✅ Markdown 文件解析成功！已自动填充内容。');
+      showAlert('解析成功', '✅ Markdown 文件解析成功！已自动填充内容。');
       
       // 清空文件选择器
       e.target.value = '';
     } catch (error) {
       console.error('Failed to parse markdown file:', error);
-      alert('❌ Markdown 文件解析失败，请检查文件格式');
+      showAlert('解析失败', '❌ Markdown 文件解析失败，请检查文件格式');
+      e.target.value = '';
     } finally {
       setIsParsingMarkdown(false);
     }
@@ -607,6 +714,29 @@ const ArticleEditorPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] dark:bg-[#1a1a1a] flex flex-col relative transition-colors duration-300">
+      {/* 全局 Dialog */}
+      <LandDialog
+        show={dialogConfig.show}
+        title={dialogConfig.title}
+        onClose={closeDialog}
+        mask={true}
+        size="medium"
+        cancelLabel={dialogConfig.type === 'confirm' ? dialogConfig.cancelLabel : undefined}
+        submitLabel={dialogConfig.confirmLabel}
+        onCancel={dialogConfig.type === 'confirm' ? closeDialog : undefined}
+        onSubmit={() => {
+          if (dialogConfig.type === 'confirm' && dialogConfig.onConfirm) {
+            dialogConfig.onConfirm();
+          } else {
+            closeDialog();
+          }
+        }}
+      >
+        <div className="py-4 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+          {dialogConfig.message}
+        </div>
+      </LandDialog>
+
       {/* 密码验证弹窗 */}
       {!isAuthenticated && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
