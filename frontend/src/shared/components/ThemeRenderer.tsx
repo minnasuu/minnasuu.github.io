@@ -5,6 +5,8 @@ import type { PersonalData } from '../types';
 import type { Language } from '../contexts/LanguageContext';
 import TerminalTheme from '../../features/themes/TerminalTheme';
 import AITheme from '../../features/themes/AITheme';
+import WechatTheme from '../../features/themes/WechatTheme';
+import { themeTextColors } from '../../config/themeColors';
 
 interface ThemeRendererProps {
   data: Record<Language, PersonalData>;
@@ -21,6 +23,8 @@ const ThemeRenderer: React.FC<ThemeRendererProps> = ({ data }) => {
     switch (currentTheme) {
       case 'ai':
         return <AITheme />;
+      case 'wechat':
+        return <WechatTheme fontColor={themeTextColors.wechat} />;
       case 'terminal':
       default:
         return <TerminalTheme data={currentData} />;

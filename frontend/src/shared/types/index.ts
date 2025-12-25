@@ -70,7 +70,7 @@ export interface PersonalData {
 }
 
 // 风格类型定义
-export type ThemeStyle = 'terminal' | 'ai';
+export type ThemeStyle = 'terminal' | 'ai' | 'wechat';
 
 export interface ThemeConfig {
   name: ThemeStyle;

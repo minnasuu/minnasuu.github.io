@@ -12,6 +12,12 @@ export const themes: ThemeConfig[] = [
     displayName: 'AI对话',
     description: 'AI人格化对话界面',
     icon: '🤖'
+  },
+  {
+    name: 'wechat',
+    displayName: '微信风格',
+    description: '仿微信聊天界面',
+    icon: '💬'
   }
 ];
 
