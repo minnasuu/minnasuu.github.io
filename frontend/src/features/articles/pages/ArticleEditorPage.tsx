@@ -8,7 +8,7 @@ import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
-import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect } from '@suminhan/land-design';
+import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandUploader } from '@suminhan/land-design';
 import type { SelectItemType } from '@suminhan/land-design';
 import '../styles/shared-markdown.css';
 
@@ -41,6 +41,7 @@ const ArticleEditorPage: React.FC = () => {
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isParsingMarkdown, setIsParsingMarkdown] = useState(false);
 
   // 编辑器访问密码已移至后端验证，前端不再需要存储
 
@@ -358,6 +359,95 @@ const ArticleEditorPage: React.FC = () => {
     }
   };
 
+  // 解析 Markdown frontmatter
+  const parseFrontmatter = (content: string): { metadata: Record<string, any>; content: string } => {
+    const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+    const match = content.match(frontmatterRegex);
+    
+    if (!match) {
+      return { metadata: {}, content };
+    }
+
+    const [, frontmatterText, mainContent] = match;
+    const metadata: Record<string, any> = {};
+
+    // 解析 YAML 格式的 frontmatter
+    frontmatterText.split('\n').forEach(line => {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        const key = line.substring(0, colonIndex).trim();
+        let value: string | string[] = line.substring(colonIndex + 1).trim();
+        
+        // 处理引号
+        if ((value.startsWith('"') && value.endsWith('"')) || 
+            (value.startsWith("'") && value.endsWith("'"))) {
+          value = value.slice(1, -1);
+        }
+        
+        // 处理数组（简单的逗号分隔）
+        if (value.startsWith('[') && value.endsWith(']')) {
+          value = value.slice(1, -1).split(',').map(v => v.trim().replace(/['"]/g, ''));
+        }
+        
+        metadata[key] = value;
+      }
+    });
+
+    return { metadata, content: mainContent };
+  };
+
+  // 处理 Markdown 文件上传
+  const handleMarkdownUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown')) {
+      alert('请选择 Markdown 文件（.md 或 .markdown）');
+      return;
+    }
+
+    // 检查文件大小（10MB）
+    if (file.size > 10 * 1024 * 1024) {
+      alert('文件大小不能超过 10MB');
+      return;
+    }
+
+    setIsParsingMarkdown(true);
+    try {
+      const text = await file.text();
+      const { metadata, content } = parseFrontmatter(text);
+
+      // 自动填充表单数据
+      setFormData(prev => ({
+        ...prev,
+        title: metadata.title || file.name.replace(/\.md$|\.markdown$/, ''),
+        summary: metadata.summary || metadata.description || '',
+        content: content.trim(),
+        tags: Array.isArray(metadata.tags) ? metadata.tags : 
+              typeof metadata.tags === 'string' ? metadata.tags.split(',').map((t: string) => t.trim()) : 
+              prev.tags,
+        readTime: metadata.readTime || metadata.read_time || prev.readTime,
+        coverImage: metadata.coverImage || metadata.cover || metadata.image || prev.coverImage,
+        link: metadata.link || metadata.url || prev.link,
+        type: metadata.type === 'essay' ? 'essay' : 'tech',
+        publishDate: metadata.date || metadata.publishDate ? 
+                     new Date(metadata.date || metadata.publishDate).toISOString().split('T')[0] : 
+                     prev.publishDate,
+      }));
+
+      alert('✅ Markdown 文件解析成功！已自动填充内容。');
+      
+      // 清空文件选择器
+      e.target.value = '';
+    } catch (error) {
+      console.error('Failed to parse markdown file:', error);
+      alert('❌ Markdown 文件解析失败，请检查文件格式');
+    } finally {
+      setIsParsingMarkdown(false);
+    }
+  };
+
   // 保存快捷键监听
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -612,6 +702,17 @@ const ArticleEditorPage: React.FC = () => {
               tipProps={{placement:'bottom'}}
           >
           </LandButton>
+
+          <label className='relative w-9 h-9 flex items-center justify-center ounded-lg hover:bg-[var(--color-bg-secondary)] dark:hover:bg-gray-800 transition-colors cursor-pointer z-1 flex-shrink-0'>
+            <input
+              type="file"
+              accept=".md,.markdown"
+              onChange={handleMarkdownUpload}
+              className="absolute w-full h-full hidden"
+              disabled={isParsingMarkdown}
+            />
+              <Icon name='upload' strokeWidth={4} size={18}/>
+          </label>
 
           <LandButton
             type='text'
