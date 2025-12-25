@@ -266,3 +266,31 @@ export const uploadImage = async (file: File): Promise<UploadImageResponse> => {
     throw error;
   }
 };
+
+// 密码验证接口
+export interface VerifyPasswordResponse {
+  success: boolean;
+  message: string;
+  token?: string;
+}
+
+export const verifyEditorPassword = async (password: string): Promise<VerifyPasswordResponse> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/auth/verify-editor-password`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password }),
+    });
+
+    const data: VerifyPasswordResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error verifying password:', error);
+    throw error;
+  }
+};

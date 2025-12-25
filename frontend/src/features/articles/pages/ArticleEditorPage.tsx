@@ -3,7 +3,7 @@ import MdEditor from 'react-markdown-editor-lite';
 import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage } from '../../../shared/utils/backendClient';
+import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, verifyEditorPassword } from '../../../shared/utils/backendClient';
 import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
@@ -40,9 +40,9 @@ const ArticleEditorPage: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  // 编辑器访问密码（从环境变量获取，默认值作为后备）
-  const EDITOR_PASSWORD = import.meta.env.VITE_EDITOR_PASSWORD;
+  // 编辑器访问密码已移至后端验证，前端不再需要存储
 
   // 检查本地存储的认证状态
   useEffect(() => {
@@ -52,17 +52,31 @@ const ArticleEditorPage: React.FC = () => {
     }
   }, []);
 
-  // 处理密码验证
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  // 处理密码验证 - 调用后端 API
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === EDITOR_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('editor_authenticated', 'true');
-      setPasswordError('');
-      setPasswordInput('');
-    } else {
-      setPasswordError('密码错误，请重试');
-      setPasswordInput('');
+    setIsVerifying(true);
+    setPasswordError('');
+
+    try {
+      const data = await verifyEditorPassword(passwordInput);
+      
+      if (data.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('editor_authenticated', 'true');
+        if (data.token) {
+          sessionStorage.setItem('editor_token', data.token);
+        }
+        setPasswordInput('');
+      } else {
+        setPasswordError(data.message || '密码错误，请重试');
+        setPasswordInput('');
+      }
+    } catch (error) {
+      console.error('密码验证失败:', error);
+      setPasswordError('验证失败，请检查网络连接');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -541,12 +555,12 @@ const ArticleEditorPage: React.FC = () => {
                 type="background"
                 text="验证访问"
                 onClick={handlePasswordSubmit}
-                disabled={!passwordInput}
+                disabled={!passwordInput || isVerifying}
               />
 
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-                  提示：密码验证仅在当前会话有效
+                  提示：密码在后端安全验证，不会暴露到前端
                 </p>
               </div>
             </form>
