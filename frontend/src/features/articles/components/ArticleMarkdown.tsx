@@ -1,7 +1,7 @@
 import React from 'react'
 import { marked } from 'marked'
 import ArticleCode from './ArticleCode'
-import './ArticleMarkdown.css'
+import '../styles/shared-markdown.css'
 
 type Props = {
     children: string;
@@ -79,14 +79,7 @@ const ArticleMarkdown: React.FC<Props> = ({
     const parsedContent = parseMarkdownWithCodeBlocks(children);
 
     return (
-        <div 
-            className={`article-markdown ${className}`}
-            style={{
-                lineHeight: '1.6',
-                fontSize: '16px',
-                color: 'inherit'
-            }}
-        >
+        <div className={`markdown-content ${className}`}>
             {parsedContent}
         </div>
     )

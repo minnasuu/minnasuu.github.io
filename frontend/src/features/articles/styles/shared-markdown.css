@@ -1,0 +1,495 @@
+/* 共享的 Markdown 样式 - 用于文章详情页和编辑器预览 */
+
+/* 基础样式 */
+.markdown-content {
+  max-width: 100%;
+  word-wrap: break-word;
+  color: #333333;
+  line-height: 1.8;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* 标题样式 */
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #1a1a1a;
+}
+
+.markdown-content h1 {
+  font-size: 2.2em;
+  padding: 0 0 20px 0;
+ margin-top: 3em;
+ margin-bottom: 2em;
+  position: relative;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+/* H1 装饰线 - 双线设计 */
+.markdown-content h1::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 4px;
+  background: #dde2e9;
+}
+
+.markdown-content h2 {
+  font-size: 1.6em;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.markdown-content h3 {
+  font-size: 1.35em;
+}
+
+.markdown-content h4 {
+  font-size: 1.15em;
+}
+
+.markdown-content h5 {
+  font-size: 1em;
+  color: #555555;
+}
+
+.markdown-content h6 {
+  font-size: 0.95em;
+  color: #666666;
+}
+
+/* 第一个标题特殊处理 */
+.markdown-content h1:first-child,
+.markdown-content h2:first-child,
+.markdown-content h3:first-child {
+  margin-top: 0;
+}
+
+/* 段落样式 */
+.markdown-content p {
+  margin-top: 0;
+  margin-bottom: 16px;
+  line-height: 1.8;
+  text-indent: 0;
+  color: #333333;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* 引用块样式 */
+.markdown-content blockquote {
+  padding: 16px 20px;
+  margin: 20px 0;
+  color: #5a5a5a;
+  background-color: #f8f9fa;
+  border-left: 4px solid #d0d7de;
+  border-radius: 4px;
+}
+
+.markdown-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+.markdown-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content blockquote p {
+  margin-bottom: 8px;
+}
+
+/* 列表样式 */
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 28px;
+  margin: 16px 0;
+}
+
+.markdown-content ul {
+  list-style: disc;
+}
+
+.markdown-content ol {
+  list-style: decimal;
+}
+
+.markdown-content li {
+  margin: 8px 0;
+  line-height: 1.8;
+}
+
+.markdown-content li > p {
+  margin-bottom: 8px;
+}
+
+.markdown-content li:last-child {
+  margin-bottom: 0;
+}
+
+/* 嵌套列表 */
+.markdown-content ul ul,
+.markdown-content ol ol,
+.markdown-content ul ol,
+.markdown-content ol ul {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+/* 代码样式 */
+.markdown-content code {
+  padding: 3px 6px;
+  margin: 0 2px;
+  font-size: 0.9em;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+  color: #d73a49;
+  font-weight: 500;
+}
+
+.markdown-content pre {
+  padding: 20px;
+  margin: 20px 0;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  background-color: #f6f8fa;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.markdown-content pre code {
+  display: block;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: #333333;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  font-weight: normal;
+  overflow: visible;
+  word-wrap: normal;
+}
+
+/* 表格样式 */
+.markdown-content table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin: 24px 0;
+  width: 100%;
+  overflow: auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.markdown-content table th {
+  font-weight: 600;
+  background-color: #f6f8fa;
+  color: #1a1a1a;
+  border-bottom: 1px solid #e8e8e8;
+  &:not(:last-child){
+    border-right: 1px solid #e8e8e8;
+  }
+}
+.markdown-content table tr{
+    &:not(:last-child) td{
+    border-bottom: 1px solid #e8e8e8;
+    }
+    td:not(:last-child){
+        border-right: 1px solid #e8e8e8;
+    }
+}
+.markdown-content table tr {
+  background-color: #ffffff;
+}
+
+.markdown-content table tr:nth-child(2n) {
+  background-color: #fafbfc;
+}
+
+.markdown-content table tr:hover {
+  background-color: #f3f4f6;
+}
+
+/* 图片样式 */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 24px auto;
+  display: block;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 分割线样式 */
+.markdown-content hr {
+  height: 2px;
+  padding: 0;
+  margin: 32px 0;
+  background: linear-gradient(to right, transparent, #e8e8e8 20%, #e8e8e8 80%, transparent);
+  border: 0;
+}
+
+/* 链接样式 */
+.markdown-content a {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.markdown-content a:hover {
+  color: #0052a3;
+  border-bottom-color: #0066cc;
+}
+
+/* 文本样式 */
+.markdown-content strong {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.markdown-content em {
+  font-style: italic;
+  color: #555555;
+}
+
+/* 暗色主题适配 */
+@media (prefers-color-scheme: dark) {
+  .markdown-content {
+    color: #d4d4d4;
+  }
+
+  .markdown-content h1,
+  .markdown-content h2,
+  .markdown-content h3,
+  .markdown-content h4 {
+    color: #e8e8e8;
+  }
+
+  .markdown-content h1 {
+    border-bottom-color: #3a3a3a;
+  }
+
+  .markdown-content h1::after {
+    background: linear-gradient(90deg, #4db8ff 0%, #7dccff 50%, transparent 100%);
+  }
+
+  .markdown-content h2 {
+    border-bottom-color: #2a2a2a;
+  }
+  
+  .markdown-content h5,
+  .markdown-content h6 {
+    color: #a8a8a8;
+  }
+
+  .markdown-content p {
+    color: #d4d4d4;
+  }
+  
+  .markdown-content blockquote {
+    color: #a8a8a8;
+    background-color: #202020;
+    border-left-color: #404040;
+  }
+  
+  .markdown-content code {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #ff6b6b;
+  }
+  
+  .markdown-content pre {
+    background-color: #1a1a1a;
+    border-color: #2a2a2a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .markdown-content pre code {
+    color: #d4d4d4;
+  }
+  
+  .markdown-content table {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  .markdown-content table th,
+  .markdown-content table td {
+    border-color: #3a3a3a;
+  }
+  
+  .markdown-content table th {
+    background-color: #252525;
+    color: #e8e8e8;
+  }
+  
+  .markdown-content table tr {
+    background-color: #1a1a1a;
+    border-top-color: #2a2a2a;
+  }
+  
+  .markdown-content table tr:nth-child(2n) {
+    background-color: #202020;
+  }
+
+  .markdown-content table tr:hover {
+    background-color: #252525;
+  }
+
+  .markdown-content img {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+  
+  .markdown-content hr {
+    background: linear-gradient(to right, transparent, #3a3a3a 20%, #3a3a3a 80%, transparent);
+  }
+  
+  .markdown-content a {
+    color: #4db8ff;
+  }
+
+  .markdown-content a:hover {
+    color: #7dccff;
+    border-bottom-color: #4db8ff;
+  }
+
+  .markdown-content strong {
+    color: #e8e8e8;
+  }
+
+  .markdown-content em {
+    color: #a8a8a8;
+  }
+}
+
+/* Tailwind dark: 类适配 */
+.dark .markdown-content {
+  color: #d4d4d4;
+}
+
+.dark .markdown-content h1,
+.dark .markdown-content h2,
+.dark .markdown-content h3,
+.dark .markdown-content h4 {
+  color: #e8e8e8;
+}
+
+.dark .markdown-content h1 {
+  border-bottom-color: #3a3a3a;
+}
+
+.dark .markdown-content h1::after {
+  background: linear-gradient(90deg, #4db8ff 0%, #7dccff 50%, transparent 100%);
+}
+
+.dark .markdown-content h2 {
+  border-bottom-color: #2a2a2a;
+}
+
+.dark .markdown-content h5,
+.dark .markdown-content h6 {
+  color: #a8a8a8;
+}
+
+.dark .markdown-content p {
+  color: #d4d4d4;
+}
+
+.dark .markdown-content blockquote {
+  color: #a8a8a8;
+  background-color: #202020;
+  border-left-color: #404040;
+}
+
+.dark .markdown-content code {
+  background-color: #2a2a2a;
+  border-color: #3a3a3a;
+  color: #ff6b6b;
+}
+
+.dark .markdown-content pre {
+  background-color: #1a1a1a;
+  border-color: #2a2a2a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .markdown-content pre code {
+  color: #d4d4d4;
+}
+
+.dark .markdown-content table {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .markdown-content table th,
+.dark .markdown-content table td {
+  border-color: #3a3a3a;
+}
+
+.dark .markdown-content table th {
+  background-color: #252525;
+  color: #e8e8e8;
+}
+
+.dark .markdown-content table tr {
+  background-color: #1a1a1a;
+  border-top-color: #2a2a2a;
+}
+
+.dark .markdown-content table tr:nth-child(2n) {
+  background-color: #202020;
+}
+
+.dark .markdown-content table tr:hover {
+  background-color: #252525;
+}
+
+.dark .markdown-content img {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.dark .markdown-content hr {
+  background: linear-gradient(to right, transparent, #3a3a3a 20%, #3a3a3a 80%, transparent);
+}
+
+.dark .markdown-content a {
+  color: #4db8ff;
+}
+
+.dark .markdown-content a:hover {
+  color: #7dccff;
+  border-bottom-color: #4db8ff;
+}
+
+.dark .markdown-content strong {
+  color: #e8e8e8;
+}
+
+.dark .markdown-content em {
+  color: #a8a8a8;
+}
