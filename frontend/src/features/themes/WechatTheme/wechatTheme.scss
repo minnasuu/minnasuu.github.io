@@ -87,33 +87,39 @@
       display: flex;
       gap: 16px;
       color: #888888;
+    }
+  }
 
-      .header-action-btn {
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        color: inherit;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
+  // 通用图标按钮样式
+  .header-action-btn,
+  .toolbar-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border-radius: 4px;
 
-        &:hover {
-          color: var(--wechat-text-primary);
-        }
-
-        &.active {
-          color: #07c160;
-          background: rgba(7, 193, 96, 0.1);
-          border-radius: 4px;
-        }
-
-        svg {
-          width: 20px;
-          height: 20px;
-        }
+    &:hover {
+      color: var(--wechat-text-primary);
+      background: rgba(0, 0, 0, 0.05);
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
       }
+    }
+
+    &.active {
+      color: #07c160;
+      background: rgba(7, 193, 96, 0.1);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
     }
   }
 
@@ -259,30 +265,6 @@
       gap: 16px;
       margin-bottom: 8px;
       color: #888888;
-
-      .toolbar-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px;
-        color: inherit;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: color 0.2s;
-
-        &:hover {
-          color: #555555;
-          .dark & {
-            color: #bbbbbb;
-          }
-        }
-
-        svg {
-          width: 20px;
-          height: 20px;
-        }
-      }
     }
 
     .input-wrapper {
@@ -319,6 +301,7 @@
       }
 
       .send-btn {
+        width: 80px;
         padding: 8px 24px;
         background: #07c160;
         color: #fff;
@@ -472,31 +455,44 @@
     align-items: center;
     padding-bottom: 80px;
 
-    .send-message-btn {
+    .add-contact-btn {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
+      justify-content: center;
+      padding: 12px 40px;
+      background-color: #f2f2f2;
+      border-radius: 8px;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: all 0.2s;
+      width: fit-content;
 
-      &:hover {
-        opacity: 0.8;
+      .dark & {
+        background-color: #2c2c2c;
       }
 
-      .msg-icon {
-        width: 32px;
-        height: 32px;
-        margin-bottom: 8px;
+      &:hover {
+        background-color: #e8e8e8;
+        .dark & {
+          background-color: #383838;
+        }
+      }
+
+      .action-icon {
+        width: 20px;
+        height: 20px;
+        margin-bottom: 0;
+        margin-right: 8px;
         
         path {
-          fill: var(--wechat-text-link);
+          fill: #576B95;
         }
       }
 
       .btn-text {
-        font-size: 15px;
-        color: var(--wechat-text-link);
-        font-weight: 500;
+        font-size: 16px;
+        color: #576B95;
+        font-weight: 600;
       }
     }
   }
