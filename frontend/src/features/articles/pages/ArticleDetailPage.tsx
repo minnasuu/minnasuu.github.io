@@ -98,6 +98,7 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
         setArticleAnchors(anchors);
       }
     }, 100);
+    
 
     return () => clearTimeout(timer);
   }, [article, isSliderView]);

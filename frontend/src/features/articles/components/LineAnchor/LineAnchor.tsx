@@ -172,8 +172,6 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
     // 实时更新当前章节状态
     setCurrentSection(prevSection => {
       if (newCurrentSection !== prevSection) {
-        // 调试日志（生产环境可删除）
-        console.log('当前章节更新:', newCurrentSection, anchors[newCurrentSection]?.title);
         onSectionChange?.(newCurrentSection);
       }
       return newCurrentSection;
@@ -183,7 +181,7 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
   // 点击横线跳转到对应标题
   const handleLineClick = (anchorKey: string) => {
     const element = document.getElementById(anchorKey);
-    const scrollContainer = document.querySelector('.article-detail-container') as HTMLDivElement;
+    const scrollContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
     
     if (element && scrollContainer) {
       // 找到对应的章节索引
@@ -193,14 +191,12 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
         onSectionChange?.(sectionIndex);
       }
       
-      // 计算元素相对于滚动容器的位置
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      const elementTop = elementRect.top - containerRect.top + scrollContainer.scrollTop;
+      // 获取元素相对于文档的位置
+      const elementTop = element.offsetTop;
       
-      // 在滚动容器中平滑滚动到目标位置
+      // 在滚动容器中平滑滚动到目标位置（向上偏移100px避免遮挡）
       scrollContainer.scrollTo({
-        top: elementTop - 100, // 留一点偏移量
+        top: elementTop - 100,
         behavior: 'smooth'
       });
     }

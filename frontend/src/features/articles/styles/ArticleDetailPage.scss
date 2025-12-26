@@ -8,12 +8,13 @@ $color-text-light: #999999;
 $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 
 .article-detail-page {
-  min-height: 100vh;
+  height: 100vh;
   background-color: $color-bg;
   font-family: $font-primary;
   color: $color-text-main;
   overflow-anchor: none;
   padding-bottom: 10rem;
+  overflow: auto;
 }
 
 // 顶部导航 (复用 ArticlesPage 风格)

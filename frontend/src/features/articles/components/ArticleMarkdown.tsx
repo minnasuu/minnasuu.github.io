@@ -12,10 +12,43 @@ const ArticleMarkdown: React.FC<Props> = ({
     children,
     className = ''
 }) => {
+    // 配置自定义 renderer
+    const renderer = new marked.Renderer();
+    const headingCounts: Record<string, number> = {};
+
+    // 生成标题的唯一 id
+    const generateHeadingId = (text: string): string => {
+        // 移除标点符号，转换为小写，空格替换为连字符
+        const cleanText = text
+            .toLowerCase()
+            .replace(/[^\w\s\u4e00-\u9fa5]/g, '') // 保留字母、数字、中文
+            .trim()
+            .replace(/\s+/g, '-');
+        
+        // 如果已存在相同的文本，添加数字后缀
+        if (headingCounts[cleanText]) {
+            headingCounts[cleanText]++;
+            return `${cleanText}-${headingCounts[cleanText]}`;
+        } else {
+            headingCounts[cleanText] = 1;
+            return cleanText;
+        }
+    };
+
+    // 自定义标题渲染
+    renderer.heading = ({ text, depth }) => {
+        if (depth === 1 || depth === 2) {
+            const id = generateHeadingId(text);
+            return `<h${depth} id="${id}">${text}</h${depth}>`;
+        }
+        return `<h${depth}>${text}</h${depth}>`;
+    };
+
     // 配置marked选项
     marked.setOptions({
         gfm: true,      // 支持GitHub风格的markdown
         breaks: true,   // 支持换行符转换为<br>
+        renderer: renderer
     });
 
     // 预处理 Markdown 文本，修复中文标点导致的加粗/斜体解析问题
