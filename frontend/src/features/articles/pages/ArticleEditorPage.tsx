@@ -12,7 +12,31 @@ import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput
 import type { SelectItemType } from '@suminhan/land-design';
 import '../styles/shared-markdown.css';
 
-const mdParser = new MarkdownIt(/* Markdown-it options */);
+// 配置 MarkdownIt 以支持完整的 Markdown 语法
+const mdParser = new MarkdownIt({
+  html: true,        // 允许 HTML 标签
+  linkify: true,     // 自动将 URL 转换为链接
+  typographer: false, // 禁用 typographer（可能影响中文解析）
+  breaks: true,      // 将换行符转换为 <br>
+});
+
+// 自定义渲染函数包装器，修复中文标点符号导致的加粗/斜体解析问题
+const originalRender = mdParser.render.bind(mdParser);
+mdParser.render = function(src: string, env?: any): string {
+  // 预处理：将 **xxx：** 转换为 **xxx**： 的格式（将标点移到加粗标记外面）
+  // 这样可以确保 Markdown 正确解析加粗语法
+  let fixedSrc = src
+    // 修复 **xxx：** -> **xxx**：
+    .replace(/\*\*([^*\n]+?)([：。，！？；）】」』、])\*\*/g, '**$1**$2')
+    // 修复 __xxx：__ -> __xxx__：
+    .replace(/__([^_\n]+?)([：。，！？；）】」』、])__/g, '__$1__$2')
+    // 修复单个 * 的情况 *xxx：* -> *xxx*：
+    .replace(/\*([^*\n]+?)([：。，！？；）】」』、])\*/g, '*$1*$2')
+    // 修复单个 _ 的情况 _xxx：_ -> _xxx_：
+    .replace(/_([^_\n]+?)([：。，！？；）】」』、])_/g, '_$1_$2');
+  
+  return originalRender(fixedSrc, env);
+};
 
 const ArticleEditorPage: React.FC = () => {
   const navigator = useNavigate();

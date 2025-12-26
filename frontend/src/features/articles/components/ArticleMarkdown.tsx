@@ -14,9 +14,22 @@ const ArticleMarkdown: React.FC<Props> = ({
 }) => {
     // 配置marked选项
     marked.setOptions({
-        gfm: true, // 支持GitHub风格的markdown
-        breaks: true // 支持换行符转换为<br>
+        gfm: true,      // 支持GitHub风格的markdown
+        breaks: true,   // 支持换行符转换为<br>
     });
+
+    // 预处理 Markdown 文本，修复中文标点导致的加粗/斜体解析问题
+    const preprocessMarkdown = (content: string): string => {
+        return content
+            // 将 **xxx：** 转换为 **xxx**： （标点移到外面）
+            .replace(/\*\*([^*\n]+?)([：。，！？；）】」』、])\*\*/g, '**$1**$2')
+            // 修复 __xxx：__ -> __xxx__：
+            .replace(/__([^_\n]+?)([：。，！？；）】」』、])__/g, '__$1__$2')
+            // 修复单个 * 的情况
+            .replace(/\*([^*\n]+?)([：。，！？；）】」』、])\*/g, '*$1*$2')
+            // 修复单个 _ 的情况
+            .replace(/_([^_\n]+?)([：。，！？；）】」』、])_/g, '_$1_$2');
+    };
 
     // 解析markdown内容，分离代码块和普通内容
     const parseMarkdownWithCodeBlocks = (content: string) => {
@@ -28,12 +41,16 @@ const ArticleMarkdown: React.FC<Props> = ({
         let match;
         let partIndex = 0;
 
-        while ((match = codeBlockRegex.exec(content)) !== null) {
+        // 先预处理整个内容
+        const preprocessedContent = preprocessMarkdown(content);
+
+        while ((match = codeBlockRegex.exec(preprocessedContent)) !== null) {
             // 添加代码块前的markdown内容
             if (match.index > currentIndex) {
-                const markdownPart = content.slice(currentIndex, match.index);
+                const markdownPart = preprocessedContent.slice(currentIndex, match.index);
                 if (markdownPart.trim()) {
-                    const htmlContent = marked.parse(markdownPart);
+                    // marked() 直接调用（同步方式）
+                    const htmlContent = marked(markdownPart) as string;
                     parts.push(
                         <div 
                             key={`markdown-${partIndex}`}
@@ -60,10 +77,11 @@ const ArticleMarkdown: React.FC<Props> = ({
         }
 
         // 添加最后剩余的markdown内容
-        if (currentIndex < content.length) {
-            const remainingContent = content.slice(currentIndex);
+        if (currentIndex < preprocessedContent.length) {
+            const remainingContent = preprocessedContent.slice(currentIndex);
             if (remainingContent.trim()) {
-                const htmlContent = marked.parse(remainingContent);
+                // marked() 直接调用（同步方式）
+                const htmlContent = marked(remainingContent) as string;
                 parts.push(
                     <div 
                         key={`markdown-${partIndex}`}
