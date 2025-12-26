@@ -19,7 +19,9 @@ const storage = multer.diskStorage({
     // 生成唯一文件名：时间戳 + 随机数 + 原始扩展名
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, 'cover-' + uniqueSuffix + ext);
+    // 根据请求类型决定文件名前缀
+    const prefix = req.body?.type === 'cover' ? 'cover-' : 'img-';
+    cb(null, prefix + uniqueSuffix + ext);
   }
 });
 

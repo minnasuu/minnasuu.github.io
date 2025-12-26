@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MdEditor from 'react-markdown-editor-lite';
 import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
@@ -11,6 +11,15 @@ import MockIndicator from '../../../shared/components/MockIndicator';
 import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandDialog } from '@suminhan/land-design';
 import type { SelectItemType } from '@suminhan/land-design';
 import '../styles/shared-markdown.css';
+
+// 图片管理接口
+interface ImageItem {
+  id: string; // 临时ID，用于Markdown中的占位符
+  file: File; // 原始文件对象
+  dataUrl: string; // 本地预览URL（Base64）
+  uploaded: boolean; // 是否已上传
+  serverUrl?: string; // 服务器返回的URL
+}
 
 // 配置 MarkdownIt 以支持完整的 Markdown 语法
 const mdParser = new MarkdownIt({
@@ -41,6 +50,7 @@ mdParser.render = function(src: string, env?: any): string {
 const ArticleEditorPage: React.FC = () => {
   const navigator = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const editorRef = useRef<any>(null);
   const [formData, setFormData] = useState<CreateArticleRequest>({
     title: '',
     summary: '',
@@ -66,6 +76,10 @@ const ArticleEditorPage: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isParsingMarkdown, setIsParsingMarkdown] = useState(false);
+  
+  // 图片管理状态
+  const [imageStore, setImageStore] = useState<Map<string, ImageItem>>(new Map());
+  const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set());
 
   // Dialog 状态管理
   const [dialogConfig, setDialogConfig] = useState<{
@@ -287,18 +301,134 @@ const ArticleEditorPage: React.FC = () => {
     }
   };
 
+  // 处理图片粘贴和拖拽
+  const handleImageDrop = async (file: File) => {
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      showAlert('文件类型错误', '只支持图片文件');
+      return null;
+    }
+
+    // 检查文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      showAlert('文件过大', '图片大小不能超过 5MB');
+      return null;
+    }
+
+    // 生成唯一ID
+    const imageId = `img-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    
+    // 转换为 Base64 用于本地预览
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    // 存储图片信息
+    const imageItem: ImageItem = {
+      id: imageId,
+      file,
+      dataUrl,
+      uploaded: false,
+    };
+
+    setImageStore(prev => new Map(prev).set(imageId, imageItem));
+    
+    // 返回临时的本地图片标记（使用 data URL）
+    return dataUrl;
+  };
+
+  // 自定义图片上传处理
+  const handleEditorImageUpload = async (file: File): Promise<string> => {
+    const imageUrl = await handleImageDrop(file);
+    return imageUrl || '';
+  };
+
+  // 批量上传所有未上传的图片
+  const uploadAllImages = async (): Promise<Map<string, string>> => {
+    const urlMapping = new Map<string, string>(); // dataUrl -> serverUrl 映射
+    const imagesToUpload = Array.from(imageStore.values()).filter(img => !img.uploaded);
+    
+    if (imagesToUpload.length === 0) {
+      return urlMapping;
+    }
+
+    console.log(`📤 开始上传 ${imagesToUpload.length} 张图片...`);
+
+    // 并发上传所有图片
+    const uploadPromises = imagesToUpload.map(async (imageItem) => {
+      try {
+        setUploadingImages(prev => new Set(prev).add(imageItem.id));
+        
+        const result = await uploadImage(imageItem.file);
+        
+        // 更新图片状态
+        imageItem.uploaded = true;
+        imageItem.serverUrl = result.url;
+        
+        // 记录映射关系：dataUrl -> serverUrl
+        urlMapping.set(imageItem.dataUrl, result.url);
+        
+        console.log(`✅ 图片上传成功: ${imageItem.file.name} -> ${result.url}`);
+      } catch (error) {
+        console.error(`❌ 图片上传失败: ${imageItem.file.name}`, error);
+        throw new Error(`图片 ${imageItem.file.name} 上传失败`);
+      } finally {
+        setUploadingImages(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(imageItem.id);
+          return newSet;
+        });
+      }
+    });
+
+    await Promise.all(uploadPromises);
+    
+    // 更新 imageStore
+    setImageStore(new Map(imageStore));
+    
+    return urlMapping;
+  };
+
+  // 替换 Markdown 内容中的图片 URL
+  const replaceImageUrls = (content: string, urlMapping: Map<string, string>): string => {
+    let updatedContent = content;
+    
+    urlMapping.forEach((serverUrl, dataUrl) => {
+      // 替换所有出现的 dataUrl
+      updatedContent = updatedContent.split(dataUrl).join(serverUrl);
+    });
+    
+    return updatedContent;
+  };
+
   // 发布/更新文章
   const handlePublish = async () => {
     setIsSaving(true);
     try {
+      // 1. 先上传所有图片
+      const urlMapping = await uploadAllImages();
+      
+      // 2. 替换 Markdown 中的图片 URL
+      const updatedContent = replaceImageUrls(formData.content, urlMapping);
+      
+      // 3. 准备发布数据
+      const publishData = {
+        ...formData,
+        content: updatedContent,
+      };
+
+      // 4. 发布或更新文章
       if (isEditMode && currentArticleId) {
-        await updateArticle(currentArticleId, formData);
+        await updateArticle(currentArticleId, publishData);
         showAlert('更新成功', '文章已成功更新！');
         setLastSavedTime(new Date());
         // 清除对应的草稿
         localStorage.removeItem(`draft_${currentArticleId}`);
       } else {
-        const newArticle = await createArticle(formData);
+        const newArticle = await createArticle(publishData);
         setCurrentArticleId(newArticle.id);
         setIsEditMode(true);
         showAlert('发布成功', '文章已成功发布！');
@@ -306,6 +436,13 @@ const ArticleEditorPage: React.FC = () => {
         // 清除新建文章的草稿
         localStorage.removeItem('draft_new');
       }
+      
+      // 5. 更新本地 content 为服务器 URL 版本
+      setFormData(prev => ({ ...prev, content: updatedContent }));
+      
+      // 6. 清空图片缓存（已上传的图片）
+      setImageStore(new Map());
+      
       // 重新加载文章列表
       const fetchedArticles = await fetchArticles();
       setArticles(fetchedArticles.sort((a, b) => 
@@ -313,7 +450,7 @@ const ArticleEditorPage: React.FC = () => {
       ));
     } catch (error) {
       console.error('Failed to publish article:', error);
-      showAlert('操作失败', '操作失败，请稍后重试');
+      showAlert('操作失败', error instanceof Error ? error.message : '操作失败，请稍后重试');
     } finally {
       setIsSaving(false);
     }
@@ -341,6 +478,9 @@ const ArticleEditorPage: React.FC = () => {
     setIsEditMode(false);
     setShowHistory(false);
     setLastSavedTime(null);
+    
+    // 清空图片缓存
+    setImageStore(new Map());
     
     // 尝试加载新建文章的草稿
     try {
@@ -894,10 +1034,12 @@ const ArticleEditorPage: React.FC = () => {
           {/* Editor */}
           <div className="flex-1 h-full">
             <MdEditor
+              ref={editorRef}
               style={{ height: '100%', minHeight: '500px', backgroundColor: 'transparent' }}
               renderHTML={(text: string) => mdParser.render(text)}
               onChange={handleEditorChange}
               value={formData.content}
+              onImageUpload={handleEditorImageUpload}
               config={{
                 view: {
                   menu: true,
@@ -915,6 +1057,32 @@ const ArticleEditorPage: React.FC = () => {
               }}
               className="typora-editor"
             />
+            
+            {/* 图片上传进度提示 */}
+            {uploadingImages.size > 0 && (
+              <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-200 dark:border-gray-700 z-50">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin">
+                    <Icon name="loading" size={20} strokeWidth={3} />
+                  </div>
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    正在上传图片... ({uploadingImages.size} 张)
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* 未上传图片数量提示 */}
+            {imageStore.size > 0 && Array.from(imageStore.values()).some(img => !img.uploaded) && (
+              <div className="fixed bottom-4 left-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg shadow-lg p-3 border border-yellow-200 dark:border-yellow-800 z-50">
+                <div className="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
+                  <Icon name="warning" size={18} strokeWidth={3} />
+                  <span>
+                    有 {Array.from(imageStore.values()).filter(img => !img.uploaded).length} 张图片未上传，发布时将自动上传
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
