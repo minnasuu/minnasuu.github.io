@@ -24,25 +24,25 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 }
 
-.back-btn-circle {
-    border-color: rgba(0, 0, 0, 0.08) !important;
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    color: $color-text-main !important;
-    box-shadow: $shadow-sm;
+// .back-btn-circle {
+//     border-color: rgba(0, 0, 0, 0.08) !important;
+//     background-color: rgba(255, 255, 255, 0.8) !important;
+//     color: $color-text-main !important;
+//     box-shadow: $shadow-sm;
     
-    &:hover{
-        border-color: rgba(0, 0, 0, 0.15) !important;
-        background-color: #ffffff !important;
-        transform: translateY(-1px);
-        box-shadow: $shadow-md;
-         svg{
-            color: $color-text-main;
-        }
-    }
-    svg{
-        color: $color-text-sub;
-    }
-}
+//     &:hover{
+//         border-color: rgba(0, 0, 0, 0.15) !important;
+//         background-color: #ffffff !important;
+//         transform: translateY(-1px);
+//         box-shadow: $shadow-md;
+//          svg{
+//             color: $color-text-main;
+//         }
+//     }
+//     svg{
+//         color: $color-text-sub;
+//     }
+// }
 
 // 背景
 .crafts-bg {
@@ -135,6 +135,13 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
   z-index: 0;
   pointer-events: none;
+  &.grid{
+    position: relative;
+    top: 0;
+  left: 0;
+  transform: unset;
+  margin-bottom: 40px;
+  }
   
   .dot-matrix-title {
     display: flex;
@@ -162,7 +169,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       transition: all 0.3s ease;
       
       &.active {
-        background-color: #cbd5e0; // 浅灰色 active
+        background-color: rgba(0, 0, 0, 0.15); // 浅灰色 active
         box-shadow: 0 0 2px rgba(0,0,0,0.05);
         animation: pulseDot 4s infinite ease-in-out;
       }
@@ -754,6 +761,10 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   .minimap {
     display: none;
   }
+
+  .grid-layout {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -811,5 +822,187 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     width: 64px !important;
     height: 64px !important;
     border-radius: 18px;
+  }
+
+  .grid-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-header {
+    padding: 0 20px !important;
+  }
+}
+
+// Grid布局样式
+.grid-container {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 80px;
+  z-index: 1;
+  user-select: text; // 允许选择文本
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+.grid-header {
+  padding: 0 40px 32px;
+  text-align: center;
+  
+  .grid-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: $color-text-main;
+    margin: 0 0 12px;
+    letter-spacing: -0.03em;
+  }
+  
+  .grid-count {
+    font-size: 0.9rem;
+    color: $color-text-light;
+    font-weight: 500;
+  }
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  padding: 0 40px 40px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.grid-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 24px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s $transition-smooth;
+  box-shadow: $shadow-sm;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+    border-color: rgba(0, 0, 0, 0.08);
+  }
+  
+  &.active {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 0 0 3px rgba(99, 102, 241, 0.2),
+      $shadow-lg;
+    border-color: $color-accent;
+  }
+  
+  .grid-card-image {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    
+    &:hover img {
+      transform: scale(1.05);
+    }
+    
+    .featured-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #ffffff;
+      background: linear-gradient(135deg, $color-accent 0%, $color-accent-hover 100%);
+      padding: 6px 12px;
+      border-radius: 100px;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    }
+  }
+  
+  .grid-card-content {
+    padding: 20px;
+  }
+  
+  .grid-card-category {
+    display: inline-flex;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $color-accent;
+    background: rgba(99, 102, 241, 0.1);
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+  }
+  
+  .grid-card-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $color-text-main;
+    margin: 0 0 8px;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  
+  .grid-card-description {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: $color-text-sub;
+    margin: 0 0 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .grid-card-tech {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    
+    .tech-tag {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: $color-text-sub;
+      background: rgba(0, 0, 0, 0.03);
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+    
+    .tech-more {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: $color-text-light;
+      padding: 4px 10px;
+    }
   }
 }

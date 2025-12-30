@@ -237,6 +237,8 @@ const calculateNodePositions = (
   return positions;
 };
 
+type LayoutMode = "canvas" | "grid";
+
 export const CraftsPage: React.FC = () => {
   const { language } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -247,6 +249,7 @@ export const CraftsPage: React.FC = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isInitialized, setIsInitialized] = useState(false);
   const [isMinimapDragging, setIsMinimapDragging] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("canvas");
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -341,8 +344,9 @@ export const CraftsPage: React.FC = () => {
     return () => window.removeEventListener("resize", updateDimensions);
   }, [isInitialized]);
 
-  // 拖拽处理
+  // 拖拽处理 - 只在画布模式下启用
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (layoutMode !== "canvas") return;
     if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains("canvas-bg")) {
       setIsDragging(true);
       setDragStart({ x: e.clientX - viewOffset.x, y: e.clientY - viewOffset.y });
@@ -350,27 +354,28 @@ export const CraftsPage: React.FC = () => {
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const newOffset = {
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      };
-      setViewOffset(clampViewOffset(newOffset));
-    }
+    if (layoutMode !== "canvas" || !isDragging) return;
+    const newOffset = {
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    };
+    setViewOffset(clampViewOffset(newOffset));
   };
 
   const handleMouseUp = () => {
+    if (layoutMode !== "canvas") return;
     setIsDragging(false);
   };
 
-  // 滚轮/触控板处理 - 移动画布
+  // 滚轮/触控板处理 - 只在画布模式下移动画布
   const handleWheel = useCallback((e: WheelEvent) => {
+    if (layoutMode !== "canvas") return;
     e.preventDefault();
     setViewOffset(prev => clampViewOffset({
       x: prev.x - e.deltaX,
       y: prev.y - e.deltaY,
     }));
-  }, [clampViewOffset]);
+  }, [clampViewOffset, layoutMode]);
 
   // 迷你地图拖拽处理
   const handleMinimapMouseDown = (e: React.MouseEvent) => {
@@ -513,10 +518,10 @@ export const CraftsPage: React.FC = () => {
     <div
       className="crafts-page"
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseDown={layoutMode === "canvas" ? handleMouseDown : undefined}
+      onMouseMove={layoutMode === "canvas" ? handleMouseMove : undefined}
+      onMouseUp={layoutMode === "canvas" ? handleMouseUp : undefined}
+      onMouseLeave={layoutMode === "canvas" ? handleMouseUp : undefined}
     >
       {/* 背景 */}
       <div className="crafts-bg">
@@ -528,89 +533,162 @@ export const CraftsPage: React.FC = () => {
       <header className="crafts-header">
         <BackButton to="/" />
         <div className="header-controls">
-            <LandButton type="background" status="default" icon={<Icon name="refresh"/>} className="control-btn" onClick={resetView}/>
+            {layoutMode === "canvas" && (
+              <LandButton 
+                type="fill" 
+                status="default" 
+                icon={<Icon name="refresh"/>} 
+                className="control-btn" 
+                onClick={resetView}
+              />
+            )}
+            <LandButton 
+              type="fill" 
+              status="default" 
+              icon={<Icon name={layoutMode === "canvas" ? "application" : "zoom-in"}/>} 
+              className="control-btn" 
+              onClick={() => setLayoutMode(layoutMode === "canvas" ? "grid" : "canvas")}
+            />
         </div>
       </header>
 
       {/* 中心标题 */}
-      <div className="center-title">
-        <DotMatrixTitle />
-        <p className="subtitle">
-          {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
-        </p>
-        <div className="craft-count">
-          {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+      {layoutMode === "canvas" && (
+        <div className="center-title">
+          <DotMatrixTitle />
+          <p className="subtitle">
+            {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
+          </p>
+          <div className="craft-count">
+            {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 画布 */}
-      <div
-        className="canvas-container"
-        ref={canvasRef}
-        style={{
-          transform: `translate(${viewOffset.x}px, ${viewOffset.y}px)`,
-          cursor: isDragging ? "grabbing" : "grab",
-        }}
-      >
-        <div className="canvas-bg" />
+      {layoutMode === "canvas" ? (
+        <div
+          className="canvas-container"
+          ref={canvasRef}
+          style={{
+            transform: `translate(${viewOffset.x}px, ${viewOffset.y}px)`,
+            cursor: isDragging ? "grabbing" : "grab",
+          }}
+        >
+          <div className="canvas-bg" />
 
-        {/* SVG 连线层 */}
-        <svg className="connections-layer" style={{ width: canvasWidth, height: canvasHeight }}>
-          <defs>
-            {Object.entries(relationLabels).map(([type, style]) => (
-              <linearGradient key={type} id={`gradient-${type}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor={style.color} stopOpacity="0.3" />
-                <stop offset="50%" stopColor={style.color} stopOpacity="0.8" />
-                <stop offset="100%" stopColor={style.color} stopOpacity="0.3" />
-              </linearGradient>
-            ))}
-          </defs>
-          {renderConnections()}
-        </svg>
+          {/* SVG 连线层 */}
+          <svg className="connections-layer" style={{ width: canvasWidth, height: canvasHeight }}>
+            <defs>
+              {Object.entries(relationLabels).map(([type, style]) => (
+                <linearGradient key={type} id={`gradient-${type}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={style.color} stopOpacity="0.3" />
+                  <stop offset="50%" stopColor={style.color} stopOpacity="0.8" />
+                  <stop offset="100%" stopColor={style.color} stopOpacity="0.3" />
+                </linearGradient>
+              ))}
+            </defs>
+            {renderConnections()}
+          </svg>
 
-        {/* 节点层 */}
-        <div className="nodes-layer">
-          {crafts.map((craft) => {
-            const pos = nodePositions.get(craft.id);
-            if (!pos) return null;
+          {/* 节点层 */}
+          <div className="nodes-layer">
+            {crafts.map((craft) => {
+              const pos = nodePositions.get(craft.id);
+              if (!pos) return null;
 
-            const isActive = activeId === craft.id;
-            const isRelated = relatedNodes.has(craft.id);
-            const isHovered = hoveredId === craft.id;
-            const isDimmed = relatedNodes.size > 0 && !isRelated;
-            const craftEffectiveWeight = effectiveWeights.get(craft.id) || 1;
+              const isActive = activeId === craft.id;
+              const isRelated = relatedNodes.has(craft.id);
+              const isHovered = hoveredId === craft.id;
+              const isDimmed = relatedNodes.size > 0 && !isRelated;
+              const craftEffectiveWeight = effectiveWeights.get(craft.id) || 1;
 
-            return (
-              <CraftNode
-                key={craft.id}
-                craft={craft}
-                position={pos}
-                effectiveWeight={craftEffectiveWeight}
-                maxWeight={maxWeight}
-                isActive={isActive}
-                isRelated={isRelated}
-                isHovered={isHovered}
-                isDimmed={isDimmed}
-                language={language}
-                onClick={() => handleNodeClick(craft.id)}
-                onMouseEnter={() => setHoveredId(craft.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              />
-            );
-          })}
+              return (
+                <CraftNode
+                  key={craft.id}
+                  craft={craft}
+                  position={pos}
+                  effectiveWeight={craftEffectiveWeight}
+                  maxWeight={maxWeight}
+                  isActive={isActive}
+                  isRelated={isRelated}
+                  isHovered={isHovered}
+                  isDimmed={isDimmed}
+                  language={language}
+                  onClick={() => handleNodeClick(craft.id)}
+                  onMouseEnter={() => setHoveredId(craft.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                />
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid-container">
+            <div className="grid center-title">
+          <DotMatrixTitle />
+          <div className="craft-count">
+            {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+          </div>
+        </div>
+          {/* <div className="grid-header">
+            <h1 className="grid-title">
+              {language === "zh" ? "作品集" : "Crafts"}
+            </h1>
+            <div className="grid-count">
+              {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+            </div>
+          </div> */}
+          <div className="grid-layout">
+            {crafts.map((craft) => (
+              <div
+                key={craft.id}
+                className={`grid-card ${activeId === craft.id ? "active" : ""}`}
+                onClick={() => handleNodeClick(craft.id)}
+              >
+                <div className="grid-card-image">
+                  {craft.coverImage && (
+                    <img src={craft.coverImage} alt={craft.name} />
+                  )}
+                  {craft.featured && (
+                    <div className="featured-badge">
+                      {language === "zh" ? "精选" : "Featured"}
+                    </div>
+                  )}
+                </div>
+                <div className="grid-card-content">
+                  <span className="grid-card-category">
+                    {categoryLabels[craft.category][language]}
+                  </span>
+                  <h3 className="grid-card-name">{craft.name}</h3>
+                  <p className="grid-card-description">{craft.description}</p>
+                  <div className="grid-card-tech">
+                    {craft.technologies.slice(0, 3).map((tech, idx) => (
+                      <span key={idx} className="tech-tag">{tech}</span>
+                    ))}
+                    {craft.technologies.length > 3 && (
+                      <span className="tech-more">+{craft.technologies.length - 3}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 关系图例 */}
-      <div className="legend">
-        <div className="legend-title">{language === "zh" ? "关系类型" : "Relations"}</div>
-        {Object.entries(relationLabels).map(([type, style]) => (
-          <div key={type} className="legend-item">
-            <span className="legend-line" style={{ background: style.color }}></span>
-            <span className="legend-label">{style[language]}</span>
-          </div>
-        ))}
-      </div>
+      {layoutMode === "canvas" && (
+        <div className="legend">
+          <div className="legend-title">{language === "zh" ? "关系类型" : "Relations"}</div>
+          {Object.entries(relationLabels).map(([type, style]) => (
+            <div key={type} className="legend-item">
+              <span className="legend-line" style={{ background: style.color }}></span>
+              <span className="legend-label">{style[language]}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* 详情面板 */}
       {activeCraft && (
@@ -675,47 +753,51 @@ export const CraftsPage: React.FC = () => {
       )}
 
       {/* 迷你地图 */}
-      <div 
-        className="minimap"
-        ref={minimapRef}
-        onMouseDown={handleMinimapMouseDown}
-        onMouseMove={handleMinimapMouseMove}
-        onMouseUp={handleMinimapMouseUp}
-        onMouseLeave={handleMinimapMouseUp}
-      >
-        <div className="minimap-content">
-          {crafts.map((craft) => {
-            const pos = nodePositions.get(craft.id);
-            if (!pos) return null;
-            return (
-              <div
-                key={craft.id}
-                className={`minimap-dot ${activeId === craft.id ? "active" : ""}`}
-                style={{
-                  left: `${(pos.x / canvasWidth) * 100}%`,
-                  top: `${(pos.y / canvasHeight) * 100}%`,
-                }}
-              />
-            );
-          })}
-          <div
-            className="minimap-viewport"
-            style={{
-              left: `${(-viewOffset.x / canvasWidth) * 100}%`,
-              top: `${(-viewOffset.y / canvasHeight) * 100}%`,
-              width: `${(dimensions.width / canvasWidth) * 100}%`,
-              height: `${(dimensions.height / canvasHeight) * 100}%`,
-            }}
-          />
+      {layoutMode === "canvas" && (
+        <div 
+          className="minimap"
+          ref={minimapRef}
+          onMouseDown={handleMinimapMouseDown}
+          onMouseMove={handleMinimapMouseMove}
+          onMouseUp={handleMinimapMouseUp}
+          onMouseLeave={handleMinimapMouseUp}
+        >
+          <div className="minimap-content">
+            {crafts.map((craft) => {
+              const pos = nodePositions.get(craft.id);
+              if (!pos) return null;
+              return (
+                <div
+                  key={craft.id}
+                  className={`minimap-dot ${activeId === craft.id ? "active" : ""}`}
+                  style={{
+                    left: `${(pos.x / canvasWidth) * 100}%`,
+                    top: `${(pos.y / canvasHeight) * 100}%`,
+                  }}
+                />
+              );
+            })}
+            <div
+              className="minimap-viewport"
+              style={{
+                left: `${(-viewOffset.x / canvasWidth) * 100}%`,
+                top: `${(-viewOffset.y / canvasHeight) * 100}%`,
+                width: `${(dimensions.width / canvasWidth) * 100}%`,
+                height: `${(dimensions.height / canvasHeight) * 100}%`,
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 操作提示 */}
-      <div className="hints">
-        <span>{language === "zh" ? "拖拽移动" : "Drag to pan"}</span>
-        <span>{language === "zh" ? "滑动浏览" : "Scroll to browse"}</span>
-        <span>{language === "zh" ? "点击查看" : "Click to select"}</span>
-      </div>
+      {layoutMode === "canvas" && (
+        <div className="hints">
+          <span>{language === "zh" ? "拖拽移动" : "Drag to pan"}</span>
+          <span>{language === "zh" ? "滑动浏览" : "Scroll to browse"}</span>
+          <span>{language === "zh" ? "点击查看" : "Click to select"}</span>
+        </div>
+      )}
     </div>
   );
 };
