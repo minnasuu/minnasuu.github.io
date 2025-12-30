@@ -44,74 +44,170 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   padding: 0 40px;
 }
 
-// Hero 区域
+// Hero 区域 - 艺术化设计
 .articles-hero {
-  padding: 8rem 0 6rem;
+  padding: 6rem 0 8rem;
   text-align: center;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  
+  // 背景装饰图形层
+  .hero-graphics {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+    
+    .graphic-blob {
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, 
+        rgba(0, 0, 0, 0.02) 0%, 
+        transparent 70%);
+      border-radius: 50%;
+      animation: float-slow 20s ease-in-out infinite;
+    }
+    
+    .graphic-line {
+      position: absolute;
+      top: 50%;
+      left: 5%;
+      width: 120px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+      transform: rotate(-45deg);
+      animation: pulse-line 4s ease-in-out infinite;
+    }
+    
+    .graphic-circle {
+      position: absolute;
+      bottom: 10%;
+      left: 15%;
+      width: 80px;
+      height: 80px;
+      border: 1px solid rgba(0,0,0,0.05);
+      border-radius: 50%;
+      animation: scale-pulse 6s ease-in-out infinite;
+    }
+  }
   
   .hero-title {
-    font-size: 4.5rem;
-    line-height: 1.2;
-    font-weight: 800;
-    margin-bottom: 3rem;
-    letter-spacing: -0.04em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 2.5rem;
+    
+    .title-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      
+      &.zh {
+        gap: 0.5rem;
+        
+        .text-line {
+          font-size: 5rem;
+          font-weight: 200;
+          letter-spacing: 0.15em;
+          color: $color-text-main;
+          position: relative;
+          
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+            transform: scaleX(0);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+          
+          &:hover::after {
+            transform: scaleX(1);
+          }
+        }
+        
+        .divider-dot {
+          font-size: 3rem;
+          color: rgba(0,0,0,0.15);
+          font-weight: 100;
+          margin: 0 0.5rem;
+        }
+      }
+      
+      &.en {
+        gap: 1.5rem;
+        
+        .text-line {
+          font-size: 4.5rem;
+          font-weight: 300;
+          letter-spacing: -0.02em;
+          color: $color-text-main;
+          position: relative;
+          
+          &.italic {
+            font-style: italic;
+            font-family: $font-serif;
+            font-weight: 400;
+          }
+        }
+        
+        .divider-line {
+          width: 60px;
+          height: 1px;
+          background: rgba(0,0,0,0.2);
+          align-self: center;
+        }
+      }
+    }
+  }
+  
+  .hero-subtitle-container {
     position: relative;
     z-index: 1;
     
-    .text-main {
-      font-size: 7rem;
-      font-weight: 900;
-      letter-spacing: -0.05em;
-      color: $color-text-main; // 纯色，移除渐变
-      position: relative;
-      
-      // 极其简约的下划线
-      &::after {
-        content: '';
-        position: absolute;
-        bottom: 4px;
-        left: 0;
-        width: 0;
-        height: 8px;
-        background: rgba(0,0,0,0.05);
-        z-index: -1;
-        transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      
-      &:hover::after {
-        width: 100%;
-      }
-    }
-    
-    .text-connector {
-      font-size: 3.5rem;
-      font-weight: 300;
-      color: rgba(0,0,0,0.2); // 极淡
-      
-      &.text-serif {
-        font-family: $font-serif;
-        font-style: italic;
-        font-size: 4.5rem;
-      }
+    &::before {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.15));
+      margin: 0 auto 2rem;
     }
   }
   
   .hero-subtitle {
-    font-size: 0.85rem;
-    color: $color-text-light;
-    letter-spacing: 0.4em; // 更大的字间距，增加呼吸感
-    text-transform: uppercase;
-    position: relative;
-    font-weight: 500;
-    opacity: 0.6;
+    font-size: 0.95rem;
+    color: $color-text-sub;
+    line-height: 2;
+    letter-spacing: 0.08em;
+    font-weight: 400;
+    opacity: 0.7;
+    max-width: 300px;
+    margin: 0 auto;
   }
+}
+
+// 动画关键帧
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 20px) scale(1.05); }
+}
+
+@keyframes pulse-line {
+  0%, 100% { opacity: 0.3; width: 120px; }
+  50% { opacity: 0.6; width: 150px; }
+}
+
+@keyframes scale-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
 }
 
 .articles-list {
@@ -345,31 +441,66 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 // 响应式
 @media (max-width: 768px) {
   .articles-hero {
-    padding: 6rem 0 4rem;
+    padding: 4rem 0 5rem;
     
-    .hero-title { 
-      font-size: 3rem;
-      gap: 1rem;
-      
-      .text-main {
-        font-size: 4.5rem;
-        // 移除手机端hover效果
-        &:hover::after {
-          width: 0;
-        }
+    .hero-graphics {
+      .graphic-blob {
+        width: 200px;
+        height: 200px;
+        top: -10%;
+        right: -20%;
       }
       
-      .text-connector {
-        font-size: 2rem;
-        
-        &.text-serif {
-          font-size: 2.5rem;
+      .graphic-line {
+        display: none;
+      }
+      
+      .graphic-circle {
+        width: 50px;
+        height: 50px;
+        left: 5%;
+        bottom: 20%;
+      }
+    }
+    
+    .hero-title {
+      .title-wrapper {
+        &.zh {
+          .text-line {
+            font-size: 3rem;
+          }
+          
+          .divider-dot {
+            font-size: 2rem;
+          }
         }
+        
+        &.en {
+          flex-direction: column;
+          gap: 0.5rem;
+          
+          .text-line {
+            font-size: 2.8rem;
+          }
+          
+          .divider-line {
+            width: 40px;
+            margin: 0.5rem 0;
+          }
+        }
+      }
+    }
+    
+    .hero-subtitle-container {
+      &::before {
+        height: 30px;
+        margin-bottom: 1.5rem;
       }
     }
     
     .hero-subtitle {
       font-size: 0.85rem;
+      line-height: 1.8;
     }
   }
   

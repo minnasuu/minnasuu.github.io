@@ -130,7 +130,7 @@ export default function AISidebar() {
       {/* 文章 - 卡片形式 */}
       <div className="ai-sidebar-section">
         <div className="section-header">
-          <h3>📄 {t("articles.title")}</h3>
+          <h3>📄 {t("文档")}</h3>
         </div>
         {isLoadingArticles ? (
           <div className="text-center py-4 text-sm text-gray-500">

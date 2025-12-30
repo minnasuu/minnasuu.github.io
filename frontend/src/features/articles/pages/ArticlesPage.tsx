@@ -64,22 +64,38 @@ const ArticlesPage: React.FC = () => {
 
       <main className="articles-container">
         <div className="articles-hero">
+          {/* 背景装饰图形 */}
+          <div className="hero-graphics">
+            <div className="graphic-blob"></div>
+            <div className="graphic-line"></div>
+            <div className="graphic-circle"></div>
+          </div>
+
           <h1 className="hero-title">
             {language === "zh" ? (
-              <>
-                <span className="text-main">思考</span>
-                <span className="text-connector">与</span>
-                <span className="text-main">写作</span>
-              </>
+              <div className="title-wrapper zh">
+                <span className="text-line">成长</span>
+                <span className="divider-dot">·</span>
+                <span className="text-line">札记</span>
+              </div>
             ) : (
-              <>
-                <span className="text-main">Thinking</span>
-                <span className="text-connector text-serif">&</span>
-                <span className="text-main">Writing</span>
-              </>
+              <div className="title-wrapper en">
+                <span className="text-line">Gowth</span>
+                <span className="divider-line"></span>
+                <span className="text-line italic">Journal</span>
+              </div>
             )}
           </h1>
-          <p className="hero-subtitle">{t("articles.subtitle")}</p>
+          
+          <div className="hero-subtitle-container">
+            <p className="hero-subtitle">
+              {language === "zh" ? (
+                <>把今天过成昨天想要的明天。</>
+              ) : (
+                <>Make today the yesterday you wanted tomorrow.</>
+              )}
+            </p>
+          </div>
         </div>
 
         <div className="articles-list">

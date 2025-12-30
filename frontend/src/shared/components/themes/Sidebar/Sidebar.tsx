@@ -156,7 +156,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       {/* 文章 - 卡片形式 */}
       <div className={sectionClass}>
         <div className="section-header">
-          <h3>📄 {t('articles.title')}</h3>
+          <h3>📄 {t('文档')}</h3>
           {articles.length > 10 && <Link to="/articles" className="view-more-link">{t('articles.viewAll')}</Link>}
         </div>
         {isLoadingArticles ? (
