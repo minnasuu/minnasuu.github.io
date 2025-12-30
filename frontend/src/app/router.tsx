@@ -9,6 +9,7 @@ import {
   ArticleEditorPage,
 } from "../features/articles";
 import { personalDataMultiLang } from "../data/personalData";
+import { CraftsPage, CraftsPageDetailPage } from '../features/crafts';
 
 // 滚动重置组件
 const ScrollToTop: React.FC = () => {
@@ -39,6 +40,9 @@ const AppRouter: React.FC = () => {
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles-editor" element={<ArticleEditorPage />} />
             <Route path="/articles/:id" element={<ArticleDetailPage />} />
+
+            <Route path='/crafts' element={<CraftsPage/>}/>
+            <Route path="/crafts/:id" element={<CraftsPageDetailPage />} />
           </Routes>
         </Router>
       </ThemeProvider>
