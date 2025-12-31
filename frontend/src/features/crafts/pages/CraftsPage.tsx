@@ -10,11 +10,11 @@ import { Icon, LandButton } from "@suminhan/land-design";
 
 // 关系类型标签
 const relationLabels: Record<string, { zh: string; en: string; color: string }> = {
-  extends: { zh: "扩展自", en: "Extends", color: "#6366f1" },    // Indigo
-  inspiredBy: { zh: "灵感来源", en: "Inspired by", color: "#ec4899" }, // Pink
-  variant: { zh: "变体", en: "Variant", color: "#14b8a6" },     // Teal
-  uses: { zh: "使用了", en: "Uses", color: "#f59e0b" },         // Amber
-  relatedTo: { zh: "相关", en: "Related", color: "#94a3b8" },   // Slate
+  extends: { zh: "扩展自", en: "Extends", color: "#8ca9ff" },    // Bright Indigo
+  inspiredBy: { zh: "灵感源于", en: "Inspired by", color: "#f875aa" }, // Bright Pink
+  variant: { zh: "同源变体", en: "Variant of", color: "#8ce4ff" },     // Bright Teal
+  uses: { zh: "使用", en: "Uses", color: "#73af6f" },         // Bright Amber
+  relatedTo: { zh: "相关概念", en: "Related to", color: "#ccc" },   // Soft Lavender
 };
 
 // 示例数据 - 包含关系
@@ -480,32 +480,109 @@ export const CraftsPage: React.FC = () => {
         const perpX = -dy / dist * curvature;
         const perpY = dx / dist * curvature;
 
+        // 所有类型都使用贝塞尔曲线
         const pathD = `M ${fromPos.x} ${fromPos.y} Q ${midX + perpX} ${midY + perpY} ${toPos.x} ${toPos.y}`;
+
+        // 根据关系类型设置线条样式
+        let strokeWidth: number;
+        let strokeDasharray: string;
+        let hasArrow: boolean;
+
+        switch (relation.type) {
+          case "extends":
+            strokeWidth = 2.5; // 粗实线
+            strokeDasharray = "none";
+            hasArrow = true;
+            break;
+          case "variant":
+            strokeWidth = 1.5; // 波浪线
+            strokeDasharray = "none";
+            hasArrow = false;
+            break;
+          case "inspiredBy":
+            strokeWidth = 1.5; // 虚线
+            strokeDasharray = "6 3";
+            hasArrow = true;
+            break;
+          case "uses":
+            strokeWidth = 1.5; // 实线
+            strokeDasharray = "none";
+            hasArrow = true;
+            break;
+          case "relatedTo":
+            strokeWidth = 1.5; // 点线
+            strokeDasharray = "2 4";
+            hasArrow = false;
+            break;
+          default:
+            strokeWidth = 1.5;
+            strokeDasharray = "none";
+            hasArrow = true;
+        }
 
         lines.push(
           <g key={`${craft.id}-${relation.targetId}-${idx}`} className="connection-group">
-            {/* 连线 */}
-            <path
-              d={pathD}
-              fill="none"
-              stroke={relationStyle.color}
-              strokeWidth={1.5}
-              strokeOpacity={0.5}
-              strokeDasharray={relation.type === "relatedTo" ? "4 4" : "none"}
-              className="connection-line"
-            />
-            {/* 流动粒子 */}
-            <circle
-              r="4"
-              fill={relationStyle.color}
-              className="connection-dot"
-            >
-              <animateMotion
-                dur="2s"
-                repeatCount="indefinite"
-                path={pathD}
-              />
-            </circle>
+            {/* variant 类型使用双实线 */}
+            {relation.type === "variant" ? (
+              <>
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={relationStyle.color}
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="connection-line"
+                  style={{ transform: 'translateY(-2px)' }}
+                />
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={relationStyle.color}
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="connection-line"
+                  style={{ transform: 'translateY(2px)' }}
+                />
+              </>
+            ) : (
+              <>
+                {/* 连线 */}
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={relationStyle.color}
+                  strokeWidth={strokeWidth}
+                  strokeOpacity={0.6}
+                  strokeDasharray={strokeDasharray}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="connection-line"
+                />
+                {/* 流动箭头（仅在需要时显示） */}
+                {hasArrow && (
+                  <path
+                    d="M-6,-3 L0,0 L-6,3"
+                    fill="none"
+                    stroke={relationStyle.color}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="connection-arrow"
+                  >
+                    <animateMotion
+                      dur="2s"
+                      repeatCount="indefinite"
+                      path={pathD}
+                      rotate="auto"
+                    />
+                  </path>
+                )}
+              </>
+            )}
           </g>
         );
       });
@@ -631,14 +708,6 @@ export const CraftsPage: React.FC = () => {
             {crafts.length} {language === "zh" ? "个作品" : "crafts"}
           </div>
         </div>
-          {/* <div className="grid-header">
-            <h1 className="grid-title">
-              {language === "zh" ? "作品集" : "Crafts"}
-            </h1>
-            <div className="grid-count">
-              {crafts.length} {language === "zh" ? "个作品" : "crafts"}
-            </div>
-          </div> */}
           <div className="grid-layout">
             {crafts.map((craft) => (
               <div
@@ -681,12 +750,57 @@ export const CraftsPage: React.FC = () => {
       {layoutMode === "canvas" && (
         <div className="legend">
           <div className="legend-title">{language === "zh" ? "关系类型" : "Relations"}</div>
-          {Object.entries(relationLabels).map(([type, style]) => (
-            <div key={type} className="legend-item">
-              <span className="legend-line" style={{ background: style.color }}></span>
-              <span className="legend-label">{style[language]}</span>
-            </div>
-          ))}
+          {Object.entries(relationLabels).map(([type, style]) => {
+            // 根据类型设置不同的线条样式和箭头
+            let lineStyle: React.CSSProperties = {};
+            let showArrow = true;
+            
+            switch (type) {
+              case "extends":
+                lineStyle = {
+                  background: style.color,
+                  height: "3px",
+                };
+                break;
+              case "variant":
+                // 双实线效果
+                lineStyle = {
+                  background: `linear-gradient(${style.color} 0, ${style.color} 1px, transparent 1px, transparent 3px, ${style.color} 3px, ${style.color} 4px)`,
+                  height: "4px",
+                  backgroundSize: "100% 4px",
+                };
+                showArrow = false;
+                break;
+              case "inspiredBy":
+                lineStyle = {
+                  background: `repeating-linear-gradient(90deg, ${style.color} 0, ${style.color} 6px, transparent 6px, transparent 9px)`,
+                };
+                break;
+              case "uses":
+                lineStyle = {
+                  background: style.color,
+                };
+                break;
+              case "relatedTo":
+                lineStyle = {
+                  background: `repeating-linear-gradient(90deg, ${style.color} 0, ${style.color} 2px, transparent 2px, transparent 6px)`,
+                };
+                showArrow = false;
+                break;
+              default:
+                lineStyle = { background: style.color };
+            }
+            
+            return (
+              <div key={type} className="legend-item">
+                <span className="legend-line" style={lineStyle}></span>
+                {showArrow && (
+                  <span className="legend-arrow" style={{ color: style.color }}>→</span>
+                )}
+                <span className="legend-label">{style[language]}</span>
+              </div>
+            );
+          })}
         </div>
       )}
 

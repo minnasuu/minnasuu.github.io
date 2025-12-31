@@ -9,6 +9,7 @@ export interface Craft {
   technologies: string[];
   coverImage?: string;
   createdAt: string;
+  /** 是否为特色作品 */
   featured?: boolean;
   weight?: number; // 人工调节权重，默认1
   relations?: {
