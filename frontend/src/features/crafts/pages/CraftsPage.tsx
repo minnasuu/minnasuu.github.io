@@ -759,7 +759,7 @@ export const CraftsPage: React.FC = () => {
               case "extends":
                 lineStyle = {
                   background: style.color,
-                  height: "3px",
+                  height: "2px",
                 };
                 break;
               case "variant":
@@ -795,7 +795,7 @@ export const CraftsPage: React.FC = () => {
               <div key={type} className="legend-item">
                 <span className="legend-line" style={lineStyle}></span>
                 {showArrow && (
-                  <span className="legend-arrow" style={{ color: style.color }}>→</span>
+                  <span className="legend-arrow" style={{ color: style.color,fontWeight: type === 'extends' ? 'bold':'normal'}}>→</span>
                 )}
                 <span className="legend-label">{style[language]}</span>
               </div>
