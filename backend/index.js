@@ -78,4 +78,5 @@ app.listen(PORT, () => {
   console.log(`🌐 CORS allowed origin: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
   console.log(`🔑 DIFY_API_KEY configured: ${process.env.DIFY_API_KEY ? '✅ Yes' : '❌ No'}`);
   console.log(`🔗 DIFY_API_URL: ${process.env.DIFY_API_URL || 'https://api.dify.ai/v1'}`);
+  console.log(`🔐 EDITOR_PASSWORD configured: ${process.env.EDITOR_PASSWORD ? '✅ Yes' : '❌ No (using default)'}`);
 });

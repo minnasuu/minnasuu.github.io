@@ -37,10 +37,24 @@ project/
 在项目根目录创建 `.env` 文件：
 
 ```bash
+# Dify API Configuration
 DIFY_API_KEY=your_dify_api_key_here
 DIFY_API_URL=https://api.dify.ai/v1
+
+# Frontend URL (for CORS)
 # 如果有域名，填写真实域名；本地测试可用 http://localhost
 FRONTEND_URL=http://your-server-ip-or-domain
+
+# Editor Authentication
+# 设置编辑器访问密码（用于 /articles-editor 和 /crafts-editor）
+EDITOR_PASSWORD=your-secure-password-here
+```
+
+或者复制示例文件并修改：
+
+```bash
+cp .env.example .env
+# 然后编辑 .env 文件填写实际值
 ```
 
 ## 4. 启动服务

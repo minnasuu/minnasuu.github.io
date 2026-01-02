@@ -1,0 +1,123 @@
+// 编辑模式下的额外样式
+.crafts-page.editor-mode {
+  .craft-node {
+    &:hover {
+      .node-add-buttons {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+  }
+
+  // 添加按钮容器 - 直接附加在 node-inner 上
+  .node-inner {
+    position: relative;
+  }
+
+  .node-add-buttons {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 101;
+  }
+
+  .add-btn {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: #202020;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    z-index: 102;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      color: #ffffff;
+    }
+
+    &:hover {
+      background: #000;
+      border-color: #000;
+    }
+
+
+    // 四个方向的按钮定位 - 相对于 node-inner 边界
+    &.add-top {
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    &.add-right {
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    &.add-bottom {
+      bottom: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    &.add-left {
+      left: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+  // 编辑器工具栏
+  .editor-toolbar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 150;
+    display: flex;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    padding: 12px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+
+    .toolbar-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #718096;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+      }
+
+      &.active {
+        background: #667eea;
+        color: #ffffff;
+      }
+    }
+  }
+}

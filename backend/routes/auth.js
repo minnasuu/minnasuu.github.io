@@ -14,7 +14,7 @@ router.post('/verify-editor-password', (req, res) => {
     }
 
     // 从环境变量获取密码
-    const correctPassword = process.env.VITE_EDITOR_PASSWORD || 'minna1125';
+    const correctPassword = process.env.EDITOR_PASSWORD || 'minna1125';
 
     if (password === correctPassword) {
       return res.json({

@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "@suminhan/land-design";
 
 // Craft 类型定义
 export interface Craft {
@@ -48,6 +49,8 @@ interface CraftNodeProps {
   isHovered: boolean;
   isDimmed: boolean;
   language: "zh" | "en";
+  editorMode?: boolean; // 是否为编辑模式
+  onAddNode?: (craftId: string, direction: 'top' | 'right' | 'bottom' | 'left') => void;
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -63,12 +66,21 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
   isHovered,
   isDimmed,
   language,
+  editorMode = false,
+  onAddNode,
   onClick,
   onMouseEnter,
   onMouseLeave,
 }) => {
   const hasRelations = craft.relations && craft.relations.length > 0;
   const weightLevel = getWeightLevel(effectiveWeight, maxWeight);
+
+  const handleAddClick = (e: React.MouseEvent, direction: 'top' | 'right' | 'bottom' | 'left') => {
+    e.stopPropagation();
+    if (onAddNode) {
+      onAddNode(craft.id, direction);
+    }
+  };
 
   return (
     <div
@@ -94,6 +106,40 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
         {hasRelations && (
           <div className="node-relation-indicator">
             <span>{craft.relations!.length}</span>
+          </div>
+        )}
+        
+        {/* 编辑模式：添加节点按钮 - 放在 node-inner 内部 */}
+        {editorMode && (
+          <div className="node-add-buttons">
+            <button 
+              className="add-btn add-top" 
+              onClick={(e) => handleAddClick(e, 'top')}
+              title="Add node above"
+            >
+              <Icon name="add" strokeWidth={4}/>
+            </button>
+            <button 
+              className="add-btn add-right" 
+              onClick={(e) => handleAddClick(e, 'right')}
+              title="Add node to the right"
+            >
+              <Icon name="add" strokeWidth={4}/>
+            </button>
+            <button 
+              className="add-btn add-bottom" 
+              onClick={(e) => handleAddClick(e, 'bottom')}
+              title="Add node below"
+            >
+              <Icon name="add" strokeWidth={4}/>
+            </button>
+            <button 
+              className="add-btn add-left" 
+              onClick={(e) => handleAddClick(e, 'left')}
+              title="Add node to the left"
+            >
+              <Icon name="add" strokeWidth={4}/>
+            </button>
           </div>
         )}
       </div>

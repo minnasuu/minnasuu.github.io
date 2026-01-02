@@ -181,7 +181,11 @@ const calculateNodePositions = (
 
 type LayoutMode = "canvas" | "grid";
 
-export const CraftsPage: React.FC = () => {
+interface CraftsPageProps {
+  editorMode?: boolean;
+}
+
+export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) => {
   const { language } = useLanguage();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -452,6 +456,12 @@ export const CraftsPage: React.FC = () => {
     setActiveId(null);
   };
 
+  // 编辑模式：处理添加节点
+  const handleAddNode = (sourceId: string, direction: 'top' | 'right' | 'bottom' | 'left') => {
+    // TODO: 实现添加节点的完整功能
+    alert(`Add node ${direction} of ${sourceId}`);
+  };
+
   const activeCraft = crafts.find((c) => c.id === activeId);
 
   // 渲染连线
@@ -597,7 +607,7 @@ export const CraftsPage: React.FC = () => {
 
   return (
     <div
-      className="crafts-page"
+      className={`crafts-page ${editorMode ? 'editor-mode' : ''}`}
       ref={containerRef}
       onMouseDown={layoutMode === "canvas" ? handleMouseDown : undefined}
       onMouseMove={layoutMode === "canvas" ? handleMouseMove : undefined}
@@ -612,7 +622,7 @@ export const CraftsPage: React.FC = () => {
 
       {/* 顶部导航 */}
       <header className="crafts-header">
-        <BackButton to="/" />
+        <BackButton to={editorMode ? "/crafts" : "/"} />
         
         {/* 搜索框 */}
         <div className="search-container">
@@ -654,6 +664,33 @@ export const CraftsPage: React.FC = () => {
             />
         </div>
       </header>
+
+      {/* 编辑器工具栏 */}
+      {editorMode && layoutMode === "canvas" && (
+        <div className="editor-toolbar">
+          <button 
+            className="toolbar-btn" 
+            title={language === "zh" ? "保存" : "Save"}
+            onClick={() => alert(language === "zh" ? "保存功能开发中..." : "Save feature in development...")}
+          >
+            <Icon name="file" />
+          </button>
+          <button 
+            className="toolbar-btn" 
+            title={language === "zh" ? "导入" : "Import"}
+            onClick={() => alert(language === "zh" ? "导入功能开发中..." : "Import feature in development...")}
+          >
+            <Icon name="upload" />
+          </button>
+          <button 
+            className="toolbar-btn" 
+            title={language === "zh" ? "导出" : "Export"}
+            onClick={() => alert(language === "zh" ? "导出功能开发中..." : "Export feature in development...")}
+          >
+            <Icon name="download" />
+          </button>
+        </div>
+      )}
 
       {/* 中心标题 */}
       {layoutMode === "canvas" && (
@@ -727,6 +764,8 @@ export const CraftsPage: React.FC = () => {
                   isHovered={isHovered}
                   isDimmed={isDimmed}
                   language={language}
+                  editorMode={editorMode}
+                  onAddNode={editorMode ? handleAddNode : undefined}
                   onClick={() => handleNodeClick(craft.id)}
                   onMouseEnter={() => setHoveredId(craft.id)}
                   onMouseLeave={() => setHoveredId(null)}
