@@ -7,7 +7,7 @@ import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
 import { Icon, LandButton, LandInput, LandRadioGroup, LandSwitch, LandNumberInput } from "@suminhan/land-design";
-import { uploadImage, fetchCrafts, createCraft } from "../../../shared/utils/backendClient";
+import { uploadImage, fetchCrafts, createCraft, deleteCraft } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
 interface AddNodeState {
@@ -212,6 +212,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const [addNodeState, setAddNodeState] = useState<AddNodeState | null>(null);
   // 独立新建节点模式
   const [createNodeMode, setCreateNodeMode] = useState<CreateNodeMode>(null);
+  // 删除确认状态
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   // 封面图片上传状态
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   // 新节点表单数据
@@ -616,6 +619,49 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     }
   };
 
+  // 请求删除节点（显示确认对话框）
+  const handleRequestDelete = (craftId: string) => {
+    const craft = crafts.find(c => c.id === craftId);
+    if (craft) {
+      setDeleteConfirm({ id: craftId, name: craft.name });
+    }
+  };
+
+  // 取消删除
+  const handleCancelDelete = () => {
+    setDeleteConfirm(null);
+  };
+
+  // 确认删除节点
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm || isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteCraft(deleteConfirm.id);
+      
+      // 更新本地状态
+      setCrafts(prev => prev.filter(c => c.id !== deleteConfirm.id));
+      
+      // 如果删除的是当前选中的节点，清除选中状态
+      if (activeId === deleteConfirm.id) {
+        setActiveId(null);
+      }
+      
+      alert(language === 'zh' 
+        ? `节点 "${deleteConfirm.name}" 已删除`
+        : `Node "${deleteConfirm.name}" deleted`
+      );
+      
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error('Failed to delete craft:', error);
+      alert(language === 'zh' ? '删除失败，请稍后重试' : 'Failed to delete, please try again');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // 添加技术标签
   const handleAddTech = () => {
     if (newNodeForm.techInput.trim() && !newNodeForm.technologies.includes(newNodeForm.techInput.trim())) {
@@ -1016,6 +1062,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   language={language}
                   editorMode={editorMode}
                   onAddNode={editorMode ? handleAddNode : undefined}
+                  onDelete={editorMode ? handleRequestDelete : undefined}
                   onClick={() => handleNodeClick(craft.id)}
                   onMouseEnter={() => setHoveredId(craft.id)}
                   onMouseLeave={() => setHoveredId(null)}
@@ -1223,7 +1270,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             <div className="panel-actions">
               {activeCraft.demoUrl && (
                 <a href={activeCraft.demoUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
-                  <Icon name="play" size={16} />
+                  <Icon name="video-pause" size={16} />
                   {language === "zh" ? "在线体验" : "Live Demo"}
                 </a>
               )}
@@ -1640,6 +1687,43 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 text={language === "zh" ? "创建节点" : "Create Node"}
                 onClick={handleConfirmAddNode}
                 disabled={!newNodeForm.name.trim() || isCreating}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 删除确认对话框 */}
+      {deleteConfirm && (
+        <div className="delete-confirm-overlay">
+          <div className="delete-confirm-dialog">
+            <div className="delete-icon">
+              <Icon name="delete" size={32} />
+            </div>
+            <h3>{language === "zh" ? "确认删除" : "Confirm Delete"}</h3>
+            <p>
+              {language === "zh" 
+                ? `确定要删除节点 "${deleteConfirm.name}" 吗？此操作将同时删除关联的封面图片，且无法撤销。`
+                : `Are you sure you want to delete "${deleteConfirm.name}"? This will also delete the cover image and cannot be undone.`
+              }
+            </p>
+            <div className="delete-actions">
+              <LandButton
+                type="fill"
+                status="default"
+                text={language === "zh" ? "取消" : "Cancel"}
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+              />
+              <LandButton
+                type="background"
+                status="danger"
+                text={isDeleting 
+                  ? (language === "zh" ? "删除中..." : "Deleting...") 
+                  : (language === "zh" ? "确认删除" : "Delete")
+                }
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
               />
             </div>
           </div>

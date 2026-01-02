@@ -69,6 +69,7 @@ interface CraftNodeProps {
   language: "zh" | "en";
   editorMode?: boolean; // 是否为编辑模式
   onAddNode?: (craftId: string, direction: 'top' | 'right' | 'bottom' | 'left') => void;
+  onDelete?: (craftId: string) => void; // 删除节点回调
   onClick: () => void;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
@@ -86,6 +87,7 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
   language,
   editorMode = false,
   onAddNode,
+  onDelete,
   onClick,
   onMouseEnter,
   onMouseLeave,
@@ -97,6 +99,13 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
     e.stopPropagation();
     if (onAddNode) {
       onAddNode(craft.id, direction);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(craft.id);
     }
   };
 
@@ -162,6 +171,17 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
         )}
       </div>
       <div className="node-label">{craft.name}</div>
+      
+      {/* 编辑模式：删除按钮 - 放在节点下方 */}
+      {editorMode && (
+        <button 
+          className="node-delete-btn"
+          onClick={handleDeleteClick}
+          title={language === "zh" ? "删除节点" : "Delete node"}
+        >
+          <Icon name="delete" size={14} />
+        </button>
+      )}
     </div>
   );
 };

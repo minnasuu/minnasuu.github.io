@@ -404,7 +404,6 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 
         0 0 0 3px rgba(99, 102, 241, 0.2), // 柔和的对焦环
         $shadow-floating;
-      border-color: $color-accent;
     }
     
     .node-label {

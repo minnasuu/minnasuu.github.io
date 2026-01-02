@@ -6,6 +6,11 @@
         opacity: 1;
         pointer-events: auto;
       }
+      
+      .node-delete-btn {
+        opacity: 1;
+        pointer-events: auto;
+      }
     }
   }
 
@@ -21,6 +26,43 @@
     pointer-events: none;
     transition: opacity 0.2s ease;
     z-index: 101;
+  }
+
+  // 删除按钮 - 放在节点下方
+  .node-delete-btn {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 28px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      color: #a0aec0;
+    }
+
+    &:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      
+      svg {
+        color: #dc2626;
+      }
+    }
   }
 
   .add-btn {
@@ -933,6 +975,110 @@
 
     .cover-preview {
       background: #242424;
+    }
+  }
+}
+
+// 删除确认对话框
+.delete-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  animation: deleteOverlayFadeIn 0.3s ease forwards;
+
+  @keyframes deleteOverlayFadeIn {
+    from { 
+      background: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+    }
+    to { 
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+    }
+  }
+}
+
+.delete-confirm-dialog {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: deleteDialogSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes deleteDialogSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .delete-icon {
+    width: 64px;
+    height: 64px;
+    background: #fee2e2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+
+    svg {
+      color: #dc2626;
+    }
+  }
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 0.95rem;
+    color: #718096;
+    line-height: 1.6;
+  }
+
+  .delete-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+
+    button {
+      min-width: 100px;
+    }
+  }
+}
+
+// 深色模式
+@media (prefers-color-scheme: dark) {
+  .delete-confirm-dialog {
+    background: #1a1a1a;
+    
+    h3 {
+      color: #f0f0f0;
+    }
+
+    p {
+      color: #a0aec0;
+    }
+
+    .delete-icon {
+      background: rgba(220, 38, 38, 0.2);
     }
   }
 }
