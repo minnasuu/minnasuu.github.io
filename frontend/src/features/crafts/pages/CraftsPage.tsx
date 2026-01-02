@@ -7,6 +7,7 @@ import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
 import { Icon, LandButton } from "@suminhan/land-design";
+import { mockCrafts } from "../mock";
 
 // 关系类型标签
 const relationLabels: Record<string, { zh: string; en: string; color: string }> = {
@@ -17,142 +18,6 @@ const relationLabels: Record<string, { zh: string; en: string; color: string }> 
   relatedTo: { zh: "相关概念", en: "Related to", color: "#ccc" },   // Soft Lavender
 };
 
-// 示例数据 - 包含关系
-const mockCrafts: Craft[] = [
-  {
-    id: "1",
-    name: "Glassmorphism Card",
-    description: "A beautiful frosted glass effect card component with blur and transparency",
-    category: "component",
-    technologies: ["React", "CSS", "Backdrop-filter"],
-    coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600",
-    createdAt: "2024-12-20",
-    featured: true,
-    weight: 2,
-  },
-  {
-    id: "2",
-    name: "Magnetic Button",
-    description: "Interactive button that follows cursor with magnetic effect",
-    category: "effect",
-    technologies: ["React", "Framer Motion", "TypeScript"],
-    coverImage: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=600",
-    createdAt: "2024-12-15",
-    weight: 1.5,
-    relations: [{ targetId: "6", type: "uses" }],
-  },
-  {
-    id: "3",
-    name: "Infinite Scroll Gallery",
-    description: "Smooth infinite scrolling image gallery with lazy loading",
-    category: "component",
-    technologies: ["React", "Intersection Observer", "CSS Grid"],
-    coverImage: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600",
-    createdAt: "2024-12-10",
-    featured: true,
-    weight: 1.5,
-    relations: [{ targetId: "1", type: "extends" }],
-  },
-  {
-    id: "4",
-    name: "3D Flip Card",
-    description: "Card component with smooth 3D flip animation on hover",
-    category: "effect",
-    technologies: ["CSS 3D", "Transform", "Perspective"],
-    coverImage: "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=600",
-    createdAt: "2024-12-05",
-    weight: 1,
-    relations: [
-      { targetId: "1", type: "variant" },
-      { targetId: "7", type: "inspiredBy" },
-    ],
-  },
-  {
-    id: "5",
-    name: "Custom Range Slider",
-    description: "Fully customizable range slider with gradient track",
-    category: "control",
-    technologies: ["React", "CSS Variables", "TypeScript"],
-    coverImage: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=600",
-    createdAt: "2024-11-28",
-    weight: 1,
-  },
-  {
-    id: "6",
-    name: "Particle System",
-    description: "Interactive particle animation system with mouse interaction",
-    category: "experiment",
-    technologies: ["Canvas", "JavaScript", "RequestAnimationFrame"],
-    coverImage: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=600",
-    createdAt: "2024-11-20",
-    featured: true,
-    weight: 2,
-  },
-  {
-    id: "7",
-    name: "Morphing Shapes",
-    description: "SVG shapes that smoothly morph between different forms",
-    category: "experiment",
-    technologies: ["SVG", "GSAP", "React"],
-    coverImage: "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=600",
-    createdAt: "2024-11-15",
-    weight: 1.2,
-    relations: [{ targetId: "6", type: "relatedTo" }],
-  },
-  {
-    id: "8",
-    name: "Drag & Drop List",
-    description: "Smooth drag and drop reorderable list component",
-    category: "control",
-    technologies: ["React", "Framer Motion", "TypeScript"],
-    coverImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600",
-    createdAt: "2024-11-10",
-    weight: 1,
-    relations: [{ targetId: "2", type: "uses" }],
-  },
-  {
-    id: "9",
-    name: "Animated Counter",
-    description: "Number counter with smooth spring animations",
-    category: "component",
-    technologies: ["React", "Framer Motion"],
-    coverImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600",
-    createdAt: "2024-11-05",
-    weight: 1,
-  },
-  {
-    id: "10",
-    name: "Spotlight Effect",
-    description: "Mouse-following spotlight reveal effect",
-    category: "effect",
-    technologies: ["CSS", "JavaScript", "Clip-path"],
-    coverImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600",
-    createdAt: "2024-10-28",
-    weight: 1,
-    relations: [{ targetId: "2", type: "relatedTo" }],
-  },
-  {
-    id: "11",
-    name: "Toast Notifications",
-    description: "Stackable toast notification system",
-    category: "component",
-    technologies: ["React", "TypeScript", "CSS"],
-    coverImage: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=600",
-    createdAt: "2024-10-20",
-    weight: 1,
-  },
-  {
-    id: "12",
-    name: "Skeleton Loader",
-    description: "Animated skeleton loading placeholders",
-    category: "component",
-    technologies: ["React", "CSS Animation"],
-    coverImage: "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=600",
-    createdAt: "2024-10-15",
-    weight: 1,
-    relations: [{ targetId: "1", type: "extends" }],
-  },
-];
 
 // 计算每个节点的分支数（出度 + 入度）
 const calculateBranchCounts = (crafts: Craft[]): Map<string, number> => {
@@ -190,49 +55,126 @@ const calculateEffectiveWeights = (crafts: Craft[]): Map<string, number> => {
   return weights;
 };
 
-// 计算节点位置 - 使用力导向布局思想
+// 计算节点位置 - 使用随机分布 + 力导向优化保持均匀间距
 const calculateNodePositions = (
   crafts: Craft[],
   containerWidth: number,
-  containerHeight: number,
-  effectiveWeights: Map<string, number>
+  containerHeight: number
 ) => {
   const positions: Map<string, { x: number; y: number; ring: number }> = new Map();
-  const centerX = containerWidth / 2;
-  const centerY = containerHeight / 2;
-
-  // 根据实际权重排序，权重高的在内圈
-  const craftsByWeight = [...crafts].sort((a, b) => {
-    const aWeight = effectiveWeights.get(a.id) || 1;
-    const bWeight = effectiveWeights.get(b.id) || 1;
-    return bWeight - aWeight;
-  });
-
-  // 分配到不同的环
-  const rings = [
-    { radius: Math.min(containerWidth, containerHeight) * 0.15, count: 0, maxCount: 3 },
-    { radius: Math.min(containerWidth, containerHeight) * 0.28, count: 0, maxCount: 5 },
-    { radius: Math.min(containerWidth, containerHeight) * 0.4, count: 0, maxCount: 8 },
-    { radius: Math.min(containerWidth, containerHeight) * 0.52, count: 0, maxCount: 12 },
-  ];
-
-  craftsByWeight.forEach((craft) => {
-    // 找到可用的环
-    let ringIndex = rings.findIndex((r) => r.count < r.maxCount);
-    if (ringIndex === -1) ringIndex = rings.length - 1;
-
-    const ring = rings[ringIndex];
-    const angleOffset = (ring.count / Math.max(ring.maxCount, ring.count + 1)) * Math.PI * 2;
-    const jitter = (Math.random() - 0.5) * 0.3; // 添加一些随机偏移
-
+  const padding = 100; // 边界留白
+  
+  // 第一步：随机初始化位置
+  crafts.forEach((craft) => {
     positions.set(craft.id, {
-      x: centerX + Math.cos(angleOffset + jitter) * ring.radius,
-      y: centerY + Math.sin(angleOffset + jitter) * ring.radius,
-      ring: ringIndex,
+      x: padding + Math.random() * (containerWidth - padding * 2),
+      y: padding + Math.random() * (containerHeight - padding * 2),
+      ring: 0,
     });
-
-    ring.count++;
   });
+
+  // 第二步：力导向调整，保持均匀间距
+  const iterations = 80; // 增加迭代次数以达到更稳定的布局
+  const idealDistance = 800; // 理想节点间距
+  const minDistance = 800; // 最小间距（防止重叠）
+  const maxDistance = 1200; // 最大间距（防止过于分散）
+  
+  for (let iter = 0; iter < iterations; iter++) {
+    const forces = new Map<string, { x: number; y: number }>();
+    
+    // 初始化力
+    crafts.forEach((craft) => {
+      forces.set(craft.id, { x: 0, y: 0 });
+    });
+    
+    // 对所有节点对计算力
+    for (let i = 0; i < crafts.length; i++) {
+      for (let j = i + 1; j < crafts.length; j++) {
+        const craft1 = crafts[i];
+        const craft2 = crafts[j];
+        const pos1 = positions.get(craft1.id)!;
+        const pos2 = positions.get(craft2.id)!;
+        
+        const dx = pos2.x - pos1.x;
+        const dy = pos2.y - pos1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 0) {
+          let force = 0;
+          
+          // 距离小于最小值：强排斥
+          if (dist < minDistance) {
+            force = -((minDistance - dist) / minDistance) * 3;
+          }
+          // 距离在最小和理想之间：轻微排斥
+          else if (dist < idealDistance) {
+            force = -((idealDistance - dist) / idealDistance) * 0.8;
+          }
+          // 距离在理想和最大之间：轻微吸引
+          else if (dist < maxDistance) {
+            force = ((dist - idealDistance) / (maxDistance - idealDistance)) * 0.5;
+          }
+          // 距离大于最大值：强吸引
+          else {
+            force = ((dist - maxDistance) / maxDistance) * 1.5;
+          }
+          
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          
+          const f1 = forces.get(craft1.id)!;
+          const f2 = forces.get(craft2.id)!;
+          f1.x += fx;
+          f1.y += fy;
+          f2.x -= fx;
+          f2.y -= fy;
+        }
+      }
+    }
+    
+    // 对有关系的节点施加额外的轻微吸引力
+    crafts.forEach((craft) => {
+      if (!craft.relations) return;
+      
+      const pos1 = positions.get(craft.id)!;
+      craft.relations.forEach((rel) => {
+        const pos2 = positions.get(rel.targetId);
+        if (!pos2) return;
+        
+        const dx = pos2.x - pos1.x;
+        const dy = pos2.y - pos1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > idealDistance) {
+          // 轻微吸引，让相关节点更接近理想距离
+          const force = ((dist - idealDistance) / dist) * 0.3;
+          const fx = dx * force;
+          const fy = dy * force;
+          
+          const f1 = forces.get(craft.id)!;
+          f1.x += fx;
+          f1.y += fy;
+        }
+      });
+    });
+    
+    // 应用力并更新位置（使用阻尼减少震荡）
+    const damping = 0.5; // 阻尼系数，随迭代次数递减
+    const dampingFactor = damping * (1 - iter / iterations);
+    
+    crafts.forEach((craft) => {
+      const pos = positions.get(craft.id)!;
+      const force = forces.get(craft.id)!;
+      
+      // 应用阻尼后更新位置
+      pos.x += force.x * (0.5 + dampingFactor);
+      pos.y += force.y * (0.5 + dampingFactor);
+      
+      // 限制在边界内
+      pos.x = Math.max(padding, Math.min(containerWidth - padding, pos.x));
+      pos.y = Math.max(padding, Math.min(containerHeight - padding, pos.y));
+    });
+  }
 
   return positions;
 };
@@ -250,6 +192,7 @@ export const CraftsPage: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isMinimapDragging, setIsMinimapDragging] = useState(false);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("canvas");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -277,6 +220,25 @@ export const CraftsPage: React.FC = () => {
 
   const crafts = mockCrafts;
 
+  // 搜索过滤
+  const filteredCrafts = useMemo(() => {
+    if (!searchQuery.trim()) return crafts;
+    
+    const query = searchQuery.toLowerCase();
+    return crafts.filter(craft => 
+      craft.name.toLowerCase().includes(query) ||
+      craft.description.toLowerCase().includes(query) ||
+      craft.technologies.some(tech => tech.toLowerCase().includes(query)) ||
+      categoryLabels[craft.category].zh.toLowerCase().includes(query) ||
+      categoryLabels[craft.category].en.toLowerCase().includes(query)
+    );
+  }, [crafts, searchQuery]);
+
+  // 搜索结果 ID 集合（用于高亮）
+  const searchResultIds = useMemo(() => {
+    return new Set(filteredCrafts.map(c => c.id));
+  }, [filteredCrafts]);
+
   // 计算实际权重
   const effectiveWeights = useMemo(() => calculateEffectiveWeights(crafts), [crafts]);
   
@@ -290,8 +252,8 @@ export const CraftsPage: React.FC = () => {
   // 计算节点位置
   const nodePositions = useMemo(() => {
     if (dimensions.width === 0) return new Map();
-    return calculateNodePositions(crafts, canvasWidth, canvasHeight, effectiveWeights);
-  }, [crafts, canvasWidth, canvasHeight, effectiveWeights]);
+    return calculateNodePositions(crafts, canvasWidth, canvasHeight);
+  }, [crafts, canvasWidth, canvasHeight]);
 
   // 获取与当前节点相关的所有连线
   const getRelatedConnections = useCallback(
@@ -438,6 +400,48 @@ export const CraftsPage: React.FC = () => {
       setViewOffset(clampViewOffset(newOffset));
     }
   };
+
+  // 居中到搜索结果
+  const centerToSearchResults = useCallback(() => {
+    if (filteredCrafts.length === 0 || dimensions.width === 0) return;
+    
+    // 计算所有搜索结果的中心点
+    let sumX = 0;
+    let sumY = 0;
+    let count = 0;
+    
+    filteredCrafts.forEach(craft => {
+      const pos = nodePositions.get(craft.id);
+      if (pos) {
+        sumX += pos.x;
+        sumY += pos.y;
+        count++;
+      }
+    });
+    
+    if (count > 0) {
+      const centerX = sumX / count;
+      const centerY = sumY / count;
+      
+      const newOffset = {
+        x: dimensions.width / 2 - centerX,
+        y: dimensions.height / 2 - centerY,
+      };
+      
+      setViewOffset(clampViewOffset(newOffset));
+    }
+  }, [filteredCrafts, nodePositions, dimensions, clampViewOffset]);
+
+  // 当搜索结果变化时，自动居中到结果
+  useEffect(() => {
+    if (layoutMode === "canvas" && searchQuery.trim() && filteredCrafts.length > 0) {
+      // 延迟一小段时间以确保布局已完成
+      const timer = setTimeout(() => {
+        centerToSearchResults();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, filteredCrafts.length, layoutMode, centerToSearchResults]);
 
   // 重置视图
   const resetView = () => {
@@ -609,6 +613,28 @@ export const CraftsPage: React.FC = () => {
       {/* 顶部导航 */}
       <header className="crafts-header">
         <BackButton to="/" />
+        
+        {/* 搜索框 */}
+        <div className="search-container">
+          <Icon name="search" className="search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder={language === "zh" ? "搜索作品、技术、分类..." : "Search crafts, tech, category..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button 
+              className="search-clear"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+            >
+              <Icon name="close" />
+            </button>
+          )}
+        </div>
+
         <div className="header-controls">
             {layoutMode === "canvas" && (
               <LandButton 
@@ -637,7 +663,15 @@ export const CraftsPage: React.FC = () => {
             {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
           </p>
           <div className="craft-count">
-            {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+            {searchQuery ? (
+              <>
+                {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+              </>
+            ) : (
+              <>
+                {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+              </>
+            )}
           </div>
         </div>
       )}
@@ -677,7 +711,8 @@ export const CraftsPage: React.FC = () => {
               const isActive = activeId === craft.id;
               const isRelated = relatedNodes.has(craft.id);
               const isHovered = hoveredId === craft.id;
-              const isDimmed = relatedNodes.size > 0 && !isRelated;
+              const isSearchResult = searchResultIds.has(craft.id);
+              const isDimmed = (relatedNodes.size > 0 && !isRelated) || (searchQuery.trim() !== "" && !isSearchResult);
               const craftEffectiveWeight = effectiveWeights.get(craft.id) || 1;
 
               return (
@@ -705,43 +740,63 @@ export const CraftsPage: React.FC = () => {
             <div className="grid center-title">
           <DotMatrixTitle />
           <div className="craft-count">
-            {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+            {searchQuery ? (
+              <>
+                {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+              </>
+            ) : (
+              <>
+                {crafts.length} {language === "zh" ? "个作品" : "crafts"}
+              </>
+            )}
           </div>
         </div>
           <div className="grid-layout">
-            {crafts.map((craft) => (
-              <div
-                key={craft.id}
-                className={`grid-card ${activeId === craft.id ? "active" : ""}`}
-                onClick={() => handleNodeClick(craft.id)}
-              >
-                <div className="grid-card-image">
-                  {craft.coverImage && (
-                    <img src={craft.coverImage} alt={craft.name} />
-                  )}
-                  {craft.featured && (
-                    <div className="featured-badge">
-                      {language === "zh" ? "精选" : "Featured"}
-                    </div>
-                  )}
-                </div>
-                <div className="grid-card-content">
-                  <span className="grid-card-category">
-                    {categoryLabels[craft.category][language]}
-                  </span>
-                  <h3 className="grid-card-name">{craft.name}</h3>
-                  <p className="grid-card-description">{craft.description}</p>
-                  <div className="grid-card-tech">
-                    {craft.technologies.slice(0, 3).map((tech, idx) => (
-                      <span key={idx} className="tech-tag">{tech}</span>
-                    ))}
-                    {craft.technologies.length > 3 && (
-                      <span className="tech-more">+{craft.technologies.length - 3}</span>
+            {filteredCrafts.length > 0 ? (
+              filteredCrafts.map((craft) => (
+                <div
+                  key={craft.id}
+                  className={`grid-card ${activeId === craft.id ? "active" : ""}`}
+                  onClick={() => handleNodeClick(craft.id)}
+                >
+                  <div className="grid-card-image">
+                    {craft.coverImage && (
+                      <img src={craft.coverImage} alt={craft.name} />
+                    )}
+                    {craft.featured && (
+                      <div className="featured-badge">
+                        {language === "zh" ? "精选" : "Featured"}
+                      </div>
                     )}
                   </div>
+                  <div className="grid-card-content">
+                    <span className="grid-card-category">
+                      {categoryLabels[craft.category][language]}
+                    </span>
+                    <h3 className="grid-card-name">{craft.name}</h3>
+                    <p className="grid-card-description">{craft.description}</p>
+                    <div className="grid-card-tech">
+                      {craft.technologies.slice(0, 3).map((tech, idx) => (
+                        <span key={idx} className="tech-tag">{tech}</span>
+                      ))}
+                      {craft.technologies.length > 3 && (
+                        <span className="tech-more">+{craft.technologies.length - 3}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="no-results">
+                <Icon name="search" className="no-results-icon" />
+                <p className="no-results-text">
+                  {language === "zh" ? "未找到匹配的作品" : "No crafts found"}
+                </p>
+                <p className="no-results-hint">
+                  {language === "zh" ? "尝试使用其他关键词" : "Try different keywords"}
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       )}

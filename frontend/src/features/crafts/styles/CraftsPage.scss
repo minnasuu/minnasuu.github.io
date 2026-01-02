@@ -4,8 +4,8 @@ $color-bg: #ffffff;
 $color-text-main: #2d3748;
 $color-text-sub: #718096;
 $color-text-light: #a0aec0;
-$color-accent: #6366f1;
-$color-accent-hover: #4f46e5;
+$color-accent: #202020;
+$color-accent-hover: #000;
 $color-border: rgba(0, 0, 0, 0.06);
 $color-panel-bg: rgba(255, 255, 255, 0.85);
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -24,25 +24,6 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 }
 
-// .back-btn-circle {
-//     border-color: rgba(0, 0, 0, 0.08) !important;
-//     background-color: rgba(255, 255, 255, 0.8) !important;
-//     color: $color-text-main !important;
-//     box-shadow: $shadow-sm;
-    
-//     &:hover{
-//         border-color: rgba(0, 0, 0, 0.15) !important;
-//         background-color: #ffffff !important;
-//         transform: translateY(-1px);
-//         box-shadow: $shadow-md;
-//          svg{
-//             color: $color-text-main;
-//         }
-//     }
-//     svg{
-//         color: $color-text-sub;
-//     }
-// }
 
 // 背景
 .crafts-bg {
@@ -85,6 +66,78 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   
   > * {
     pointer-events: auto;
+  }
+  
+  // 搜索容器
+  .search-container {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 40px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      width: 18px;
+      height: 18px;
+      color: $color-text-light;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .search-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 44px 0 44px;
+      font-size: 0.9rem;
+      font-family: $font-primary;
+      color: $color-text-main;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      border-radius: 14px;
+      outline: none;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+      box-shadow: $shadow-sm;
+      
+      &::placeholder {
+        color: $color-text-light;
+      }
+      
+      &:focus {
+        background: #ffffff;
+        border-color: rgba(0, 0, 0, 0.12);
+        box-shadow: $shadow-md, 0 0 0 3px rgba(99, 102, 241, 0.08);
+      }
+    }
+    
+    .search-clear {
+      position: absolute;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.05);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: $color-text-sub;
+      
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+      
+      &:hover {
+        background: rgba(0, 0, 0, 0.1);
+        transform: scale(1.1);
+      }
+    }
   }
   
   .header-controls {
@@ -377,8 +430,8 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.5rem;
+  font-weight: 500;
   box-shadow: $shadow-sm;
   z-index: 5;
 }
@@ -769,6 +822,17 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 @media (max-width: 768px) {
   .crafts-header {
     padding: 0 20px;
+    flex-wrap: wrap;
+    height: auto;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    
+    .search-container {
+      order: 3;
+      width: 100%;
+      margin: 12px 0 0 0;
+      max-width: none;
+    }
   }
   
   .center-title {
@@ -829,6 +893,10 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   .grid-header {
     padding: 0 20px !important;
+  }
+  
+  .grid-container {
+    padding-top: 140px; // 增加顶部空间以适应换行的搜索框
   }
 }
 
@@ -1003,5 +1071,37 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       color: $color-text-light;
       padding: 4px 10px;
     }
+  }
+}
+
+// 空状态
+.no-results {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  
+  .no-results-icon {
+    width: 64px;
+    height: 64px;
+    color: $color-text-light;
+    opacity: 0.5;
+    margin-bottom: 24px;
+  }
+  
+  .no-results-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $color-text-main;
+    margin: 0 0 8px;
+  }
+  
+  .no-results-hint {
+    font-size: 0.9rem;
+    color: $color-text-light;
+    margin: 0;
   }
 }
