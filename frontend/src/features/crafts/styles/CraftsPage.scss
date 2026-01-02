@@ -61,6 +61,33 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
+// 空状态
+.empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+  padding: 40px;
+  text-align: center;
+
+  .empty-text {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $color-text-main;
+    margin: 24px 0 8px;
+  }
+
+  .empty-hint {
+    font-size: 1rem;
+    color: $color-text-sub;
+    margin: 0 0 24px;
+  }
+}
+
 
 // 背景
 .crafts-bg {

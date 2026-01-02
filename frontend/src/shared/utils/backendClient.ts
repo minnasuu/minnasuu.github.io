@@ -1,7 +1,6 @@
 import type { Article } from '../types';
 import type { Craft } from '../../features/crafts/components/CraftNode';
 import { mockArticlesAPI } from './mockData';
-import { mockCrafts } from '../../features/crafts/mock';
 
 export interface ChatRequest {
   query: string;
@@ -315,11 +314,6 @@ export interface CreateCraftRequest {
 }
 
 export const fetchCrafts = async (): Promise<Craft[]> => {
-  if (USE_MOCK_DATA) {
-    console.log('📦 Using mock data for crafts');
-    return mockCrafts;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts`;
 
@@ -332,19 +326,11 @@ export const fetchCrafts = async (): Promise<Craft[]> => {
     return data;
   } catch (error) {
     console.error('Error fetching crafts:', error);
-    console.warn('⚠️ Backend unavailable, switching to mock data');
-    return mockCrafts;
+    return [];
   }
 };
 
 export const fetchCraftById = async (id: string): Promise<Craft> => {
-  if (USE_MOCK_DATA) {
-    console.log(`📦 Using mock data for craft ${id}`);
-    const craft = mockCrafts.find(c => c.id === id);
-    if (!craft) throw new Error('Craft not found');
-    return craft;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts/${id}`;
 
@@ -357,25 +343,11 @@ export const fetchCraftById = async (id: string): Promise<Craft> => {
     return data;
   } catch (error) {
     console.error(`Error fetching craft ${id}:`, error);
-    console.warn('⚠️ Backend unavailable, switching to mock data');
-    const craft = mockCrafts.find(c => c.id === id);
-    if (!craft) throw new Error('Craft not found');
-    return craft;
+    throw error;
   }
 };
 
 export const createCraft = async (craft: CreateCraftRequest): Promise<Craft> => {
-  if (USE_MOCK_DATA) {
-    console.log('📦 Using mock data to create craft');
-    const newCraft: Craft = {
-      id: `mock-${Date.now()}`,
-      ...craft,
-      weight: craft.weight || 1,
-      createdAt: new Date().toISOString(),
-    } as Craft;
-    return newCraft;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts`;
 
@@ -400,11 +372,6 @@ export const createCraft = async (craft: CreateCraftRequest): Promise<Craft> => 
 };
 
 export const updateCraft = async (id: string, craft: CreateCraftRequest): Promise<Craft> => {
-  if (USE_MOCK_DATA) {
-    console.log(`📦 Using mock data to update craft ${id}`);
-    return { id, ...craft, createdAt: new Date().toISOString() } as Craft;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts/${id}`;
 
@@ -429,11 +396,6 @@ export const updateCraft = async (id: string, craft: CreateCraftRequest): Promis
 };
 
 export const deleteCraft = async (id: string): Promise<void> => {
-  if (USE_MOCK_DATA) {
-    console.log(`📦 Using mock data to delete craft ${id}`);
-    return;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts/${id}`;
 
@@ -456,13 +418,6 @@ export const addCraftRelation = async (
   targetId: string, 
   type: string
 ): Promise<Craft> => {
-  if (USE_MOCK_DATA) {
-    console.log(`📦 Using mock data to add relation`);
-    const craft = mockCrafts.find(c => c.id === craftId);
-    if (!craft) throw new Error('Craft not found');
-    return craft;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts/${craftId}/relations`;
 
@@ -487,13 +442,6 @@ export const addCraftRelation = async (
 };
 
 export const removeCraftRelation = async (craftId: string, targetId: string): Promise<Craft> => {
-  if (USE_MOCK_DATA) {
-    console.log(`📦 Using mock data to remove relation`);
-    const craft = mockCrafts.find(c => c.id === craftId);
-    if (!craft) throw new Error('Craft not found');
-    return craft;
-  }
-
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/crafts/${craftId}/relations/${targetId}`;
 

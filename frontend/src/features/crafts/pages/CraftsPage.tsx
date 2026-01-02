@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "../../../shared/contexts/LanguageContext";
 import BackButton from "../../../shared/components/BackButton";
 import { CraftNode, categoryLabels } from "../components/CraftNode";
@@ -7,7 +7,6 @@ import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
 import { Icon, LandButton, LandInput, LandRadioGroup, LandSwitch, LandNumberInput } from "@suminhan/land-design";
-import { mockCrafts } from "../mock";
 import { uploadImage, fetchCrafts, createCraft } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
@@ -195,6 +194,7 @@ interface CraftsPageProps {
 
 export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) => {
   const { language } = useLanguage();
+  const navigate = useNavigate();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -249,17 +249,17 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   }, [dimensions, canvasWidth, canvasHeight]);
 
   // 加载 crafts 数据
-  const [crafts, setCrafts] = useState<Craft[]>(mockCrafts);
+  const [crafts, setCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadCrafts = async () => {
       try {
         const data = await fetchCrafts();
-        setCrafts(data.length > 0 ? data : mockCrafts);
+        setCrafts(data);
       } catch (error) {
         console.error('Failed to load crafts:', error);
-        setCrafts(mockCrafts);
+        setCrafts([]);
       } finally {
         setIsLoading(false);
       }
@@ -877,6 +877,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       {layoutMode === "canvas" && (
         <div className="center-title">
           <DotMatrixTitle />
+          {!(crafts.length === 0) && <>
           <p className="subtitle">
             {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
           </p>
@@ -890,7 +891,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 {crafts.length} {language === "zh" ? "个作品" : "crafts"}
               </>
             )}
-          </div>
+          </div></>}
         </div>
       )}
 
@@ -902,8 +903,27 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
         </div>
       )}
 
+      {/* 空状态 - 无节点时显示 */}
+      {!isLoading && crafts.length === 0 && (
+        <div className="empty-state">
+          <DotMatrixTitle />
+          <p className="empty-text">
+            {language === "zh" ? "还没有任何作品" : "No crafts yet"}
+          </p>
+          <p className="empty-hint">
+            {language === "zh" ? "开始创建你的第一个作品吧" : "Start creating your first craft"}
+          </p>
+          <LandButton
+            type="background"
+            text={language === "zh" ? "新建作品" : "Create Craft"}
+            icon={<Icon name="add" strokeWidth={4} />}
+            onClick={() => navigate('/crafts-editor')}
+          />
+        </div>
+      )}
+
       {/* 画布 */}
-      {!isLoading && layoutMode === "canvas" ? (
+      {!isLoading && crafts.length > 0 && layoutMode === "canvas" ? (
         <div
           className="canvas-container"
           ref={canvasRef}
@@ -963,7 +983,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             })}
           </div>
         </div>
-      ) : !isLoading ? (
+      ) : !isLoading && crafts.length > 0 ? (
         <div className="grid-container">
             <div className="grid center-title">
           <DotMatrixTitle />
