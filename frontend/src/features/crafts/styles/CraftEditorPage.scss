@@ -118,6 +118,22 @@
         background: #667eea;
         color: #ffffff;
       }
+
+      &.toolbar-btn-primary {
+        background: #667eea;
+        color: #ffffff;
+
+        &:hover {
+          background: #5a67d8;
+        }
+      }
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 24px;
+      background: rgba(0, 0, 0, 0.1);
+      align-self: center;
     }
   }
 }
@@ -131,10 +147,93 @@
   .minimap,
   .hints,
   .detail-panel,
-  .editor-toolbar {
+  .editor-toolbar,
+  .empty-state {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+  }
+}
+
+// 独立新建节点覆盖层
+.standalone-node-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  animation: standaloneOverlayFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes standaloneOverlayFadeIn {
+    from { 
+      background: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+    }
+    to { 
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(12px);
+    }
+  }
+
+  .standalone-panel {
+    width: 90%;
+    max-width: 520px;
+    max-height: 85vh;
+    border-radius: 20px;
+    animation: standalonePanelSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+    @keyframes standalonePanelSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+      h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+      }
+
+      .panel-close-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #718096;
+
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+
+        &:hover {
+          background: rgba(0, 0, 0, 0.05);
+          color: #2d3748;
+        }
+      }
+    }
   }
 }
 
