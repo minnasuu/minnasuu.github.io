@@ -894,8 +894,16 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
         </div>
       )}
 
+      {/* 加载状态 */}
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <span>{language === "zh" ? "加载中..." : "Loading..."}</span>
+        </div>
+      )}
+
       {/* 画布 */}
-      {layoutMode === "canvas" ? (
+      {!isLoading && layoutMode === "canvas" ? (
         <div
           className="canvas-container"
           ref={canvasRef}
@@ -955,7 +963,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             })}
           </div>
         </div>
-      ) : (
+      ) : !isLoading ? (
         <div className="grid-container">
             <div className="grid center-title">
           <DotMatrixTitle />
@@ -1019,7 +1027,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             )}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* 关系图例 */}
       {layoutMode === "canvas" && (

@@ -27,6 +27,40 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 }
 
+// 加载状态
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(4px);
+
+  .loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  span {
+    font-size: 14px;
+    color: #718096;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 // 背景
 .crafts-bg {
@@ -1187,5 +1221,21 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.9rem;
     color: $color-text-light;
     margin: 0;
+  }
+}
+
+// 深色模式
+@media (prefers-color-scheme: dark) {
+  .loading-overlay {
+    background: rgba(0, 0, 0, 0.8);
+
+    .loading-spinner {
+      border-color: #333;
+      border-top-color: #fff;
+    }
+
+    span {
+      color: #a0aec0;
+    }
   }
 }
