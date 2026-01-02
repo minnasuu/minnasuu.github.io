@@ -1,11 +1,9 @@
 // 变量定义
 $font-primary: "Wotfard", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-$font-serif: "ChenYuluoyan-Thin", "Times New Roman", serif;
 $color-bg: #ffffff;
 $color-text-main: #000000;
 $color-text-sub: #555555;
 $color-text-light: #999999;
-$transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 
 .crafts-detail-page {
   min-height: 100vh;
@@ -55,23 +53,54 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 
 // 顶部导航
 .detail-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
-  height: 80px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   
   .header-content {
-    width: 100%;
-    max-width: 1200px;
+    height: 100%;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 40px;
+    padding: 0 32px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+  
+  .section-nav {
+    display: flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px;
+    border-radius: 10px;
+    
+    .nav-item {
+      padding: 8px 20px;
+      border: none;
+      background: transparent;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: $color-text-sub;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        color: $color-text-main;
+      }
+      
+      &.active {
+        background: #fff;
+        color: $color-text-main;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+    }
   }
   
   .header-actions {
@@ -91,7 +120,7 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     font-weight: 500;
     color: $color-text-sub;
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     
     svg {
       width: 16px;
@@ -102,229 +131,403 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
       border-color: $color-text-main;
       color: $color-text-main;
     }
-    
-    &.primary {
-      background: $color-text-main;
-      border-color: $color-text-main;
-      color: #fff;
-      
-      &:hover {
-        background: lighten($color-text-main, 10%);
-      }
-    }
   }
 }
 
-// Hero 区域
-.detail-hero {
-  position: relative;
-  min-height: 60vh;
+// 第一屏：信息展示
+.info-section {
+  min-height: 100vh;
   display: flex;
-  align-items: flex-end;
-  padding: 4rem 0;
+  padding-top: 64px; // header 高度
   
-  .hero-image {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    
-    .image-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.3) 0%,
-        rgba(255, 255, 255, 0.8) 50%,
-        rgba(255, 255, 255, 1) 100%
-      );
-    }
-  }
-  
-  .hero-content {
+  // 左侧封面区域
+  .cover-area {
+    flex: 1;
     position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 40px;
-    width: 100%;
+    background: #f5f5f5;
+    
+    .cover-image {
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .cover-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 0, 0, 0.1) 0%,
+          rgba(0, 0, 0, 0) 50%
+        );
+      }
+    }
+    
+    .cover-placeholder {
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      svg {
+        width: 64px;
+        height: 64px;
+        color: rgba(0, 0, 0, 0.15);
+      }
+    }
   }
   
+  // 右侧信息内容
+  .info-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 60px;
+    
+    .info-wrapper {
+      max-width: 560px;
+    }
+  }
+  
+  // 元信息
   .craft-meta {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
     
     .craft-category {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.1em;
       color: #fff;
       background: $color-text-main;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 6px;
+    }
+    
+    .featured-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #b8860b;
+      background: linear-gradient(135deg, #fff8dc, #ffeaa7);
+      padding: 6px 12px;
+      border-radius: 6px;
+      
+      svg {
+        color: #daa520;
+      }
     }
     
     .craft-date {
       font-size: 0.85rem;
-      color: $color-text-sub;
+      color: $color-text-light;
     }
   }
   
+  // 标题
   .craft-title {
-    font-size: 3.5rem;
-    font-weight: 600;
-    line-height: 1.2;
-    margin: 0 0 1.5rem;
-    max-width: 800px;
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 20px;
+    letter-spacing: -0.02em;
   }
   
+  // 描述
   .craft-description {
     font-size: 1.1rem;
-    line-height: 1.8;
+    line-height: 1.7;
     color: $color-text-sub;
-    max-width: 600px;
-    margin: 0 0 2rem;
+    margin: 0 0 24px;
   }
   
-  .craft-technologies {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
+  // 详细内容
+  .craft-content {
+    padding: 20px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 24px;
     
-    .tech-tag {
+    p {
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: $color-text-sub;
+      margin: 0;
+    }
+  }
+  
+  // 技术栈
+  .tech-stack {
+    margin-bottom: 32px;
+    
+    .tech-title {
       font-size: 0.8rem;
-      color: $color-text-main;
-      background: rgba(0, 0, 0, 0.06);
-      padding: 8px 16px;
-      border-radius: 100px;
-      font-weight: 500;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: $color-text-light;
+      margin: 0 0 12px;
+    }
+    
+    .tech-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      
+      .tech-tag {
+        font-size: 0.85rem;
+        color: $color-text-main;
+        background: rgba(0, 0, 0, 0.05);
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.08);
+        }
+      }
+    }
+  }
+  
+  // 查看 Demo 按钮
+  .view-demo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: $color-text-main;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .arrow-icon {
+      animation: bounce 2s infinite;
+    }
+    
+    &:hover {
+      background: lighten($color-text-main, 15%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     }
   }
 }
 
-// 内容区域
-.detail-content {
-  padding: 4rem 0 8rem;
-  
-  .content-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 40px;
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(4px);
+  }
+  60% {
+    transform: translateY(2px);
   }
 }
 
-// Section 通用样式
-.section-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 60px;
-    height: 2px;
-    background: $color-text-main;
-  }
-}
-
-// Demo 区域
+// 第二屏：Demo 展示
 .demo-section {
-  margin-bottom: 4rem;
+  min-height: 100vh;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  
+  .demo-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 40px;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    
+    .demo-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    
+    .open-external-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: $color-text-sub;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+      
+      &:hover {
+        border-color: $color-text-main;
+        color: $color-text-main;
+      }
+    }
+  }
   
   .demo-container {
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    flex: 1;
+    position: relative;
+    background: #fff;
+    
+    .iframe-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: #fff;
+      z-index: 1;
+      
+      .loading-spinner {
+        width: 32px;
+        height: 32px;
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        border-top-color: $color-text-main;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      
+      p {
+        font-size: 0.9rem;
+        color: $color-text-light;
+        margin: 0;
+      }
+    }
+    
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: calc(100vh - 80px);
+      border: none;
+    }
   }
+}
+
+// 无 Demo 占位
+.no-demo-section {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
   
-  .demo-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 6rem 2rem;
-    color: $color-text-light;
+  .no-demo-content {
+    text-align: center;
     
     svg {
       width: 48px;
       height: 48px;
-      margin-bottom: 1rem;
-      opacity: 0.5;
+      color: rgba(0, 0, 0, 0.15);
+      margin-bottom: 16px;
     }
     
-    p {
-      font-size: 0.95rem;
-    }
-  }
-}
-
-// 描述区域
-.description-section {
-  margin-bottom: 4rem;
-  
-  .description-content {
     p {
       font-size: 1rem;
-      line-height: 1.9;
-      color: $color-text-sub;
-    }
-  }
-}
-
-// 技术栈区域
-.tech-section {
-  .tech-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-  }
-  
-  .tech-item {
-    padding: 1.25rem;
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    text-align: center;
-    transition: all 0.3s ease;
-    
-    &:hover {
-      background: rgba(0, 0, 0, 0.04);
-      transform: translateY(-2px);
+      color: $color-text-light;
+      margin: 0 0 24px;
     }
     
-    .tech-name {
+    .view-source-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: $color-text-main;
+      color: #fff;
+      border-radius: 10px;
       font-size: 0.9rem;
       font-weight: 500;
-      color: $color-text-main;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+        color: #fff;
+        margin: 0;
+      }
+      
+      &:hover {
+        background: lighten($color-text-main, 15%);
+      }
     }
   }
 }
 
 // 响应式
+@media (max-width: 1024px) {
+  .info-section {
+    flex-direction: column;
+    
+    .cover-area {
+      .cover-image,
+      .cover-placeholder {
+        position: relative;
+        top: 0;
+        height: 50vh;
+      }
+    }
+    
+    .info-content {
+      padding: 40px 32px;
+      
+      .info-wrapper {
+        max-width: 100%;
+      }
+    }
+    
+    .craft-title {
+      font-size: 2.2rem;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .detail-header {
     .header-content {
-      padding: 0 20px;
+      padding: 0 16px;
+    }
+    
+    .section-nav {
+      .nav-item {
+        padding: 6px 14px;
+        font-size: 0.8rem;
+      }
     }
     
     .action-btn {
       padding: 6px 12px;
-      font-size: 0.8rem;
       
       span {
         display: none;
@@ -332,44 +535,200 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
   }
   
-  .detail-hero {
-    min-height: 50vh;
-    padding: 3rem 0;
+  .info-section {
+    .cover-area {
+      .cover-image,
+      .cover-placeholder {
+        height: 40vh;
+      }
+    }
     
-    .hero-content {
-      padding: 0 20px;
+    .info-content {
+      padding: 32px 20px;
     }
     
     .craft-title {
-      font-size: 2.2rem;
+      font-size: 1.8rem;
     }
     
     .craft-description {
       font-size: 1rem;
     }
-  }
-  
-  .detail-content {
-    padding: 3rem 0 6rem;
     
-    .content-wrapper {
-      padding: 0 20px;
+    .view-demo-btn {
+      width: 100%;
+      justify-content: center;
     }
-  }
-  
-  .section-title {
-    font-size: 1.25rem;
   }
   
   .demo-section {
-    .demo-placeholder {
-      padding: 4rem 1.5rem;
+    .demo-header {
+      padding: 16px 20px;
+      
+      .demo-title {
+        font-size: 1rem;
+      }
+      
+      .open-external-btn {
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        
+        span {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+// 深色模式
+@media (prefers-color-scheme: dark) {
+  .crafts-detail-page {
+    background-color: #0a0a0a;
+    color: #fff;
+  }
+  
+  .detail-header {
+    background: rgba(10, 10, 10, 0.85);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+    
+    .section-nav {
+      background: rgba(255, 255, 255, 0.06);
+      
+      .nav-item {
+        color: rgba(255, 255, 255, 0.6);
+        
+        &:hover {
+          color: #fff;
+        }
+        
+        &.active {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+      }
+    }
+    
+    .action-btn {
+      border-color: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.6);
+      
+      &:hover {
+        border-color: #fff;
+        color: #fff;
+      }
     }
   }
   
-  .tech-section {
-    .tech-grid {
-      grid-template-columns: repeat(2, 1fr);
+  .info-section {
+    .cover-area {
+      background: #111;
     }
+    
+    .craft-meta {
+      .craft-category {
+        background: #fff;
+        color: #000;
+      }
+      
+      .craft-date {
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+    
+    .craft-description {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .craft-content {
+      border-top-color: rgba(255, 255, 255, 0.08);
+      
+      p {
+        color: rgba(255, 255, 255, 0.6);
+      }
+    }
+    
+    .tech-stack {
+      .tech-title {
+        color: rgba(255, 255, 255, 0.4);
+      }
+      
+      .tech-tags .tech-tag {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.12);
+        }
+      }
+    }
+    
+    .view-demo-btn {
+      background: #fff;
+      color: #000;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.9);
+      }
+    }
+  }
+  
+  .demo-section {
+    background: #111;
+    
+    .demo-header {
+      background: #0a0a0a;
+      border-bottom-color: rgba(255, 255, 255, 0.06);
+      
+      .open-external-btn {
+        border-color: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.6);
+        
+        &:hover {
+          border-color: #fff;
+          color: #fff;
+        }
+      }
+    }
+    
+    .demo-container {
+      background: #1a1a1a;
+      
+      .iframe-loading {
+        background: #1a1a1a;
+        
+        p {
+          color: rgba(255, 255, 255, 0.5);
+        }
+      }
+    }
+  }
+  
+  .no-demo-section {
+    background: #111;
+    
+    .no-demo-content {
+      svg {
+        color: rgba(255, 255, 255, 0.15);
+      }
+      
+      p {
+        color: rgba(255, 255, 255, 0.5);
+      }
+      
+      .view-source-btn {
+        background: #fff;
+        color: #000;
+      }
+    }
+  }
+  
+  .loading-state .loading-spinner {
+    border-color: rgba(255, 255, 255, 0.1);
+    border-top-color: #fff;
+  }
+  
+  .error-state h2 {
+    color: rgba(255, 255, 255, 0.6);
   }
 }

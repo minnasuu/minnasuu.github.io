@@ -574,12 +574,36 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       height: 100%;
       object-fit: cover;
     }
+
+    .featured-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(135deg, #f59e0b, #f97316);
+      padding: 6px 12px;
+      border-radius: 100px;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+      z-index: 5;
+    }
   }
   
   .panel-content {
     padding: 24px 32px 32px;
     overflow-y: auto;
     flex: 1;
+  }
+
+  .panel-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
   }
   
   .panel-category {
@@ -592,7 +616,11 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(99, 102, 241, 0.1);
     padding: 4px 10px;
     border-radius: 8px;
-    margin-bottom: 12px;
+  }
+
+  .panel-date {
+    font-size: 0.75rem;
+    color: $color-text-light;
   }
   
   .panel-name {
@@ -608,7 +636,31 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.95rem;
     line-height: 1.6;
     color: $color-text-sub;
-    margin: 0 0 24px;
+    margin: 0 0 20px;
+  }
+
+  .panel-usecase {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: rgba(99, 102, 241, 0.04);
+    border-radius: 12px;
+    border-left: 3px solid $color-accent;
+
+    h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: $color-accent;
+      margin: 0 0 8px;
+    }
+
+    p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: $color-text-sub;
+      margin: 0;
+    }
   }
   
   .panel-tech {
@@ -630,7 +682,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .panel-relations {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     
     h4 {
       font-size: 0.75rem;
@@ -673,6 +725,35 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
         font-weight: 600;
         color: $color-text-main;
       }
+    }
+  }
+
+  .panel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .panel-demo-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: $color-accent;
+    text-decoration: none;
+    padding: 14px 28px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    width: 100%;
+    
+    &:hover {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-2px);
     }
   }
   

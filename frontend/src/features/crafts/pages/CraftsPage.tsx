@@ -6,8 +6,9 @@ import { CraftNode, categoryLabels } from "../components/CraftNode";
 import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
-import { Icon, LandButton, LandInput, LandRadioGroup } from "@suminhan/land-design";
+import { Icon, LandButton, LandInput, LandRadioGroup, LandSwitch, LandNumberInput } from "@suminhan/land-design";
 import { mockCrafts } from "../mock";
+import { uploadImage } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
 interface AddNodeState {
@@ -206,6 +207,8 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const [searchQuery, setSearchQuery] = useState<string>("");
   // 添加节点模式状态
   const [addNodeState, setAddNodeState] = useState<AddNodeState | null>(null);
+  // 封面图片上传状态
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   // 新节点表单数据
   const [newNodeForm, setNewNodeForm] = useState({
     name: '',
@@ -213,10 +216,16 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     category: 'component' as Craft['category'],
     technologies: [] as string[],
     techInput: '',
+    featured: false,
+    weight: 1,
+    coverImage: '',
+    demoUrl: '',
+    useCase: '',
   });
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // 画布尺寸（2倍视口）
   const canvasWidth = dimensions.width * 2;
@@ -353,6 +362,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   // 滚轮/触控板处理 - 只在画布模式下移动画布
   const handleWheel = useCallback((e: WheelEvent) => {
     if (layoutMode !== "canvas") return;
+    // 如果事件发生在编辑面板内，不拦截滚动
+    const target = e.target as HTMLElement;
+    if (target.closest('.add-node-panel') || target.closest('.detail-panel')) return;
     e.preventDefault();
     setViewOffset(prev => clampViewOffset({
       x: prev.x - e.deltaX,
@@ -487,6 +499,11 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       category: 'component',
       technologies: [],
       techInput: '',
+      featured: false,
+      weight: 1,
+      coverImage: '',
+      demoUrl: '',
+      useCase: '',
     });
     // 关闭详情面板
     setActiveId(null);
@@ -501,6 +518,11 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       category: 'component',
       technologies: [],
       techInput: '',
+      featured: false,
+      weight: 1,
+      coverImage: '',
+      demoUrl: '',
+      useCase: '',
     });
   };
 
@@ -544,6 +566,44 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       ...prev,
       technologies: prev.technologies.filter(t => t !== tech),
     }));
+  };
+
+  // 处理封面图片上传
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      alert(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
+      return;
+    }
+
+    // 检查文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await uploadImage(file);
+      setNewNodeForm(prev => ({ ...prev, coverImage: result.url }));
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
+    } finally {
+      setIsUploadingCover(false);
+      // 清空 input 以便重复上传同一文件
+      if (coverInputRef.current) {
+        coverInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 移除封面图片
+  const handleRemoveCover = () => {
+    setNewNodeForm(prev => ({ ...prev, coverImage: '' }));
   };
 
   const activeCraft = crafts.find((c) => c.id === activeId);
@@ -991,14 +1051,34 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             {activeCraft.coverImage && (
               <img src={activeCraft.coverImage} alt={activeCraft.name} />
             )}
+            {activeCraft.featured && (
+              <span className="featured-badge">
+                <Icon name="star" size={14} />
+                {language === "zh" ? "特色" : "Featured"}
+              </span>
+            )}
           </div>
 
           <div className="panel-content">
-            <span className="panel-category">
-              {categoryLabels[activeCraft.category][language]}
-            </span>
+            <div className="panel-header-row">
+              <span className="panel-category">
+                {categoryLabels[activeCraft.category][language]}
+              </span>
+              {activeCraft.createdAt && (
+                <span className="panel-date">
+                  {new Date(activeCraft.createdAt).toLocaleDateString(language === "zh" ? "zh-CN" : "en-US")}
+                </span>
+              )}
+            </div>
             <h2 className="panel-name">{activeCraft.name}</h2>
             <p className="panel-description">{activeCraft.description}</p>
+
+            {activeCraft.useCase && (
+              <div className="panel-usecase">
+                <h4>{language === "zh" ? "适用场景" : "Use Case"}</h4>
+                <p>{activeCraft.useCase}</p>
+              </div>
+            )}
 
             <div className="panel-tech">
               {activeCraft.technologies.map((tech, idx) => (
@@ -1034,12 +1114,20 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               </div>
             )}
 
-            <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
-              {language === "zh" ? "查看详情" : "View Details"}
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </Link>
+            <div className="panel-actions">
+              {activeCraft.demoUrl && (
+                <a href={activeCraft.demoUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
+                  <Icon name="play" size={16} />
+                  {language === "zh" ? "在线体验" : "Live Demo"}
+                </a>
+              )}
+              <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
+                {language === "zh" ? "查看详情" : "View Details"}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
           </div>
         </div>
       )}
@@ -1191,6 +1279,80 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                     ))}
                   </div>
                 )}
+              </div>
+
+                <div className="form-group form-group-half">
+                  <label>{language === "zh" ? "特色作品" : "Featured"}</label>
+                  <LandSwitch
+                    checked={newNodeForm.featured}
+                    onChange={(checked) => setNewNodeForm(prev => ({ ...prev, featured: checked }))}
+                  />
+                </div>
+                <div className="form-group form-group-half">
+                  <label>{language === "zh" ? "权重" : "Weight"}</label>
+                  <LandNumberInput
+                    value={newNodeForm.weight}
+                    onChange={(val) => setNewNodeForm(prev => ({ ...prev, weight: val ?? 1 }))}
+                    min={1}
+                    max={5}
+                    step={1}
+                  />
+                </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "封面图片" : "Cover Image"}</label>
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
+                  style={{ display: 'none' }}
+                />
+                {newNodeForm.coverImage ? (
+                  <div className="cover-preview">
+                    <img src={newNodeForm.coverImage} alt="Cover preview" />
+                    <button className="cover-remove-btn" onClick={handleRemoveCover}>
+                      <Icon name="close" size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
+                    onClick={() => coverInputRef.current?.click()}
+                  >
+                    {isUploadingCover ? (
+                      <>
+                        <div className="upload-spinner"></div>
+                        <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="upload" size={24} />
+                        <span>{language === "zh" ? "点击上传封面图片" : "Click to upload cover image"}</span>
+                        <span className="upload-hint">{language === "zh" ? "支持 JPG、PNG，最大 5MB" : "JPG, PNG supported, max 5MB"}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "体验地址" : "Demo URL"}</label>
+                <LandInput
+                  value={newNodeForm.demoUrl}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, demoUrl: val }))}
+                  placeholder={language === "zh" ? "输入demo体验地址" : "Enter demo URL"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "适用场景" : "Use Case"}</label>
+                <textarea
+                  value={newNodeForm.useCase}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, useCase: e.target.value }))}
+                  placeholder={language === "zh" ? "描述适用场景" : "Describe use cases"}
+                  rows={2}
+                />
               </div>
             </div>
 

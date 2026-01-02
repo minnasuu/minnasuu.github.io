@@ -3,20 +3,34 @@ import { Icon } from "@suminhan/land-design";
 
 // Craft 类型定义
 export interface Craft {
+  /** 唯一标识 */
   id: string;
+  /** 名称 */
   name: string;
+  /** 描述 */
   description: string;
+  /** 分类 */
   category: "component" | "effect" | "control" | "demo" | "experiment";
+  /** 技术栈 */
   technologies: string[];
-  coverImage?: string;
+  /** 创建时间 */
   createdAt: string;
   /** 是否为特色作品 */
   featured?: boolean;
-  weight?: number; // 人工调节权重，默认1
+  /** 权重：默认为1 */
+  weight: number;
+  /** 关系 */
   relations?: {
     targetId: string;
     type: "extends" | "inspiredBy" | "variant" | "uses" | "relatedTo";
   }[];
+  
+  /** demo封面图 */
+  coverImage?: string;
+  /** demo体验地址（可交互iframe） */
+  demoUrl?: string;
+  /** 适用场景 */
+  useCase?: string;
 }
 
 // 分类标签
