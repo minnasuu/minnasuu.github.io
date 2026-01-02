@@ -46,8 +46,8 @@ const CraftEditorPage: React.FC = () => {
   };
 
   // 如果未验证，显示密码输入页面
-//   if (!isAuthenticated) {
-if(false){
+  if (!isAuthenticated) {
+// if(false){
     return (
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div className="bg-white dark:bg-[#202020] rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 animate-in fade-in zoom-in duration-300">
