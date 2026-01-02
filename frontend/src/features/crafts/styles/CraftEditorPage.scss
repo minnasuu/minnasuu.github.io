@@ -35,7 +35,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 102;
 
     svg {
@@ -117,6 +117,584 @@
       &.active {
         background: #667eea;
         color: #ffffff;
+      }
+    }
+  }
+}
+
+// 添加节点模式 - 全屏覆盖
+.crafts-page.add-node-mode {
+  // 隐藏其他元素
+  .canvas-container,
+  .center-title,
+  .legend,
+  .minimap,
+  .hints,
+  .detail-panel,
+  .editor-toolbar {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+}
+
+// 添加节点覆盖层
+.add-node-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  background: rgba(0, 0, 0, 0);
+  backdrop-filter: blur(0px);
+  animation: overlayFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  @keyframes overlayFadeIn {
+    from { 
+      background: rgba(0, 0, 0, 0);
+      backdrop-filter: blur(0px);
+    }
+    to { 
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  // 根据方向调整布局
+  &.direction-top {
+    flex-direction: column;
+    
+    .add-node-source {
+      order: 2;
+      height: auto;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      
+      .source-node-wrapper {
+        animation: nodeSlideFromTop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+    }
+    
+    .add-node-panel {
+      order: 1;
+      flex: 1;
+      border-radius: 0 0 24px 24px;
+      animation: panelSlideFromTop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+  }
+
+  &.direction-bottom {
+    flex-direction: column;
+    
+    .add-node-source {
+      order: 1;
+      height: auto;
+      padding: 100px 40px 40px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      
+      .source-node-wrapper {
+        animation: nodeSlideFromBottom 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+    }
+    
+    .add-node-panel {
+      order: 2;
+      flex: 1;
+      border-radius: 24px 24px 0 0;
+      animation: panelSlideFromBottom 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+  }
+
+  &.direction-left {
+    flex-direction: row;
+    
+    .add-node-source {
+      order: 2;
+      width: auto;
+      padding: 40px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      
+      .source-node-wrapper {
+        animation: nodeSlideFromLeft 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+    }
+    
+    .add-node-panel {
+      order: 1;
+      flex: 1;
+      border-radius: 0 24px 24px 0;
+      animation: panelSlideFromLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+  }
+
+  &.direction-right {
+    flex-direction: row;
+    
+    .add-node-source {
+      order: 1;
+      width: auto;
+      padding: 40px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      
+      .source-node-wrapper {
+        animation: nodeSlideFromRight 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+    }
+    
+    .add-node-panel {
+      order: 2;
+      flex: 1;
+      border-radius: 24px 0 0 24px;
+      animation: panelSlideFromRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+  }
+
+  // 节点滑入动画 - 四个方向
+  @keyframes nodeSlideFromTop {
+    from {
+      opacity: 0;
+      transform: translateY(-100px) scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes nodeSlideFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(100px) scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes nodeSlideFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-100px) scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  @keyframes nodeSlideFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(100px) scale(0.6);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+
+  // 面板展开动画 - 四个方向
+  @keyframes panelSlideFromTop {
+    from {
+      opacity: 0;
+      transform: translateY(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes panelSlideFromBottom {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes panelSlideFromLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes panelSlideFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+// 源节点区域
+.add-node-source {
+  position: relative;
+  
+  .source-node-wrapper {
+    position: relative;
+    // 动画由父级 direction-* 类控制
+  }
+
+  .source-node {
+    position: relative;
+    
+    .node-inner {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: none;
+      border: none;
+      background-color: transparent;
+      transition: transform 0.3s ease;
+      
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      }
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .node-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+        display: flex;
+        align-items: flex-end;
+        padding: 8px;
+        
+        .node-category {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.9);
+          background: rgba(0, 0, 0, 0.4);
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+      }
+    }
+    
+    .node-label {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    // 不同权重的尺寸
+    &.weight-1 .node-inner { width: 56px; height: 56px; }
+    &.weight-2 .node-inner { width: 68px; height: 68px; }
+    &.weight-3 .node-inner { width: 80px; height: 80px; }
+    &.weight-4 .node-inner { width: 96px; height: 96px; }
+    &.weight-5 .node-inner { width: 112px; height: 112px; }
+  }
+
+  .cancel-add-btn {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #ff4757;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+    opacity: 0;
+    transform: scale(0.5);
+    animation: cancelBtnAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards;
+
+    @keyframes cancelBtnAppear {
+      from {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+      color: #ffffff;
+    }
+
+    &:hover {
+      background: #ff6b7a;
+      transform: scale(1.1);
+    }
+  }
+}
+
+// 添加节点编辑面板
+.add-node-panel {
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  // 动画由父级 direction-* 类控制
+
+  .panel-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: panelContentFadeIn 0.4s ease 0.35s forwards;
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a202c;
+    }
+  }
+
+  .panel-body {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    
+    .form-group {
+      opacity: 0;
+      transform: translateY(15px);
+      
+      &:nth-child(1) { animation: formGroupFadeIn 0.4s ease 0.4s forwards; }
+      &:nth-child(2) { animation: formGroupFadeIn 0.4s ease 0.5s forwards; }
+      &:nth-child(3) { animation: formGroupFadeIn 0.4s ease 0.6s forwards; }
+      &:nth-child(4) { animation: formGroupFadeIn 0.4s ease 0.7s forwards; }
+    }
+  }
+
+  .panel-footer {
+    padding: 20px 32px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: panelContentFadeIn 0.4s ease 0.55s forwards;
+  }
+
+  @keyframes panelContentFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes formGroupFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      resize: vertical;
+      transition: all 0.2s ease;
+      font-family: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: #2e2e2e;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+    }
+  }
+
+  .tech-input-wrapper {
+    display: flex;
+    gap: 8px;
+
+    .add-tech-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #000;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+
+      svg {
+        width: 18px;
+        height: 18px;
+        color: #ffffff;
+      }
+
+      &:hover {
+        background: #000;
+      }
+    }
+  }
+
+  .tech-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+
+    .tech-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #edf2f7;
+      border-radius: 16px;
+      font-size: 13px;
+      color: #4a5568;
+
+      button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        color: #a0aec0;
+        transition: color 0.2s ease;
+
+        &:hover {
+          color: #e53e3e;
+        }
+      }
+    }
+  }
+}
+
+// 深色模式适配
+@media (prefers-color-scheme: dark) {
+  .add-node-overlay {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .add-node-panel {
+    background: #1a1a1a;
+
+    .panel-header {
+      background: #242424;
+      border-color: #333;
+
+      h3 {
+        color: #ffffff;
+      }
+    }
+
+    .panel-body {
+      background: #1a1a1a;
+    }
+
+    .panel-footer {
+      background: #242424;
+      border-color: #333;
+    }
+
+    .form-group {
+      label {
+        color: #a0aec0;
+      }
+
+      textarea {
+        background: #242424;
+        border-color: #333;
+        color: #ffffff;
+
+        &:focus {
+          border-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+    }
+
+    .category-options {
+      .category-option {
+        background: #242424;
+        border-color: #333;
+        color: #a0aec0;
+
+        &:hover {
+          border-color: rgba(0, 0, 0, 0.1);
+          color: rgba(0, 0, 0, 0.1);
+        }
+
+        &.active {
+          background: rgba(0, 0, 0, 0.1);
+          border-color: rgba(0, 0, 0, 0.1);
+          color: #ffffff;
+        }
+      }
+    }
+
+    .tech-tags {
+      .tech-tag {
+        background: #333;
+        color: #a0aec0;
       }
     }
   }

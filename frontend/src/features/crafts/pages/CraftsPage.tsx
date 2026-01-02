@@ -6,8 +6,15 @@ import { CraftNode, categoryLabels } from "../components/CraftNode";
 import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
-import { Icon, LandButton } from "@suminhan/land-design";
+import { Icon, LandButton, LandInput, LandRadioGroup } from "@suminhan/land-design";
 import { mockCrafts } from "../mock";
+
+// 添加节点模式的状态类型
+interface AddNodeState {
+  sourceId: string;
+  direction: 'top' | 'right' | 'bottom' | 'left';
+  sourceCraft: Craft;
+}
 
 // 关系类型标签
 const relationLabels: Record<string, { zh: string; en: string; color: string }> = {
@@ -197,6 +204,16 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const [isMinimapDragging, setIsMinimapDragging] = useState(false);
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("canvas");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  // 添加节点模式状态
+  const [addNodeState, setAddNodeState] = useState<AddNodeState | null>(null);
+  // 新节点表单数据
+  const [newNodeForm, setNewNodeForm] = useState({
+    name: '',
+    description: '',
+    category: 'component' as Craft['category'],
+    technologies: [] as string[],
+    techInput: '',
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -458,8 +475,75 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
   // 编辑模式：处理添加节点
   const handleAddNode = (sourceId: string, direction: 'top' | 'right' | 'bottom' | 'left') => {
-    // TODO: 实现添加节点的完整功能
-    alert(`Add node ${direction} of ${sourceId}`);
+    const sourceCraft = crafts.find(c => c.id === sourceId);
+    if (!sourceCraft) return;
+    
+    // 设置添加节点状态
+    setAddNodeState({ sourceId, direction, sourceCraft });
+    // 重置表单
+    setNewNodeForm({
+      name: '',
+      description: '',
+      category: 'component',
+      technologies: [],
+      techInput: '',
+    });
+    // 关闭详情面板
+    setActiveId(null);
+  };
+
+  // 取消添加节点
+  const handleCancelAddNode = () => {
+    setAddNodeState(null);
+    setNewNodeForm({
+      name: '',
+      description: '',
+      category: 'component',
+      technologies: [],
+      techInput: '',
+    });
+  };
+
+  // 确认添加节点
+  const handleConfirmAddNode = () => {
+    if (!addNodeState || !newNodeForm.name.trim()) return;
+    
+    // TODO: 实际添加节点到数据中
+    console.log('Adding new node:', {
+      ...newNodeForm,
+      sourceId: addNodeState.sourceId,
+      direction: addNodeState.direction,
+    });
+    
+    alert(language === 'zh' 
+      ? `节点 "${newNodeForm.name}" 已添加到 "${addNodeState.sourceCraft.name}" 的${
+          addNodeState.direction === 'top' ? '上方' :
+          addNodeState.direction === 'right' ? '右侧' :
+          addNodeState.direction === 'bottom' ? '下方' : '左侧'
+        }`
+      : `Node "${newNodeForm.name}" added ${addNodeState.direction} of "${addNodeState.sourceCraft.name}"`
+    );
+    
+    handleCancelAddNode();
+  };
+
+  // 添加技术标签
+  const handleAddTech = () => {
+    if (newNodeForm.techInput.trim() && !newNodeForm.technologies.includes(newNodeForm.techInput.trim())) {
+      setNewNodeForm(prev => ({
+        ...prev,
+        technologies: [...prev.technologies, prev.techInput.trim()],
+        techInput: '',
+      }));
+    }
+  };
+
+  // 移除技术标签
+  const handleRemoveTech = (tech: string) => {
+    setNewNodeForm(prev => ({
+      ...prev,
+      technologies: prev.technologies.filter(t => t !== tech),
+    }));
   };
 
   const activeCraft = crafts.find((c) => c.id === activeId);
@@ -607,12 +691,12 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
   return (
     <div
-      className={`crafts-page ${editorMode ? 'editor-mode' : ''}`}
+      className={`crafts-page ${editorMode ? 'editor-mode' : ''} ${addNodeState ? 'add-node-mode' : ''}`}
       ref={containerRef}
-      onMouseDown={layoutMode === "canvas" ? handleMouseDown : undefined}
-      onMouseMove={layoutMode === "canvas" ? handleMouseMove : undefined}
-      onMouseUp={layoutMode === "canvas" ? handleMouseUp : undefined}
-      onMouseLeave={layoutMode === "canvas" ? handleMouseUp : undefined}
+      onMouseDown={layoutMode === "canvas" && !addNodeState ? handleMouseDown : undefined}
+      onMouseMove={layoutMode === "canvas" && !addNodeState ? handleMouseMove : undefined}
+      onMouseUp={layoutMode === "canvas" && !addNodeState ? handleMouseUp : undefined}
+      onMouseLeave={layoutMode === "canvas" && !addNodeState ? handleMouseUp : undefined}
     >
       {/* 背景 */}
       <div className="crafts-bg">
@@ -999,11 +1083,132 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       )}
 
       {/* 操作提示 */}
-      {layoutMode === "canvas" && (
+      {layoutMode === "canvas" && !addNodeState && (
         <div className="hints">
           <span>{language === "zh" ? "拖拽移动" : "Drag to pan"}</span>
           <span>{language === "zh" ? "滑动浏览" : "Scroll to browse"}</span>
           <span>{language === "zh" ? "点击查看" : "Click to select"}</span>
+        </div>
+      )}
+
+      {/* 添加节点面板 */}
+      {addNodeState && (
+        <div className={`add-node-overlay direction-${addNodeState.direction}`}>
+          {/* 源节点显示 */}
+          <div className="add-node-source">
+            <div className="source-node-wrapper">
+              <div className={`source-node weight-${Math.min(5, Math.max(1, Math.ceil((addNodeState.sourceCraft.weight || 1) * 1.5)))}`}>
+                <div className="node-inner">
+                  {addNodeState.sourceCraft.coverImage && (
+                    <img src={addNodeState.sourceCraft.coverImage} alt={addNodeState.sourceCraft.name} />
+                  )}
+                  <div className="node-overlay">
+                    <span className="node-category">
+                      {categoryLabels[addNodeState.sourceCraft.category][language]}
+                    </span>
+                  </div>
+                </div>
+                <div className="node-label">{addNodeState.sourceCraft.name}</div>
+              </div>
+              <button className="cancel-add-btn" onClick={handleCancelAddNode}>
+                <Icon name="close" strokeWidth={4} />
+              </button>
+            </div>
+          </div>
+
+          {/* 添加节点编辑面板 */}
+          <div className="add-node-panel">
+            <div className="panel-header">
+              <h3>
+                {language === "zh" 
+                  ? `在 "${addNodeState.sourceCraft.name}" ${
+                      addNodeState.direction === 'top' ? '上方' :
+                      addNodeState.direction === 'right' ? '右侧' :
+                      addNodeState.direction === 'bottom' ? '下方' : '左侧'
+                    } 添加节点`
+                  : `Add node ${addNodeState.direction} of "${addNodeState.sourceCraft.name}"`
+                }
+              </h3>
+            </div>
+            
+            <div className="panel-body">
+              <div className="form-group">
+                <label>{language === "zh" ? "名称" : "Name"} <span className="text-red-500">*</span></label>
+                <LandInput
+                  value={newNodeForm.name}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, name: val }))}
+                  placeholder={language === "zh" ? "输入作品名称" : "Enter craft name"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "描述" : "Description"}</label>
+                <textarea
+                  value={newNodeForm.description}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder={language === "zh" ? "输入作品描述" : "Enter craft description"}
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "分类" : "Category"}</label>
+                <LandRadioGroup
+                  data={(Object.keys(categoryLabels) as Craft['category'][]).map(cat => ({
+                    key: cat, 
+                    label: categoryLabels[cat][language]
+                  }))}
+                  checked={newNodeForm.category}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, category: val as Craft['category'] }))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "技术栈" : "Technologies"}</label>
+                <div className="tech-input-wrapper">
+                  <LandInput
+                    value={newNodeForm.techInput}
+                    onChange={(val) => setNewNodeForm(prev => ({ ...prev, techInput: val }))}
+                    placeholder={language === "zh" ? "添加技术标签" : "Add technology tag"}
+                    onKeyDown={(e: React.KeyboardEvent) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTech();
+                      }
+                    }}
+                  />
+                  <LandButton type="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
+                </div>
+                {newNodeForm.technologies.length > 0 && (
+                  <div className="tech-tags">
+                    {newNodeForm.technologies.map((tech, idx) => (
+                      <span key={idx} className="tech-tag">
+                        {tech}
+                        <button onClick={() => handleRemoveTech(tech)}>
+                          <Icon name="close" size={12} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="panel-footer">
+              <LandButton
+                type="fill"
+                status="default"
+                text={language === "zh" ? "取消" : "Cancel"}
+                onClick={handleCancelAddNode}
+              />
+              <LandButton
+                type="background"
+                text={language === "zh" ? "添加节点" : "Add Node"}
+                onClick={handleConfirmAddNode}
+                disabled={!newNodeForm.name.trim()}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
