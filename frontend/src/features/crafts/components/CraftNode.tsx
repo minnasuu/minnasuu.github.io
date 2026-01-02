@@ -31,6 +31,10 @@ export interface Craft {
   demoUrl?: string;
   /** 适用场景 */
   useCase?: string;
+  /** GitHub 地址 */
+  githubUrl?: string;
+  /** 详细内容 */
+  content?: string;
 }
 
 // 分类标签

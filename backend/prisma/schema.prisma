@@ -25,3 +25,21 @@ model Article {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Craft {
+  id            String   @id @default(uuid())
+  name          String
+  description   String   @db.Text
+  category      String   // component, effect, control, demo, experiment
+  technologies  String[]
+  featured      Boolean  @default(false)
+  weight        Int      @default(1)
+  coverImage    String?
+  demoUrl       String?
+  useCase       String?  @db.Text
+  githubUrl     String?
+  content       String?  @db.Text
+  relations     Json?    // 存储关系数组 [{targetId, type}]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

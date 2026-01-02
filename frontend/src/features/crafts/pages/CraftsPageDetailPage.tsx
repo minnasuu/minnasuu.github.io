@@ -3,88 +3,9 @@ import { useParams } from "react-router-dom";
 import { useLanguage } from "../../../shared/contexts/LanguageContext";
 import BackButton from "../../../shared/components/BackButton";
 import { Icon } from "@suminhan/land-design";
+import { fetchCraftById } from "../../../shared/utils/backendClient";
+import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsDetailPage.scss";
-
-// Craft 类型定义
-interface Craft {
-  id: string;
-  name: string;
-  description: string;
-  category: "component" | "effect" | "control" | "demo" | "experiment";
-  technologies: string[];
-  coverImage?: string;
-  createdAt: string;
-  featured?: boolean;
-  githubUrl?: string;
-  demoUrl?: string;
-  content?: string;
-}
-
-// 示例数据 - 与列表页保持一致
-const mockCrafts: Craft[] = [
-  {
-    id: "1",
-    name: "Glassmorphism Card",
-    description: "A beautiful frosted glass effect card component with blur and transparency. This component demonstrates modern CSS techniques including backdrop-filter for creating stunning glass-like effects.",
-    category: "component",
-    technologies: ["React", "CSS", "Backdrop-filter", "TypeScript"],
-    coverImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200",
-    createdAt: "2024-12-20",
-    featured: true,
-    githubUrl: "https://github.com",
-    demoUrl: "https://codepen.io/pen",
-    content: "This glassmorphism card component uses CSS backdrop-filter to create a frosted glass effect. It's perfect for creating modern, elegant UI elements that stand out while maintaining readability.",
-  },
-  {
-    id: "2",
-    name: "Magnetic Button",
-    description: "Interactive button that follows cursor with magnetic effect. Built with Framer Motion for smooth animations.",
-    category: "effect",
-    technologies: ["React", "Framer Motion", "TypeScript"],
-    coverImage: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=1200",
-    createdAt: "2024-12-15",
-    githubUrl: "https://github.com",
-    demoUrl: "https://codesandbox.io",
-  },
-  {
-    id: "3",
-    name: "Infinite Scroll Gallery",
-    description: "Smooth infinite scrolling image gallery with lazy loading and optimized performance.",
-    category: "component",
-    technologies: ["React", "Intersection Observer", "CSS Grid"],
-    coverImage: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200",
-    createdAt: "2024-12-10",
-    featured: true,
-  },
-  {
-    id: "4",
-    name: "3D Flip Card",
-    description: "Card component with smooth 3D flip animation on hover",
-    category: "effect",
-    technologies: ["CSS 3D", "Transform", "Perspective"],
-    coverImage: "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=1200",
-    createdAt: "2024-12-05",
-  },
-  {
-    id: "5",
-    name: "Custom Range Slider",
-    description: "Fully customizable range slider with gradient track",
-    category: "control",
-    technologies: ["React", "CSS Variables", "TypeScript"],
-    coverImage: "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=1200",
-    createdAt: "2024-11-28",
-  },
-  {
-    id: "6",
-    name: "Particle System",
-    description: "Interactive particle animation system with mouse interaction",
-    category: "experiment",
-    technologies: ["Canvas", "JavaScript", "RequestAnimationFrame"],
-    coverImage: "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1200",
-    createdAt: "2024-11-20",
-    featured: true,
-  },
-];
 
 const categoryLabels: Record<Craft["category"], { zh: string; en: string }> = {
   component: { zh: "组件", en: "Component" },
@@ -104,13 +25,18 @@ export const CraftsPageDetailPage: React.FC = () => {
   const demoSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 模拟 API 请求
     const loadCraft = async () => {
+      if (!id) return;
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      const found = mockCrafts.find((c) => c.id === id);
-      setCraft(found || null);
-      setLoading(false);
+      try {
+        const data = await fetchCraftById(id);
+        setCraft(data);
+      } catch (error) {
+        console.error('Failed to load craft:', error);
+        setCraft(null);
+      } finally {
+        setLoading(false);
+      }
     };
     loadCraft();
   }, [id]);

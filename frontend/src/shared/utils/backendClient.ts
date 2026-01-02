@@ -1,5 +1,7 @@
 import type { Article } from '../types';
+import type { Craft } from '../../features/crafts/components/CraftNode';
 import { mockArticlesAPI } from './mockData';
+import { mockCrafts } from '../../features/crafts/mock';
 
 export interface ChatRequest {
   query: string;
@@ -291,6 +293,222 @@ export const verifyEditorPassword = async (password: string): Promise<VerifyPass
     return data;
   } catch (error) {
     console.error('Error verifying password:', error);
+    throw error;
+  }
+};
+
+// ==================== Crafts API ====================
+
+export interface CreateCraftRequest {
+  name: string;
+  description: string;
+  category: string;
+  technologies: string[];
+  featured?: boolean;
+  weight?: number;
+  coverImage?: string;
+  demoUrl?: string;
+  useCase?: string;
+  githubUrl?: string;
+  content?: string;
+  relations?: { targetId: string; type: string }[];
+}
+
+export const fetchCrafts = async (): Promise<Craft[]> => {
+  if (USE_MOCK_DATA) {
+    console.log('📦 Using mock data for crafts');
+    return mockCrafts;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch crafts: ${response.status}`);
+    }
+    const data: Craft[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching crafts:', error);
+    console.warn('⚠️ Backend unavailable, switching to mock data');
+    return mockCrafts;
+  }
+};
+
+export const fetchCraftById = async (id: string): Promise<Craft> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data for craft ${id}`);
+    const craft = mockCrafts.find(c => c.id === id);
+    if (!craft) throw new Error('Craft not found');
+    return craft;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts/${id}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch craft ${id}: ${response.status}`);
+    }
+    const data: Craft = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error fetching craft ${id}:`, error);
+    console.warn('⚠️ Backend unavailable, switching to mock data');
+    const craft = mockCrafts.find(c => c.id === id);
+    if (!craft) throw new Error('Craft not found');
+    return craft;
+  }
+};
+
+export const createCraft = async (craft: CreateCraftRequest): Promise<Craft> => {
+  if (USE_MOCK_DATA) {
+    console.log('📦 Using mock data to create craft');
+    const newCraft: Craft = {
+      id: `mock-${Date.now()}`,
+      ...craft,
+      weight: craft.weight || 1,
+      createdAt: new Date().toISOString(),
+    } as Craft;
+    return newCraft;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(craft),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create craft: ${response.status}`);
+    }
+    const data: Craft = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error creating craft:', error);
+    throw error;
+  }
+};
+
+export const updateCraft = async (id: string, craft: CreateCraftRequest): Promise<Craft> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data to update craft ${id}`);
+    return { id, ...craft, createdAt: new Date().toISOString() } as Craft;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(craft),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update craft: ${response.status}`);
+    }
+    const data: Craft = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating craft:', error);
+    throw error;
+  }
+};
+
+export const deleteCraft = async (id: string): Promise<void> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data to delete craft ${id}`);
+    return;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete craft: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting craft:', error);
+    throw error;
+  }
+};
+
+export const addCraftRelation = async (
+  craftId: string, 
+  targetId: string, 
+  type: string
+): Promise<Craft> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data to add relation`);
+    const craft = mockCrafts.find(c => c.id === craftId);
+    if (!craft) throw new Error('Craft not found');
+    return craft;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts/${craftId}/relations`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ targetId, type }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to add relation: ${response.status}`);
+    }
+    const data: Craft = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error adding relation:', error);
+    throw error;
+  }
+};
+
+export const removeCraftRelation = async (craftId: string, targetId: string): Promise<Craft> => {
+  if (USE_MOCK_DATA) {
+    console.log(`📦 Using mock data to remove relation`);
+    const craft = mockCrafts.find(c => c.id === craftId);
+    if (!craft) throw new Error('Craft not found');
+    return craft;
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/crafts/${craftId}/relations/${targetId}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to remove relation: ${response.status}`);
+    }
+    const data: Craft = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error removing relation:', error);
     throw error;
   }
 };

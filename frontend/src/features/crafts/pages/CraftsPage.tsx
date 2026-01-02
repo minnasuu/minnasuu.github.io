@@ -8,7 +8,7 @@ import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
 import { Icon, LandButton, LandInput, LandRadioGroup, LandSwitch, LandNumberInput } from "@suminhan/land-design";
 import { mockCrafts } from "../mock";
-import { uploadImage } from "../../../shared/utils/backendClient";
+import { uploadImage, fetchCrafts, createCraft } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
 interface AddNodeState {
@@ -248,7 +248,24 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     };
   }, [dimensions, canvasWidth, canvasHeight]);
 
-  const crafts = mockCrafts;
+  // 加载 crafts 数据
+  const [crafts, setCrafts] = useState<Craft[]>(mockCrafts);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCrafts = async () => {
+      try {
+        const data = await fetchCrafts();
+        setCrafts(data.length > 0 ? data : mockCrafts);
+      } catch (error) {
+        console.error('Failed to load crafts:', error);
+        setCrafts(mockCrafts);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCrafts();
+  }, []);
 
   // 搜索过滤
   const filteredCrafts = useMemo(() => {
@@ -527,26 +544,46 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   };
 
   // 确认添加节点
-  const handleConfirmAddNode = () => {
-    if (!addNodeState || !newNodeForm.name.trim()) return;
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const handleConfirmAddNode = async () => {
+    if (!addNodeState || !newNodeForm.name.trim() || isCreating) return;
     
-    // TODO: 实际添加节点到数据中
-    console.log('Adding new node:', {
-      ...newNodeForm,
-      sourceId: addNodeState.sourceId,
-      direction: addNodeState.direction,
-    });
-    
-    alert(language === 'zh' 
-      ? `节点 "${newNodeForm.name}" 已添加到 "${addNodeState.sourceCraft.name}" 的${
-          addNodeState.direction === 'top' ? '上方' :
-          addNodeState.direction === 'right' ? '右侧' :
-          addNodeState.direction === 'bottom' ? '下方' : '左侧'
-        }`
-      : `Node "${newNodeForm.name}" added ${addNodeState.direction} of "${addNodeState.sourceCraft.name}"`
-    );
-    
-    handleCancelAddNode();
+    setIsCreating(true);
+    try {
+      // 创建新节点
+      const newCraft = await createCraft({
+        name: newNodeForm.name,
+        description: newNodeForm.description,
+        category: newNodeForm.category,
+        technologies: newNodeForm.technologies,
+        featured: newNodeForm.featured,
+        weight: newNodeForm.weight,
+        coverImage: newNodeForm.coverImage || undefined,
+        demoUrl: newNodeForm.demoUrl || undefined,
+        useCase: newNodeForm.useCase || undefined,
+        // 添加与源节点的关系
+        relations: [{
+          targetId: addNodeState.sourceId,
+          type: 'relatedTo' // 默认关系类型
+        }]
+      });
+      
+      // 更新本地状态
+      setCrafts(prev => [...prev, newCraft]);
+      
+      alert(language === 'zh' 
+        ? `节点 "${newNodeForm.name}" 已创建成功！`
+        : `Node "${newNodeForm.name}" created successfully!`
+      );
+      
+      handleCancelAddNode();
+    } catch (error) {
+      console.error('Failed to create craft:', error);
+      alert(language === 'zh' ? '创建失败，请稍后重试' : 'Failed to create, please try again');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   // 添加技术标签
