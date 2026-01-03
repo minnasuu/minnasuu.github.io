@@ -7,7 +7,7 @@ import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Craft } from "../components/CraftNode";
 import "../styles/CraftsPage.scss";
 import { Icon, LandButton, LandInput, LandRadioGroup, LandSwitch, LandNumberInput } from "@suminhan/land-design";
-import { uploadImage, fetchCrafts, createCraft, deleteCraft } from "../../../shared/utils/backendClient";
+import { uploadImage, fetchCrafts, createCraft, deleteCraft, updateCraft } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
 interface AddNodeState {
@@ -217,6 +217,20 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const [isDeleting, setIsDeleting] = useState(false);
   // 封面图片上传状态
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  // 编辑节点表单数据（用于编辑模式下的详情面板）
+  const [editNodeForm, setEditNodeForm] = useState<{
+    name: string;
+    description: string;
+    category: Craft['category'];
+    technologies: string[];
+    techInput: string;
+    featured: boolean;
+    weight: number;
+    coverImage: string;
+    demoUrl: string;
+    useCase: string;
+  } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   // 新节点表单数据
   const [newNodeForm, setNewNodeForm] = useState({
     name: '',
@@ -719,6 +733,135 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     setNewNodeForm(prev => ({ ...prev, coverImage: '' }));
   };
 
+  // 编辑模式：初始化编辑表单
+  const initEditForm = useCallback((craft: Craft) => {
+    setEditNodeForm({
+      name: craft.name,
+      description: craft.description,
+      category: craft.category,
+      technologies: [...craft.technologies],
+      techInput: '',
+      featured: craft.featured ?? false,
+      weight: craft.weight || 1,
+      coverImage: craft.coverImage || '',
+      demoUrl: craft.demoUrl || '',
+      useCase: craft.useCase || '',
+    });
+  }, []);
+
+  // 当选中节点变化时，在编辑模式下初始化编辑表单
+  useEffect(() => {
+    if (editorMode && activeId) {
+      const craft = crafts.find(c => c.id === activeId);
+      if (craft) {
+        initEditForm(craft);
+      }
+    } else {
+      setEditNodeForm(null);
+    }
+  }, [editorMode, activeId, crafts, initEditForm]);
+
+  // 编辑模式：添加技术标签
+  const handleEditAddTech = () => {
+    if (editNodeForm && editNodeForm.techInput.trim() && !editNodeForm.technologies.includes(editNodeForm.techInput.trim())) {
+      setEditNodeForm(prev => prev ? ({
+        ...prev,
+        technologies: [...prev.technologies, prev.techInput.trim()],
+        techInput: '',
+      }) : null);
+    }
+  };
+
+  // 编辑模式：移除技术标签
+  const handleEditRemoveTech = (tech: string) => {
+    setEditNodeForm(prev => prev ? ({
+      ...prev,
+      technologies: prev.technologies.filter(t => t !== tech),
+    }) : null);
+  };
+
+  // 编辑模式：处理封面图片上传
+  const handleEditCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await uploadImage(file);
+      setEditNodeForm(prev => prev ? ({ ...prev, coverImage: result.url }) : null);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
+    } finally {
+      setIsUploadingCover(false);
+      if (coverInputRef.current) {
+        coverInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 编辑模式：移除封面图片
+  const handleEditRemoveCover = () => {
+    setEditNodeForm(prev => prev ? ({ ...prev, coverImage: '' }) : null);
+  };
+
+  // 编辑模式：保存更新
+  const handleUpdateCraft = async () => {
+    if (!editNodeForm || !activeId || isUpdating) return;
+    if (!editNodeForm.name.trim()) {
+      alert(language === 'zh' ? '名称不能为空' : 'Name is required');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const updatedCraft = await updateCraft(activeId, {
+        name: editNodeForm.name,
+        description: editNodeForm.description,
+        category: editNodeForm.category,
+        technologies: editNodeForm.technologies,
+        featured: editNodeForm.featured,
+        weight: editNodeForm.weight,
+        coverImage: editNodeForm.coverImage || undefined,
+        demoUrl: editNodeForm.demoUrl || undefined,
+        useCase: editNodeForm.useCase || undefined,
+      });
+
+      // 更新本地状态
+      setCrafts(prev => prev.map(c => c.id === activeId ? updatedCraft : c));
+
+      alert(language === 'zh' 
+        ? `节点 "${editNodeForm.name}" 已更新成功！`
+        : `Node "${editNodeForm.name}" updated successfully!`
+      );
+    } catch (error) {
+      console.error('Failed to update craft:', error);
+      alert(language === 'zh' ? '更新失败，请稍后重试' : 'Failed to update, please try again');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // 编辑模式：重置编辑表单
+  const handleResetEditForm = () => {
+    if (activeId) {
+      const craft = crafts.find(c => c.id === activeId);
+      if (craft) {
+        initEditForm(craft);
+      }
+    }
+  };
+
   const activeCraft = crafts.find((c) => c.id === activeId);
 
   // 渲染连线
@@ -1197,91 +1340,257 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
       {/* 详情面板 */}
       {activeCraft && (
-        <div className="detail-panel">
+        <div className={`detail-panel ${editorMode ? 'editor-mode' : ''}`}>
            <LandButton type="background" status="default" icon={<Icon name="close"/>} className="panel-close" onClick={() => setActiveId(null)}/>
 
-          <div className="panel-image">
-            {activeCraft.coverImage && (
-              <img src={activeCraft.coverImage} alt={activeCraft.name} />
-            )}
-            {activeCraft.featured && (
-              <span className="featured-badge">
-                <Icon name="star" size={14} />
-                {language === "zh" ? "特色" : "Featured"}
-              </span>
-            )}
-          </div>
-
-          <div className="panel-content">
-            <div className="panel-header-row">
-              <span className="panel-category">
-                {categoryLabels[activeCraft.category][language]}
-              </span>
-              {activeCraft.createdAt && (
-                <span className="panel-date">
-                  {new Date(activeCraft.createdAt).toLocaleDateString(language === "zh" ? "zh-CN" : "en-US")}
-                </span>
-              )}
-            </div>
-            <h2 className="panel-name">{activeCraft.name}</h2>
-            <p className="panel-description">{activeCraft.description}</p>
-
-            {activeCraft.useCase && (
-              <div className="panel-usecase">
-                <h4>{language === "zh" ? "适用场景" : "Use Case"}</h4>
-                <p>{activeCraft.useCase}</p>
+          {/* 编辑模式：可编辑表单 */}
+          {editorMode && editNodeForm ? (
+            <div className="panel-edit-content">
+              <div className="panel-header">
+                <h3>{language === "zh" ? "编辑节点" : "Edit Node"}</h3>
               </div>
-            )}
+              
+              <div className="panel-body">
+                <div className="form-group">
+                  <label>{language === "zh" ? "名称" : "Name"} <span className="required">*</span></label>
+                  <LandInput
+                    value={editNodeForm.name}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, name: val }) : null)}
+                    placeholder={language === "zh" ? "输入作品名称" : "Enter craft name"}
+                  />
+                </div>
 
-            <div className="panel-tech">
-              {activeCraft.technologies.map((tech, idx) => (
-                <span key={idx} className="tech-tag">{tech}</span>
-              ))}
-            </div>
+                <div className="form-group">
+                  <label>{language === "zh" ? "描述" : "Description"}</label>
+                  <textarea
+                    value={editNodeForm.description}
+                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
+                    placeholder={language === "zh" ? "输入作品描述" : "Enter craft description"}
+                    rows={3}
+                  />
+                </div>
 
-            {activeCraft.relations && activeCraft.relations.length > 0 && (
-              <div className="panel-relations">
-                <h4>{language === "zh" ? "关联作品" : "Related Crafts"}</h4>
-                {activeCraft.relations.map((rel, idx) => {
-                  const targetCraft = crafts.find((c) => c.id === rel.targetId);
-                  if (!targetCraft) return null;
-                  return (
-                    <button
-                      key={idx}
-                      className="relation-link"
-                      onClick={() => {
-                        setActiveId(rel.targetId);
-                        centerToNode(rel.targetId);
+                <div className="form-group">
+                  <label>{language === "zh" ? "分类" : "Category"}</label>
+                  <LandRadioGroup
+                    data={(Object.keys(categoryLabels) as Craft['category'][]).map(cat => ({
+                      key: cat, 
+                      label: categoryLabels[cat][language]
+                    }))}
+                    checked={editNodeForm.category}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, category: val as Craft['category'] }) : null)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "技术栈" : "Technologies"}</label>
+                  <div className="tech-input-wrapper">
+                    <LandInput
+                      value={editNodeForm.techInput}
+                      onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, techInput: val }) : null)}
+                      placeholder={language === "zh" ? "添加技术标签" : "Add technology tag"}
+                      onKeyDown={(e: React.KeyboardEvent) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleEditAddTech();
+                        }
                       }}
-                    >
-                      <span
-                        className="relation-type"
-                        style={{ color: relationLabels[rel.type].color }}
-                      >
-                        {relationLabels[rel.type][language]}
-                      </span>
-                      <span className="relation-name">{targetCraft.name}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+                    />
+                    <LandButton type="background" onClick={handleEditAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
+                  </div>
+                  {editNodeForm.technologies.length > 0 && (
+                    <div className="tech-tags">
+                      {editNodeForm.technologies.map((tech, idx) => (
+                        <span key={idx} className="tech-tag">
+                          {tech}
+                          <button onClick={() => handleEditRemoveTech(tech)}>
+                            <Icon name="close" size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-            <div className="panel-actions">
-              {activeCraft.demoUrl && (
-                <a href={activeCraft.demoUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
-                  <Icon name="video-pause" size={16} />
-                  {language === "zh" ? "在线体验" : "Live Demo"}
-                </a>
-              )}
-              <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
-                {language === "zh" ? "查看详情" : "View Details"}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </Link>
+                <div className="form-row">
+                  <div className="form-group form-group-half">
+                    <label>{language === "zh" ? "特色作品" : "Featured"}</label>
+                    <LandSwitch
+                      checked={editNodeForm.featured}
+                      onChange={(checked) => setEditNodeForm(prev => prev ? ({ ...prev, featured: checked }) : null)}
+                    />
+                  </div>
+                  <div className="form-group form-group-half">
+                    <label>{language === "zh" ? "权重" : "Weight"}</label>
+                    <LandNumberInput
+                      value={editNodeForm.weight}
+                      onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, weight: val ?? 1 }) : null)}
+                      min={1}
+                      max={5}
+                      step={1}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "封面图片" : "Cover Image"}</label>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEditCoverUpload}
+                    style={{ display: 'none' }}
+                  />
+                  {editNodeForm.coverImage ? (
+                    <div className="cover-preview">
+                      <img src={editNodeForm.coverImage} alt="Cover preview" />
+                      <button className="cover-remove-btn" onClick={handleEditRemoveCover}>
+                        <Icon name="close" size={14} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
+                      onClick={() => coverInputRef.current?.click()}
+                    >
+                      {isUploadingCover ? (
+                        <>
+                          <div className="upload-spinner"></div>
+                          <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="upload" size={24} />
+                          <span>{language === "zh" ? "点击上传封面图片" : "Click to upload cover image"}</span>
+                          <span className="upload-hint">{language === "zh" ? "支持 JPG、PNG，最大 5MB" : "JPG, PNG supported, max 5MB"}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "体验地址" : "Demo URL"}</label>
+                  <LandInput
+                    value={editNodeForm.demoUrl}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, demoUrl: val }) : null)}
+                    placeholder={language === "zh" ? "输入demo体验地址" : "Enter demo URL"}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "适用场景" : "Use Case"}</label>
+                  <textarea
+                    value={editNodeForm.useCase}
+                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, useCase: e.target.value }) : null)}
+                    placeholder={language === "zh" ? "描述适用场景" : "Describe use case"}
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <div className="panel-footer">
+                <LandButton 
+                  type="background" 
+                  text={language === "zh" ? "重置" : "Reset"}
+                  onClick={handleResetEditForm}
+                />
+                <LandButton 
+                  type="background" 
+                  status="primary"
+                  text={isUpdating ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? "保存" : "Save")}
+                  onClick={handleUpdateCraft}
+                  disabled={isUpdating || !editNodeForm.name.trim()}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            /* 查看模式：只读详情 */
+            <>
+              <div className="panel-image">
+                {activeCraft.coverImage && (
+                  <img src={activeCraft.coverImage} alt={activeCraft.name} />
+                )}
+                {activeCraft.featured && (
+                  <span className="featured-badge">
+                    <Icon name="star" size={14} />
+                    {language === "zh" ? "特色" : "Featured"}
+                  </span>
+                )}
+              </div>
+
+              <div className="panel-content">
+                <div className="panel-header-row">
+                  <span className="panel-category">
+                    {categoryLabels[activeCraft.category][language]}
+                  </span>
+                  {activeCraft.createdAt && (
+                    <span className="panel-date">
+                      {new Date(activeCraft.createdAt).toLocaleDateString(language === "zh" ? "zh-CN" : "en-US")}
+                    </span>
+                  )}
+                </div>
+                <h2 className="panel-name">{activeCraft.name}</h2>
+                <p className="panel-description">{activeCraft.description}</p>
+
+                {activeCraft.useCase && (
+                  <div className="panel-usecase">
+                    <h4>{language === "zh" ? "适用场景" : "Use Case"}</h4>
+                    <p>{activeCraft.useCase}</p>
+                  </div>
+                )}
+
+                <div className="panel-tech">
+                  {activeCraft.technologies.map((tech, idx) => (
+                    <span key={idx} className="tech-tag">{tech}</span>
+                  ))}
+                </div>
+
+                {activeCraft.relations && activeCraft.relations.length > 0 && (
+                  <div className="panel-relations">
+                    <h4>{language === "zh" ? "关联作品" : "Related Crafts"}</h4>
+                    {activeCraft.relations.map((rel, idx) => {
+                      const targetCraft = crafts.find((c) => c.id === rel.targetId);
+                      if (!targetCraft) return null;
+                      return (
+                        <button
+                          key={idx}
+                          className="relation-link"
+                          onClick={() => {
+                            setActiveId(rel.targetId);
+                            centerToNode(rel.targetId);
+                          }}
+                        >
+                          <span
+                            className="relation-type"
+                            style={{ color: relationLabels[rel.type].color }}
+                          >
+                            {relationLabels[rel.type][language]}
+                          </span>
+                          <span className="relation-name">{targetCraft.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="panel-actions">
+                  {activeCraft.demoUrl && (
+                    <a href={activeCraft.demoUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
+                      <Icon name="video-pause" size={16} />
+                      {language === "zh" ? "在线体验" : "Live Demo"}
+                    </a>
+                  )}
+                  <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
+                    {language === "zh" ? "查看详情" : "View Details"}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
