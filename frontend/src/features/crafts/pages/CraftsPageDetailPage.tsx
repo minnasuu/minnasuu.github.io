@@ -192,9 +192,9 @@ export const CraftsPageDetailPage: React.FC = () => {
             {/* 查看 Demo 按钮 */}
             {craft.demoUrl && (
               <button className="view-demo-btn" onClick={scrollToDemo}>
-                <Icon name="play" />
+                <Icon name="video-pause" />
                 <span>{language === "zh" ? "查看演示" : "View Demo"}</span>
-                <Icon name="arrow-down" className="arrow-icon" />
+                <Icon name="arrow-line" className="arrow-icon" />
               </button>
             )}
           </div>
@@ -214,7 +214,7 @@ export const CraftsPageDetailPage: React.FC = () => {
               rel="noopener noreferrer"
               className="open-external-btn"
             >
-              <Icon name="external-link" />
+              <Icon name="zoom-in-arrow" />
               <span>{language === "zh" ? "新窗口打开" : "Open in new tab"}</span>
             </a>
           </div>

@@ -357,7 +357,8 @@ $color-text-light: #999999;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 40px;
+    padding-inline: 40px;
+    height: 64px;
     background: #fff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     
