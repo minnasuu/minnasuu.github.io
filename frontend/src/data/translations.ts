@@ -146,7 +146,7 @@ export const translations: Record<Language, Translations> = {
       backToProjects: "返回项目列表"
     },
     crafts: {
-      title: "自研工具",
+      title: "crafts",
       subtitle: "我开发的一些工具和项目",
       viewCraft: "查看工具",
       viewCode: "查看代码",

@@ -394,31 +394,63 @@
   // 朋友圈行
   .profile-row-new {
     display: flex;
-    padding: 20px 30px;
-    align-items: flex-start;
+    padding: 16px 30px;
+    align-items: center;
 
-    &.moments-row {
+    .row-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      color: var(--wechat-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 22px;
+        height: 22px;
+      }
+
+      &.miniprogram-icon {
+        color: #7B68EE;
+      }
+
+      &.collection-icon {
+        color: #FFB800;
+      }
+
+      &.cards-icon {
+        color: #576B95;
+      }
+
+      &.album-icon {
+        color: #07C160;
+      }
+    }
+
+    .row-label-new {
+      width: 70px;
+      font-size: 15px;
+      color: var(--wechat-text-primary);
+      flex-shrink: 0;
+    }
+
+    &.moments-row,
+    &.miniprogram-row {
       cursor: pointer;
       position: relative;
 
-      .row-label-new {
-        width: 60px;
-        font-size: 14px;
-        color: var(--wechat-text-primary);
-        opacity: 0.8;
-        letter-spacing: 2px;
-        margin-top: 2px;
-      }
-
-      .moments-photos {
+      .moments-photos,
+      .miniprogram-list {
         flex: 1;
         display: flex;
         gap: 6px;
         flex-wrap: nowrap;
+        justify-content: flex-end;
 
         .moment-img {
-          width: 54px;
-          height: 54px;
+          width: 50px;
+          height: 50px;
           border-radius: 4px;
           object-fit: cover;
           cursor: pointer;
@@ -427,6 +459,35 @@
           &:hover {
             transform: scale(1.05);
             opacity: 0.9;
+          }
+        }
+
+        .miniprogram-item {
+          cursor: pointer;
+          transition: transform 0.2s;
+
+          &:hover {
+            transform: scale(1.05);
+          }
+
+          .miniprogram-icon-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+          }
+
+          .miniprogram-icon-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7B68EE 0%, #9B59B6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
           }
         }
       }
@@ -441,6 +502,64 @@
         svg {
           width: 20px;
           height: 20px;
+        }
+      }
+    }
+
+    &.collection-row,
+    &.cards-row,
+    &.album-row {
+      .collection-tags,
+      .cards-tags,
+      .album-tags {
+        flex: 1;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+
+        .collection-tag,
+        .card-tag,
+        .album-tag {
+          padding: 4px 10px;
+          border-radius: 4px;
+          font-size: 12px;
+          background: var(--wechat-bg-main);
+          color: var(--wechat-text-secondary);
+          text-decoration: none;
+          transition: all 0.2s;
+
+          &:hover {
+            background: var(--wechat-border-color);
+            color: var(--wechat-text-primary);
+          }
+        }
+
+        .collection-tag {
+          background: rgba(255, 184, 0, 0.1);
+          color: #FFB800;
+
+          &:hover {
+            background: rgba(255, 184, 0, 0.2);
+          }
+        }
+
+        .card-tag {
+          background: rgba(87, 107, 149, 0.1);
+          color: #576B95;
+        }
+
+        .album-tag {
+          background: rgba(7, 193, 96, 0.1);
+          color: #07C160;
+        }
+
+        .collection-more,
+        .cards-more,
+        .album-more {
+          padding: 4px 8px;
+          font-size: 12px;
+          color: var(--wechat-text-secondary);
         }
       }
     }

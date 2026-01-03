@@ -3,8 +3,9 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { personalDataMultiLang } from '../../../../data/personalData';
 import { useTranslations } from '../../../hooks/useTranslations';
-import { fetchArticles } from '../../../utils/backendClient';
+import { fetchArticles, fetchCrafts } from '../../../utils/backendClient';
 import type { Article } from '../../../types';
+import type { Craft } from '../../../../features/crafts/components/CraftNode';
 import StackedCardList from '../StackedCardList/StackedCardList';
 import type { StackedCardItem } from '../StackedCardList/StackedCardList';
 import type { SidebarThemeConfig } from './types';
@@ -21,6 +22,8 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
   const data = personalDataMultiLang[language];
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoadingArticles, setIsLoadingArticles] = useState(true);
+  const [crafts, setCrafts] = useState<Craft[]>([]);
+  const [isLoadingCrafts, setIsLoadingCrafts] = useState(true);
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -36,7 +39,20 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       }
     };
 
+    const loadCrafts = async () => {
+      try {
+        const fetchedCrafts = await fetchCrafts();
+        setCrafts(fetchedCrafts);
+      } catch (error) {
+        console.error('Failed to load crafts:', error);
+        setCrafts([]);
+      } finally {
+        setIsLoadingCrafts(false);
+      }
+    };
+
     loadArticles();
+    loadCrafts();
   }, []);
 
   const {
@@ -189,6 +205,41 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
         )}
       </div>
 
+      {/* 作品 - 卡片形式 */}
+      <div className={sectionClass}>
+        <div className="section-header">
+          <h3>♾️ {t('crafts.title')}</h3>
+          {crafts.length > 10 && <Link to="/crafts" className="view-more-link">{t('crafts.viewAll')}</Link>}
+        </div>
+        {isLoadingCrafts ? (
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+            Loading crafts...
+          </div>
+        ) : crafts.length > 0 ? (
+          <StackedCardList
+            items={crafts
+              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .filter((_i, idx) => idx < 10)
+              .map((craft): StackedCardItem => ({
+                id: craft.id,
+                title: craft.name,
+                coverImage: craft.coverImage,
+                link: `/crafts/${craft.id}`,
+                meta: {
+                  date: craft.createdAt,
+                },
+              }))}
+            cardWidth={120}
+            overlapOffset={30}
+            themePrefix={themePrefix}
+          />
+        ) : (
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+            No crafts yet
+          </div>
+        )}
+      </div>
+
       {/* 项目 - 卡片形式 */}
       <div className={sectionClass}>
         <div className="section-header">
@@ -210,30 +261,6 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
                   <img src={project.imgPopUrl} alt="img-pop" className="img-pop" />
                 </div>
               )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 作品 - 卡片形式 */}
-      <div className={sectionClass}>
-        <div className="section-header">
-          <h3>♾️ {t('crafts.title')}</h3>
-        </div>
-        <div className="craft-list">
-          {data.crafts.map((craft, index) => (
-            <div
-              key={index}
-              className={`craft-item ${craft.link ? 'with-link' : ''}`}
-            >
-              <a
-                href={craft.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="craft-title-link"
-              >
-                <span className="craft-name">{craft.name}</span>
-              </a>
             </div>
           ))}
         </div>
