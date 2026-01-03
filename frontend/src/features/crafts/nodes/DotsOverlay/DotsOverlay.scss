@@ -1,0 +1,364 @@
+.dots-overlay-demo {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: #f9fafb; // 浅色背景
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  // 预览区域
+  .preview-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // 使用极浅的渐变或纯白，营造干净的感觉
+    background: radial-gradient(circle at center, #ffffff 0%, #f3f4f6 100%);
+    overflow: hidden;
+
+    .preview-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      color: #1f2937; // 深色文字
+      pointer-events: none;
+      user-select: none;
+
+      h1 {
+        font-size: 4rem;
+        font-weight: 800;
+        margin-block: 32px;
+      }
+
+      p {
+        font-size: 1.125rem;
+        color: #64748b; // 次级文字颜色
+        margin: 0;
+        font-weight: 400;
+      }
+    }
+  }
+
+  // 控制面板
+  .control-panel {
+    width: 360px;
+    background: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.02); // 极轻微的阴影
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #ffffff;
+
+      h2 {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      .panel-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &:hover {
+          background: #f1f5f9;
+          color: #0f172a;
+          border-color: #cbd5e1;
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 3px;
+
+        &:hover {
+          background: #cbd5e1;
+        }
+      }
+    }
+
+    // 配置区块
+    .config-section {
+      margin-bottom: 32px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #f1f5f9;
+
+        span {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+      }
+    }
+
+    // 配置项
+    .config-item {
+      margin-bottom: 20px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      label {
+        display: block;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: #64748b;
+        margin-bottom: 8px;
+      }
+
+      // 颜色输入
+      .color-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f8fafc;
+        padding: 6px 12px 6px 6px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+
+        input[type="color"] {
+          width: 36px;
+          height: 28px;
+          padding: 0;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          background: transparent;
+
+          &::-webkit-color-swatch-wrapper {
+            padding: 0;
+          }
+
+          &::-webkit-color-swatch {
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+          }
+        }
+
+        .color-value {
+          font-size: 0.8125rem;
+          color: #475569;
+          font-family: 'SF Mono', 'Monaco', monospace;
+          font-weight: 500;
+        }
+      }
+
+      // 滑块组合
+      .slider-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        input[type="range"] {
+          flex: 1;
+          height: 4px;
+          -webkit-appearance: none;
+          appearance: none;
+          background: #e2e8f0;
+          border-radius: 2px;
+          outline: none;
+
+          &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border: 2px solid #6366f1; // Indigo-500
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+            &:hover {
+              transform: scale(1.1);
+              box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+            }
+          }
+
+          &::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
+            border: 2px solid #6366f1;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          }
+        }
+
+        // 数字输入框样式覆盖
+        .land-number-input {
+          width: 72px;
+
+          input {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+            font-size: 0.8125rem;
+            text-align: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+
+            &:focus {
+              border-color: #6366f1;
+              background: #ffffff;
+              box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            }
+            
+            &:hover:not(:focus) {
+              border-color: #cbd5e1;
+            }
+          }
+        }
+      }
+    }
+
+    // 代码预览
+    .code-preview {
+      padding: 20px 24px;
+      border-top: 1px solid #e2e8f0;
+      background: #f8fafc;
+
+      h3 {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: #475569;
+        margin: 0 0 12px;
+      }
+
+      pre {
+        margin: 0 0 12px;
+        padding: 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow-x: auto;
+        max-height: 200px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+
+        &::-webkit-scrollbar {
+          height: 4px;
+        }
+
+        &::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 2px;
+        }
+
+        code {
+          font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+          font-size: 0.75rem;
+          color: #334155;
+          line-height: 1.6;
+          white-space: pre;
+        }
+      }
+
+      .copy-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        padding: 8px 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        color: #475569;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #f1f5f9;
+          border-color: #cbd5e1;
+          color: #0f172a;
+        }
+        
+        &:active {
+          transform: translateY(1px);
+        }
+      }
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 900px) {
+  .dots-overlay-demo {
+    flex-direction: column;
+
+    .preview-area {
+      height: 50vh;
+
+      .preview-content h1 {
+        font-size: 2.5rem;
+      }
+    }
+
+    .control-panel {
+      width: 100%;
+      height: 50vh;
+      border-left: none;
+      border-top: 1px solid #e2e8f0;
+    }
+  }
+}

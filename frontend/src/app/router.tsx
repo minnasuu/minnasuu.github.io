@@ -10,6 +10,7 @@ import {
 } from "../features/articles";
 import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
+import { DotsOverlay } from '../features/crafts/nodes/DotsOverlay';
 
 // 滚动重置组件
 const ScrollToTop: React.FC = () => {
@@ -44,6 +45,9 @@ const AppRouter: React.FC = () => {
             <Route path='/crafts' element={<CraftsPage/>}/>
             <Route path='/crafts-editor' element={<CraftEditorPage/>}/>
             <Route path="/crafts/:id" element={<CraftsPageDetailPage />} />
+            
+            {/* CRAFTS DEMO */}
+            <Route path="/crafts/demo/dots-overlay" element={<DotsOverlay/>}/>
           </Routes>
         </Router>
       </ThemeProvider>

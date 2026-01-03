@@ -8,9 +8,10 @@ interface BackButtonProps {
   onClick?: () => void; // 可选的点击事件处理
   className?: string;
   style?: React.CSSProperties;
+  theme?: 'light' | 'dark'; // 主题：浅色或深色
 }
 
-const BackButton: React.FC<BackButtonProps> = ({ to, onClick, className = '', style }) => {
+const BackButton: React.FC<BackButtonProps> = ({ to, onClick, className = '', style, theme = 'light' }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -29,7 +30,7 @@ const BackButton: React.FC<BackButtonProps> = ({ to, onClick, className = '', st
         type='fill' 
         onClick={handleClick} 
         icon={<Icon name='last-step' strokeWidth={4}/>}
-        className="back-btn-circle"
+        className={`back-btn-circle back-btn-${theme}`}
       />
     </div>
   );

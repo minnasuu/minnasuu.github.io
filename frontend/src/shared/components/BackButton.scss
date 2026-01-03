@@ -1,21 +1,16 @@
-// 变量定义（从 ArticlesPage.scss 提取或保持一致）
-$color-text-main: #000000;
+// 变量定义
+$color-text-light: #000000;
+$color-text-dark: #ffffff;
 
 .back-btn-wrapper {
   display: inline-flex;
 }
 
-// 覆盖 LandButton 的样式以匹配圆形的返回按钮风格
-// 注意：这里假设 LandButton 允许通过 className 传递样式或者本身有 reset 机制
-// 如果 LandButton 样式优先级很高，可能需要 !important 或更具体的选择器
-
+// 通用圆形按钮样式
 .back-btn-circle {
-  // 这里我们复用之前 ArticlesPage.scss 中的 .back-btn-circle 样式逻辑
-  // 但由于使用了 LandButton，可能需要适配它的结构
-  
   // 强制圆形
   border-radius: 50% !important;
-  padding: 0 !important; // 移除默认内边距
+  padding: 0 !important;
   width: 40px !important;
   height: 40px !important;
   min-width: 40px !important;
@@ -24,21 +19,36 @@ $color-text-main: #000000;
   align-items: center !important;
   justify-content: center !important;
   
-  // 颜色风格
-  background-color: transparent !important; // 默认透明
-  color: $color-text-main !important;
-  border: 1px solid #eee !important;
+  background-color: transparent !important;
   transition: all 0.3s ease !important;
   
   // 图标样式
   .land-icon {
-    font-size: 20px; // 调整图标大小
+    font-size: 20px;
   }
+}
+
+// 浅色主题（用于浅色背景）
+.back-btn-light {
+  color: $color-text-light !important;
+  border: 1px solid #e5e5e5 !important;
 
   &:hover {
     background: #000 !important;
     color: #fff !important;
     border-color: #000 !important;
+  }
+}
+
+// 深色主题（用于深色背景）
+.back-btn-dark {
+  color: $color-text-dark !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+
+  &:hover {
+    background: #fff !important;
+    color: #000 !important;
+    border-color: #fff !important;
   }
 }
 
