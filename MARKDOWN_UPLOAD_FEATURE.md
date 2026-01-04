@@ -40,7 +40,7 @@
 title: 文章标题
 summary: 文章摘要
 tags: [标签1, 标签2, 标签3]
-type: tech
+type: Engineering
 date: 2025-12-25
 readTime: 5
 coverImage: https://example.com/image.jpg
@@ -58,7 +58,7 @@ coverImage: https://example.com/image.jpg
 | `title` | - | string | 否 | 文章标题（未设置时使用文件名） |
 | `summary` | `description` | string | 否 | 文章摘要 |
 | `tags` | - | string[] | 否 | 文章标签，支持数组格式 `[tag1, tag2]` |
-| `type` | - | string | 否 | 文章类型：`tech` 或 `essay`（默认：`tech`） |
+| `type` | - | string | 否 | 文章类型：`Engineering` 或 `Experience` 或 `AI` 或 `Thinking`（默认：`Engineering`） |
 | `date` | `publishDate` | string | 否 | 发布日期（ISO 格式） |
 | `readTime` | `read_time` | number | 否 | 阅读时长（分钟） |
 | `coverImage` | `cover`, `image` | string | 否 | 封面图片 URL |
@@ -72,7 +72,7 @@ coverImage: https://example.com/image.jpg
 title: 我的新文章
 summary: 这是一篇关于 React 的文章
 tags: [React, JavaScript, 前端开发]
-type: tech
+type: Engineering
 date: 2025-12-25
 readTime: 10
 coverImage: https://example.com/cover.jpg

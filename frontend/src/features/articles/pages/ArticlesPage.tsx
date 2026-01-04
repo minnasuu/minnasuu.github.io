@@ -115,7 +115,7 @@ const ArticlesPage: React.FC = () => {
                       )}
                     </span>
                     <span className="article-type-badge">
-                      {article.type === "tech" ? "Technical" : "Essay"}
+                      {article.type}
                     </span>
                   </div>
 

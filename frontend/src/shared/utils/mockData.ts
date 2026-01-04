@@ -47,7 +47,7 @@ Transitions 让你可以标记某些更新为非紧急的。
     tags: ['React', 'Frontend', 'JavaScript'],
     readTime: 8,
     coverImage: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800',
-    type: 'tech',
+    type: 'Engineering',
   },
   {
     id: 'mock_2',
@@ -81,7 +81,7 @@ TypeScript 提供了许多内置的工具类型，如 Partial、Pick、Omit 等�
     tags: ['TypeScript', 'Frontend', 'Best Practices'],
     readTime: 6,
     coverImage: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=800',
-    type: 'tech',
+    type: 'Engineering',
   },
   {
     id: 'mock_3',
@@ -106,7 +106,7 @@ TypeScript 提供了许多内置的工具类型，如 Partial、Pick、Omit 等�
     publishDate: '2024-12-05',
     tags: ['思考', '编程', '随笔'],
     readTime: 4,
-    type: 'essay',
+    type: 'Thinking',
   },
 ];
 

@@ -146,7 +146,7 @@ const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => 
                <span className="article-date">
                    {new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                </span>
-               <span className="article-type-badge">{article.type === 'tech' ? 'Technical' : 'Essay'}</span>
+               <span className="article-type-badge">{article.type}</span>
            </div>
            
            <h1 className="article-title">{article.title}</h1>

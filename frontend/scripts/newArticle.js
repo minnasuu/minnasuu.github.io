@@ -237,7 +237,7 @@ async function main() {
     const tagsInput = await askQuestion('🏷️  请输入文章标签（用逗号分隔）: ');
     const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(Boolean) : [];
     
-    const type = await askQuestion('📂 请输入文章类型 (tech/essay) [默认: tech]: ') || 'tech';
+    const type = await askQuestion('📂 请输入文章类型 (Engineering/Experience/AI/Thinking) [默认: Engineering]: ') || 'Engineering';
     
     const coverImage = await askQuestion('🖼️  请输入封面图片路径（可选）: ');
     

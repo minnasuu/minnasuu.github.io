@@ -32,7 +32,7 @@ export interface Article {
   readTime: number; // 分钟
   coverImage?: string;
   link?: string; // 可选的链接
-  type: 'tech' | 'essay';
+  type: 'Engineering' | 'Experience' | 'AI' | 'Thinking';
   markdownContent?: string;
 }
 

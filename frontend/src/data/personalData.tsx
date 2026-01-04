@@ -21,10 +21,10 @@ export const personalDataMultiLang: Record<Language, PersonalData> = {
           name: "Github",
           url: "https://github.com/minnasuu",
         },
-        {
-          name: "CodePen",
-          url: "https://codepen.io/minhan-su",
-        },
+        // {
+        //   name: "CodePen",
+        //   url: "https://codepen.io/minhan-su",
+        // },
         {
           name: "小红书",
           abbreviation: "Suumhan",
@@ -151,10 +151,10 @@ export const personalDataMultiLang: Record<Language, PersonalData> = {
           name: "Github",
           url: "https://github.com/minnasuu",
         },
-        {
-          name: "CodePen",
-          url: "https://codepen.io/minhan-su",
-        },
+        // {
+        //   name: "CodePen",
+        //   url: "https://codepen.io/minhan-su",
+        // },
         {
           name: "Redbook",
           abbreviation: "Suumhan",

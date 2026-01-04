@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
         readTime: parseInt(readTime) || 0,
         coverImage,
         link,
-        type: type || 'tech'
+        type: type || 'Engineering'
       }
     });
     console.log(`API Request: POST /api/articles - Created article ${article.id}`);
@@ -101,7 +101,7 @@ router.put('/:id', async (req, res) => {
         readTime: parseInt(readTime) || 0,
         coverImage,
         link,
-        type: type || 'tech'
+        type: type || 'Engineering'
       }
     });
     console.log(`API Request: PUT /api/articles/${req.params.id} - Updated`);

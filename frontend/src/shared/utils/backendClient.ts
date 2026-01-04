@@ -21,7 +21,7 @@ export interface CreateArticleRequest {
   readTime: number;
   coverImage?: string;
   link?: string;
-  type: string;
+  type: 'Engineering' | 'Experience' | 'AI' | 'Thinking';
 }
 
 // Mock 模式配置

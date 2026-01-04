@@ -60,7 +60,7 @@ const ArticleEditorPage: React.FC = () => {
     readTime: 5,
     coverImage: '',
     link: '',
-    type: 'tech',
+    type: 'Engineering',
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -221,7 +221,7 @@ const ArticleEditorPage: React.FC = () => {
                         readTime: draft.readTime || 5,
                         coverImage: draft.coverImage || '',
                         link: draft.link || '',
-                        type: draft.type || 'tech',
+                        type: draft.type || 'Engineering',
                       });
                       setIsEditMode(true);
                     }
@@ -283,7 +283,7 @@ const ArticleEditorPage: React.FC = () => {
   };
 
   const handleTypeChange = (item: SelectItemType) => {
-    setFormData(prev => ({ ...prev, type: item.key as 'tech' | 'essay' }));
+    setFormData(prev => ({ ...prev, type: item.key as 'Engineering' || 'Experience' || 'AI' || 'Thinking'}));
   };
 
   // 本地保存草稿（使用 localStorage）
@@ -472,7 +472,7 @@ const ArticleEditorPage: React.FC = () => {
       readTime: 5,
       coverImage: '',
       link: '',
-      type: 'tech',
+      type: 'Engineering',
     });
     setCurrentArticleId(undefined);
     setIsEditMode(false);
@@ -500,7 +500,7 @@ const ArticleEditorPage: React.FC = () => {
               readTime: draft.readTime || 5,
               coverImage: draft.coverImage || '',
               link: draft.link || '',
-              type: draft.type || 'tech',
+              type: draft.type || 'Engineering',
             });
             closeDialog();
           },
@@ -700,7 +700,7 @@ const ArticleEditorPage: React.FC = () => {
         readTime: metadata.readTime || metadata.read_time || prev.readTime,
         coverImage: metadata.coverImage || metadata.cover || metadata.image || prev.coverImage,
         link: metadata.link || metadata.url || prev.link,
-        type: metadata.type === 'essay' ? 'essay' : 'tech',
+        type: ['Engineering', 'Experience', 'AI', 'Thinking'].includes(metadata.type) ? metadata.type : 'Engineering',
         publishDate: metadata.date || metadata.publishDate ? 
                      new Date(metadata.date || metadata.publishDate).toISOString().split('T')[0] : 
                      prev.publishDate,
@@ -1145,15 +1145,17 @@ const ArticleEditorPage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
+               <div>
                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">类型</label>
                  <LandSelect
                  type='background'
                    selected={formData.type}
                    onChange={handleTypeChange}
                    data={[
-                     { key: 'tech', label: 'Tech' },
-                     { key: 'essay', label: 'Essay' }
+                     { key: 'Engineering', label: 'Engineering' },
+                     { key: 'Experience', label: 'Experience' },
+                     { key: 'AI', label: 'AI' },
+                     { key: 'Thinking', label: 'Thinking' }
                    ]}
                  />
               </div>
@@ -1255,7 +1257,7 @@ const ArticleEditorPage: React.FC = () => {
                               {new Date(article.publishDate).toLocaleDateString('zh-CN')}
                             </span>
                             <span className="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                              {article.type === 'tech' ? '技术' : '随笔'}
+                              {article.type}
                             </span>
                           </div>
                         </div>

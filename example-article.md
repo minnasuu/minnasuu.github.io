@@ -2,7 +2,7 @@
 title: 示例文章：Markdown 上传功能
 summary: 这是一篇通过上传 Markdown 文件创建的示例文章
 tags: [React, Markdown, 编辑器]
-type: tech
+type: Experience
 date: 2025-12-25
 readTime: 5
 coverImage: https://images.unsplash.com/photo-1499750310107-5fef28a66643
@@ -23,7 +23,7 @@ coverImage: https://images.unsplash.com/photo-1499750310107-5fef28a66643
 title: 文章标题
 summary: 文章摘要
 tags: [标签1, 标签2, 标签3]
-type: tech  # 或 essay
+type: 类型（Engineering  # 或 essay
 date: 2025-12-25
 readTime: 5
 coverImage: 图片URL
@@ -38,7 +38,7 @@ link: 外部链接
 - `title` → 标题
 - `summary` / `description` → 摘要
 - `tags` → 标签（支持数组格式）
-- `type` → 类型（tech/essay）
+- `type` → 类型（Engineering/Experience/AI/Thinking）
 - `date` / `publishDate` → 发布日期
 - `readTime` / `read_time` → 阅读时长
 - `coverImage` / `cover` / `image` → 封面图片
