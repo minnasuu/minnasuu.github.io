@@ -47,7 +47,7 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({ show, onClose, onSele
       onCancel={handleClose}
       mask={true}
     >
-      <div className="py-4">
+      <div className="py-4 max-h-[80vh] overflow-y-auto">
         {!selectedComponent ? (
           // 组件选择列表
           <div>
@@ -62,9 +62,6 @@ const ComponentPicker: React.FC<ComponentPickerProps> = ({ show, onClose, onSele
                   className="p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
-                      <Icon name={config.icon as any} size={20} strokeWidth={3} />
-                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-gray-900 dark:text-white mb-1">
                         {config.name}

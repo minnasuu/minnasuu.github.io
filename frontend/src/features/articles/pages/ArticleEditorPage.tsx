@@ -1207,7 +1207,7 @@ const ArticleEditorPage: React.FC = () => {
           <LandButton
             type='text'
             onClick={() => setShowComponentPicker(true)}
-            icon={<Icon name='box' strokeWidth={4} size={18}/>}
+            icon={<Icon name='code-file' strokeWidth={4} size={18}/>}
             tip='插入交互组件'
             tipProps={{placement:'bottom'}}
           >

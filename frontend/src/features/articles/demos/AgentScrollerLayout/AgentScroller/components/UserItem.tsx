@@ -10,6 +10,6 @@ const UserItem: React.FC<Props> = ({
   className = 'ml-auto',
   style
 }) => {
-  return <div className={`px-12 py-8 fs-14 color-white bg-primary radius-12 shrink-0 ${className}`} style={{ width: 'fit-content',direction:'ltr', ...style }}>{message}</div>
+  return <div className={`px-3 py-2 text-sm text-white bg-blue-500 dark:bg-blue-600 rounded-xl shrink-0 w-fit ${className}`} style={{ direction:'ltr', ...style }}>{message}</div>
 }
 export default UserItem;

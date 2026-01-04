@@ -26,8 +26,8 @@ const AgentScroller5: React.FC<Props> = ({
   const [show1, setShow1] = useState<boolean>(false);
   const [show2, setShow2] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  return <div className={`width-100 flex column border radius-8 ${fix ? 'justify-between' : ''}`} style={{ height: '320px' }}>
-    <AgentScrollLayout isEnd className={`px-12 border-box ${fix ? '' : 'flex-1 height-1'}`} style={fix ? { height: 'fit-content', maxHeight: '100%' } : undefined} contentStyle={{ flexDirection: 'column-reverse' }}>
+  return <div className={`w-full flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg h-[320px] ${fix ? 'justify-between' : ''}`}>
+    <AgentScrollLayout isEnd className={`px-3 box-border ${fix ? '' : 'flex-1 h-0'}`} style={fix ? { height: 'fit-content', maxHeight: '100%' } : undefined} contentStyle={{ flexDirection: 'column-reverse' }}>
       {show2 &&
         <ServerItem>
           <TypewriterMarkdown
@@ -39,7 +39,7 @@ const AgentScroller5: React.FC<Props> = ({
       }
       {show1 && <UserItem message={'问了一个问题'} />}
     </AgentScrollLayout>
-    {!autoOutPut&&<div className={'flex justify-end px-12 py-12'}>
+    {!autoOutPut&&<div className="flex justify-end px-3 py-3">
     <LandButton style={{width:'100px'}} text={loading?'生成中':'开始'} disabled={loading} onClick={() => {
       setLoading(true);
         setShow1(true)

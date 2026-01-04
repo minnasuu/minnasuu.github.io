@@ -36,8 +36,8 @@ const HistoryScrollerDemo2:React.FC = () => {
           }
       };
   }, [loading, data]);
-    return <div className="flex-1 flex column items-center width-100 gap-16 p-24 bg-gray overflow-auto border-box" style={{ height: '220px', flexDirection: 'column-reverse' }}>
-    {data.map((_i, idx1) => <div key={idx1} className="width-100 bg-gray-3 shrink-0" style={{ height: '120px' }}>对话{idx1 + 1}</div>)}
+    return <div className="flex-1 flex flex-col items-center w-full gap-4 p-6 bg-gray-100 dark:bg-gray-800 overflow-auto box-border h-[220px] flex-col-reverse">
+    {data.map((_i, idx1) => <div key={idx1} className="w-full bg-gray-200 dark:bg-gray-700 shrink-0 h-[120px]">对话{idx1 + 1}</div>)}
     <div ref={loadingRef}>{loading && <LandLoading/>}</div>
   </div>
 }

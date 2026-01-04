@@ -6,7 +6,7 @@ type Props = {
 const Loading:React.FC<Props> = ({
                                      loadingText,
                                  }) => {
-    return <div className={'flex column gap-12'}>
+    return <div className="flex flex-col gap-3">
         <StyledLoadingDots></StyledLoadingDots>
         {loadingText}
     </div>

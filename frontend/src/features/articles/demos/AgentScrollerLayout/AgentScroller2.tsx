@@ -25,8 +25,8 @@ const AgentScroller2: React.FC = () => {
   const [show1, setShow1] = useState<boolean>(false);
   const [show2, setShow2] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  return <div className="width-100 flex column border radius-8" style={{ height: '320px' }}>
-    <AgentScrollLayout isEnd className={'px-12 border-box flex-1 height-1'} contentClassName='ckt-agent-scroll-layout-1-1'>
+  return <div className="w-full flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg h-[320px]">
+    <AgentScrollLayout isEnd className="px-3 box-border flex-1 h-0" contentClassName='ckt-agent-scroll-layout-1-1'>
       {show1 && <UserItem message={'问了一个问题'} />}
       {show2 &&
         <ServerItem>
@@ -39,7 +39,7 @@ const AgentScroller2: React.FC = () => {
         </ServerItem>
       }
     </AgentScrollLayout>
-    <div className={'flex justify-end px-12 py-12'}>
+    <div className="flex justify-end px-3 py-3">
       <LandButton style={{ width: '100px' }} text={loading?'生成中':'开始'} disabled={loading} onClick={() => {
         setLoading(true);
         setShow1(true)

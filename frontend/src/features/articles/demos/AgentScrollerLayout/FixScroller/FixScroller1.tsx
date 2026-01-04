@@ -58,19 +58,19 @@ fix
        }
         
     }
-  return <div ref={scrollRef} className="flex-1 flex items-center gap-20 py-24 bg-gray overflow-auto" style={{height:'240px',flexDirection:'column-reverse'}}>
-    <div className="width-50 bg-gray-3 shrink-0" style={{height:'200px'}}></div>
-    <div className="relative width-50 overflow-hidden shrink-0" style={{height: open ? `${height+24}px`:'24px'}}>
+  return <div ref={scrollRef} className="flex-1 flex items-center gap-5 py-6 bg-gray-100 dark:bg-gray-800 overflow-auto h-[240px] flex-col-reverse">
+    <div className="w-1/2 bg-gray-200 dark:bg-gray-700 shrink-0 h-[200px]"></div>
+    <div className="relative w-1/2 overflow-hidden shrink-0" style={{height: open ? `${height+24}px`:'24px'}}>
         <div onClick={handleClick} className="flex items-center cursor-pointer">
-            <p className="flex-1 ellipsis">已深度思考（用时4秒）</p>
+            <p className="flex-1 truncate">已深度思考（用时4秒）</p>
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" className={`${open?'':'rotate-180'} transition`}>
-                <path d="M6.00004 4.5L8.75 7.25L3.25 7.25L6.00004 4.5Z" fill="#33373D" fill-opacity="0.58" />
+                <path d="M6.00004 4.5L8.75 7.25L3.25 7.25L6.00004 4.5Z" fill="#33373D" fillOpacity="0.58" />
             </svg>
         </div>
         <div>{open ? '深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...':''}</div>
-        <div ref={contentRef} className="absolute width-100">深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...</div>
+        <div ref={contentRef} className="absolute w-full">深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...</div>
     </div>
-    <div className="width-50 bg-gray-3 shrink-0" style={{height:'200px'}}></div>
+    <div className="w-1/2 bg-gray-200 dark:bg-gray-700 shrink-0 h-[200px]"></div>
   </div>;
 }
 export default FixScroller1;

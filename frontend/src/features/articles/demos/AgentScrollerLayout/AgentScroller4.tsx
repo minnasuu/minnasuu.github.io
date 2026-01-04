@@ -17,8 +17,8 @@ const AgentScroller4: React.FC<Props> = ({
   const [show1, setShow1] = useState<boolean>(false);
   const [show2, setShow2] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  return <div className={`width-100 flex column border radius-8 ${fix ? 'justify-between' : ''}`} style={{ height: '320px' }}>
-    <AgentScrollLayout isEnd className={`px-12 border-box rotate-180 ${fix ? '' : 'flex-1 height-1'}`} style={fix ? { height: 'fit-content', maxHeight: '100%' } : undefined} contentStyle={{direction: scale ? 'rtl' : 'ltr'}}>
+  return <div className={`w-full flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg h-[320px] ${fix ? 'justify-between' : ''}`}>
+    <AgentScrollLayout isEnd className={`px-3 box-border rotate-180 ${fix ? '' : 'flex-1 h-0'}`} style={fix ? { height: 'fit-content', maxHeight: '100%' } : undefined} contentStyle={{direction: scale ? 'rtl' : 'ltr'}}>
       {show2 &&
         <ServerItem className="ml-auto rotate-180">
           <TypewriterMarkdown
@@ -30,7 +30,7 @@ const AgentScroller4: React.FC<Props> = ({
       }
       {show1 && <UserItem message={'问了一个问题'} className="rotate-180" />}
     </AgentScrollLayout>
-    <div className={'flex justify-end px-12 py-12'}>
+    <div className="flex justify-end px-3 py-3">
     <LandButton style={{ width: '100px' }} text={loading?'生成中':'开始'} disabled={loading} onClick={() => {
       setLoading(true);
         setShow1(true)

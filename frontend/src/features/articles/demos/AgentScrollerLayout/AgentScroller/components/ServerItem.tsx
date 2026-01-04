@@ -10,6 +10,6 @@ const ServerItem: React.FC<Props> = ({
   className = '',
   style,
 }) => {
-  return <div className={`fs-14 color-gray-2 radius-12 ${className}`} style={{ width: 'fit-content',direction:'ltr',letterSpacing:'0.12em', ...style }}>{children}</div>
+  return <div className={`text-sm text-gray-700 dark:text-gray-300 rounded-xl w-fit ${className}`} style={{ direction:'ltr', letterSpacing:'0.12em', ...style }}>{children}</div>
 }
 export default ServerItem;

@@ -90,8 +90,8 @@ const AgentScroller2: React.FC = () => {
       {displayContent}
     </ReactMarkdown>
   ), [displayContent]);
-  return <div className="width-100 flex column border radius-8" style={{ height: '320px' }}>
-    <AgentScrollLayout isEnd className={'px-12 border-box flex-1 height-1'} onScroll={() => setIsAutoSCroll(false)} contentClassName="ckt-agent-scroll-layout2-2">
+  return <div className="w-full flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg h-[320px]">
+    <AgentScrollLayout isEnd className="px-3 box-border flex-1 h-0" onScroll={() => setIsAutoSCroll(false)} contentClassName="ckt-agent-scroll-layout2-2">
       {show1 && <UserItem message={'问了一个问题'} />}
       {show2 && <ServerItem>
         <div
@@ -119,7 +119,7 @@ const AgentScroller2: React.FC = () => {
         </div>
       </ServerItem>}
     </AgentScrollLayout>
-    <div className={'flex justify-end px-12 py-12'}>
+    <div className="flex justify-end px-3 py-3">
     <LandButton style={{ width: '100px' }} text={loading?'生成中':'开始'} disabled={loading} onClick={() => {
         setIsAutoSCroll(true)
         setLoading(true);

@@ -68,15 +68,15 @@ useEffect(() => {
           observer.disconnect();
   };
 }, [ data]);
-  return <div className={`width-100 flex column border radius-8 ${fix ? 'justify-between' : ''}`} style={{ height: '320px' }}>
+  return <div className={`w-full flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg h-[320px] ${fix ? 'justify-between' : ''}`}>
     <AgentScrollLayout 
     isEnd
-    className={`px-12 border-box ${fix ? '' : 'flex-1 height-1'}`} style={fix ? { height: 'fit-content', maxHeight: '100%' } : {overflow:'auto'}} contentStyle={{ flexDirection: 'column-reverse' }}
+    className={`px-3 box-border ${fix ? '' : 'flex-1 h-0 overflow-auto'}`} style={fix ? { height: 'fit-content', maxHeight: '100%' } : {}} contentStyle={{ flexDirection: 'column-reverse' }}
     >
       {data?.map(item=>item)}
-      {!isEnd &&<div ref={loadingMoreRef} className="width-100 flex justify-center py-12"><LandLoading/></div>}
+      {!isEnd &&<div ref={loadingMoreRef} className="w-full flex justify-center py-3"><LandLoading/></div>}
     </AgentScrollLayout>
-    <div className={'flex justify-end px-12 py-12'}>
+    <div className="flex justify-end px-3 py-3">
     <LandButton style={{width:'100px'}} text={loading?'生成中':'开始'} disabled={loading} onClick={() => {
       setLoading(true);
         setData([<UserItem message={'问了一个新的问题4'} />,...data]);

@@ -187,17 +187,17 @@ const HistoryScroller1: React.FC = () => {
   //   if (!isEnd || !scroller) return;
   //   scroller.scrollTop = 168
   // }, [isEnd])
-  return <div className="width-100 flex column border radius-8" style={{ height: '320px' }}>
+  return <div className="w-full flex flex-col border border-gray-200 dark:border-gray-700 rounded-lg h-[320px]">
     <AgentScrollLayout 
     isEnd 
-    className={'px-12 border-box flex-1 height-1'} 
+    className="px-3 box-border flex-1 h-0" 
     contentClassName="ckt-agent-scroll-layout2-1"
     onScroll={() => setIsAutoSCroll(false)}
     >
-      {!isEnd&&<div ref={loadingMoreRef} className="width-100 flex justify-center py-12"><LandLoading/></div>}
+      {!isEnd&&<div ref={loadingMoreRef} className="w-full flex justify-center py-3"><LandLoading/></div>}
       {data?.map(item=>item)}
     </AgentScrollLayout>
-    <div className={'flex justify-end gap-12 px-12 py-12'}>
+    <div className="flex justify-end gap-3 px-3 py-3">
       <LandButton text="重置" onClick={()=>{
         setData(initData);
         setIsEnd(false)

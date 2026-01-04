@@ -8,8 +8,8 @@ const AgentTextarea: React.FC<Props> = ({
   onSend
 
 }) => {
-  return <div className={'flex column gap-8 p-12 mt-auto width-100 bg-gray radius-12'}>
-    <StyledAgentTextarea className={'width-100'}></StyledAgentTextarea>
+  return <div className="flex flex-col gap-2 p-3 mt-auto w-full bg-gray-100 dark:bg-gray-800 rounded-xl">
+    <StyledAgentTextarea className="w-full"></StyledAgentTextarea>
     <div className="flex justify-end">
       {/*<LandButton text={'添加'}></LandButton>*/}
       <LandButton text={'发送'} onClick={onSend}></LandButton>
