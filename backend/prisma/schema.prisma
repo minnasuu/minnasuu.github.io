@@ -26,6 +26,21 @@ model Article {
   updatedAt     DateTime @updatedAt
 }
 
+model Draft {
+  id            String   @id @default(uuid())
+  title         String
+  summary       String
+  content       String   @db.Text
+  publishDate   DateTime
+  tags          String[]
+  readTime      Int
+  coverImage    String?
+  link          String?
+  type          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
 model Craft {
   id            String   @id @default(uuid())
   name          String

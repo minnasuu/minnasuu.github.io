@@ -7,6 +7,7 @@ const fs = require('fs');
 const chatRoutes = require('./routes/chat');
 const healthRoutes = require('./routes/health');
 const articleRoutes = require('./routes/articles');
+const draftRoutes = require('./routes/drafts');
 const craftRoutes = require('./routes/crafts');
 const uploadRoutes = require('./routes/upload');
 const authRoutes = require('./routes/auth');
@@ -69,6 +70,7 @@ app.use((req, res, next) => {
 app.use('/health', healthRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/articles', articleRoutes);
+app.use('/api/drafts', draftRoutes);
 app.use('/api/crafts', craftRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/auth', authRoutes);

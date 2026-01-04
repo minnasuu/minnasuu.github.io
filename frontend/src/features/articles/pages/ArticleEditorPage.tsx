@@ -3,8 +3,8 @@ import MdEditor from 'react-markdown-editor-lite';
 import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, verifyEditorPassword } from '../../../shared/utils/backendClient';
-import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
+import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, verifyEditorPassword, fetchDrafts, createDraft, updateDraft, deleteDraft } from '../../../shared/utils/backendClient';
+import type { CreateArticleRequest, Draft } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
@@ -65,9 +65,12 @@ const ArticleEditorPage: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
   const [isLoadingArticles, setIsLoadingArticles] = useState(true);
   const [currentArticleId, setCurrentArticleId] = useState<string | undefined>(id);
+  const [currentDraftId, setCurrentDraftId] = useState<string | undefined>(undefined);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isDraftMode, setIsDraftMode] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
@@ -170,22 +173,28 @@ const ArticleEditorPage: React.FC = () => {
     }
   };
 
-  // 加载历史文章列表
+  // 加载历史文章列表和草稿列表
   useEffect(() => {
-    const loadArticles = async () => {
+    const loadArticlesAndDrafts = async () => {
       try {
-        const fetchedArticles = await fetchArticles();
+        const [fetchedArticles, fetchedDrafts] = await Promise.all([
+          fetchArticles(),
+          fetchDrafts()
+        ]);
         setArticles(fetchedArticles.sort((a, b) => 
           new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
         ));
+        setDrafts(fetchedDrafts.sort((a, b) => 
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        ));
       } catch (error) {
-        console.error('Failed to load articles:', error);
+        console.error('Failed to load articles and drafts:', error);
       } finally {
         setIsLoadingArticles(false);
       }
     };
 
-    loadArticles();
+    loadArticlesAndDrafts();
   }, []);
 
   // 加载指定文章
@@ -286,18 +295,33 @@ const ArticleEditorPage: React.FC = () => {
     setFormData(prev => ({ ...prev, type: item.key as 'Engineering' || 'Experience' || 'AI' || 'Thinking'}));
   };
 
-  // 本地保存草稿（使用 localStorage）
-  const handleSaveDraft = () => {
+  // 保存草稿到服务器
+  const handleSaveDraft = async () => {
+    setIsSaving(true);
     try {
-      const draftKey = currentArticleId ? `draft_${currentArticleId}` : 'draft_new';
-      localStorage.setItem(draftKey, JSON.stringify({
-        ...formData,
-        savedAt: new Date().toISOString()
-      }));
+      if (isDraftMode && currentDraftId) {
+        // 更新现有草稿
+        await updateDraft(currentDraftId, formData);
+        showAlert('草稿已更新', '草稿已成功保存到服务器');
+      } else {
+        // 创建新草稿
+        const newDraft = await createDraft(formData);
+        setCurrentDraftId(newDraft.id);
+        setIsDraftMode(true);
+        showAlert('草稿已保存', '草稿已成功保存到服务器');
+      }
       setLastSavedTime(new Date());
-      console.log('草稿已保存到本地');
+      
+      // 重新加载草稿列表
+      const fetchedDrafts = await fetchDrafts();
+      setDrafts(fetchedDrafts.sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      ));
     } catch (error) {
       console.error('Failed to save draft:', error);
+      showAlert('保存失败', '草稿保存失败，请稍后重试');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -433,6 +457,14 @@ const ArticleEditorPage: React.FC = () => {
         setIsEditMode(true);
         showAlert('发布成功', '文章已成功发布！');
         setLastSavedTime(new Date());
+        
+        // 如果是从草稿发布，删除草稿
+        if (isDraftMode && currentDraftId) {
+          await deleteDraft(currentDraftId);
+          setIsDraftMode(false);
+          setCurrentDraftId(undefined);
+        }
+        
         // 清除新建文章的草稿
         localStorage.removeItem('draft_new');
       }
@@ -443,10 +475,16 @@ const ArticleEditorPage: React.FC = () => {
       // 6. 清空图片缓存（已上传的图片）
       setImageStore(new Map());
       
-      // 重新加载文章列表
-      const fetchedArticles = await fetchArticles();
+      // 重新加载文章和草稿列表
+      const [fetchedArticles, fetchedDrafts] = await Promise.all([
+        fetchArticles(),
+        fetchDrafts()
+      ]);
       setArticles(fetchedArticles.sort((a, b) => 
         new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
+      ));
+      setDrafts(fetchedDrafts.sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       ));
     } catch (error) {
       console.error('Failed to publish article:', error);
@@ -475,74 +513,45 @@ const ArticleEditorPage: React.FC = () => {
       type: 'Engineering',
     });
     setCurrentArticleId(undefined);
+    setCurrentDraftId(undefined);
     setIsEditMode(false);
+    setIsDraftMode(false);
     setShowHistory(false);
     setLastSavedTime(null);
     
     // 清空图片缓存
     setImageStore(new Map());
     
-    // 尝试加载新建文章的草稿
-    try {
-      const draftData = localStorage.getItem('draft_new');
-      if (draftData) {
-        const draft = JSON.parse(draftData);
-        showConfirm(
-          '检测到未发布的草稿',
-          '是否恢复草稿内容？',
-          () => {
-            setFormData({
-              title: draft.title || '',
-              summary: draft.summary || '',
-              content: draft.content || '',
-              publishDate: draft.publishDate || new Date().toISOString().split('T')[0],
-              tags: draft.tags || [],
-              readTime: draft.readTime || 5,
-              coverImage: draft.coverImage || '',
-              link: draft.link || '',
-              type: draft.type || 'Engineering',
-            });
-            closeDialog();
-          },
-          '恢复草稿',
-          '忽略'
-        );
-      }
-    } catch (error) {
-      console.error('Failed to load draft:', error);
-    }
+    // 清除本地草稿
+    localStorage.removeItem('draft_new');
   };
 
   const handleLoadArticle = (article: Article) => {
     setCurrentArticleId(article.id);
+    setCurrentDraftId(undefined);
+    setIsDraftMode(false);
     setShowHistory(false);
     setLastSavedTime(null);
-    
-    // 检查是否有该文章的草稿
-    try {
-      const draftData = localStorage.getItem(`draft_${article.id}`);
-      if (draftData) {
-        const draft = JSON.parse(draftData);
-        const draftTime = new Date(draft.savedAt);
-        const articleTime = new Date(article.publishDate);
-        
-        if (draftTime > articleTime) {
-          showConfirm(
-            '检测到较新的草稿',
-            '是否恢复草稿内容？',
-            () => {
-              // 不加载，等 useEffect 自动加载文章后再决定
-              closeDialog();
-            },
-            '恢复草稿',
-            '忽略'
-          );
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Failed to check draft:', error);
-    }
+  };
+
+  const handleLoadDraft = (draft: Draft) => {
+    setFormData({
+      title: draft.title,
+      summary: draft.summary,
+      content: draft.content,
+      publishDate: draft.publishDate,
+      tags: draft.tags,
+      readTime: draft.readTime,
+      coverImage: draft.coverImage || '',
+      link: draft.link || '',
+      type: draft.type,
+    });
+    setCurrentDraftId(draft.id);
+    setCurrentArticleId(undefined);
+    setIsDraftMode(true);
+    setIsEditMode(false);
+    setShowHistory(false);
+    setLastSavedTime(null);
   };
 
   const handleDeleteArticle = async (articleId: string, e: React.MouseEvent) => {
@@ -569,6 +578,38 @@ const ArticleEditorPage: React.FC = () => {
         } catch (error) {
           console.error('Failed to delete article:', error);
           showAlert('删除失败', '无法删除文章，请稍后重试');
+        }
+        closeDialog();
+      },
+      '删除',
+      '取消'
+    );
+  };
+
+  const handleDeleteDraft = async (draftId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    showConfirm(
+      '确认删除',
+      '确定要删除这个草稿吗？此操作无法撤销。',
+      async () => {
+        try {
+          await deleteDraft(draftId);
+          showAlert('删除成功', '草稿已成功删除');
+          
+          // 重新加载草稿列表
+          const fetchedDrafts = await fetchDrafts();
+          setDrafts(fetchedDrafts.sort((a, b) => 
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          ));
+          
+          // 如果删除的是当前草稿，清空编辑器
+          if (draftId === currentDraftId) {
+            handleNewArticle();
+          }
+        } catch (error) {
+          console.error('Failed to delete draft:', error);
+          showAlert('删除失败', '无法删除草稿，请稍后重试');
         }
         closeDialog();
       },
@@ -730,7 +771,7 @@ const ArticleEditorPage: React.FC = () => {
         if (isEditMode && currentArticleId) {
           handlePublish();
         } 
-        // 未发布的新文章：保存本地草稿
+        // 草稿或新文章：保存草稿
         else {
           handleSaveDraft();
         }
@@ -741,7 +782,7 @@ const ArticleEditorPage: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [formData, isEditMode, currentArticleId]);
+  }, [formData, isEditMode, currentArticleId, isDraftMode, currentDraftId]);
 
   // Custom toolbar style overrides
   useEffect(() => {
@@ -980,9 +1021,14 @@ const ArticleEditorPage: React.FC = () => {
               编辑模式
             </span>
           )}
+          {isDraftMode && (
+            <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
+              草稿
+            </span>
+          )}
           {lastSavedTime && (
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {isEditMode ? '已更新' : '已保存'} {lastSavedTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+              {isEditMode ? '已更新' : isDraftMode ? '草稿已保存' : '已保存'} {lastSavedTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
         </div>
@@ -1016,6 +1062,18 @@ const ArticleEditorPage: React.FC = () => {
             tipProps={{placement:'bottom'}}
           >
           </LandButton>
+          
+          {!isEditMode && (
+            <LandButton
+              type='text'
+              onClick={handleSaveDraft}
+              disabled={isSaving}
+              icon={<Icon name='save' strokeWidth={4} size={18}/>}
+              tip='保存草稿'
+              tipProps={{placement:'bottom'}}
+            >
+            </LandButton>
+          )}
           
           <LandButton
             type='background'
@@ -1226,7 +1284,53 @@ const ArticleEditorPage: React.FC = () => {
 
               <LandButton text='新建文章' type='background' icon={<Icon name='add' strokeWidth={4}/>}  onClick={handleNewArticle}/>
 
-              <div className='mt-3'>
+              <div className='mt-6'>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">草稿</h3>
+                {drafts.length === 0 ? (
+                  <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-xs">
+                    暂无草稿
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {drafts.map((draft) => (
+                      <div
+                        key={draft.id}
+                        onClick={() => handleLoadDraft(draft)}
+                        className={`group p-3 rounded-lg cursor-pointer transition-all ${
+                          draft.id === currentDraftId
+                            ? 'bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-800 border-2 border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                              {draft.title || '无标题草稿'}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(draft.updatedAt).toLocaleDateString('zh-CN')}
+                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                                {draft.type}
+                              </span>
+                            </div>
+                          </div>
+                          <LandButton
+                            type='transparent'
+                            tip='删除'
+                            onClick={(e) => handleDeleteDraft(draft.id, e)}
+                            icon={<Icon name='delete' strokeWidth={4}/>}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className='mt-6'>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">已发布文章</h3>
                 {isLoadingArticles ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                   加载中...
