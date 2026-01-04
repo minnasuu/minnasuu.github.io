@@ -459,11 +459,12 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
   }
   
-  .article-item {
-    padding: 4rem 0 4rem 0; // 移动端不需要左边距
+.articles-list .article-item {
+    padding: 7rem 0 4rem 0; // 移动端不需要左边距
     
-    .article-date-timeline {
-      position: static;
+    
+    .article-content .article-date-timeline {
+      top: 3rem;
       margin-bottom: 0.5rem;
       font-size: 0.85rem;
     }

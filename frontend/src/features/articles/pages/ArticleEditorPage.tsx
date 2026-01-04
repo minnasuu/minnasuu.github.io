@@ -3,6 +3,7 @@ import MdEditor from 'react-markdown-editor-lite';
 import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useNavigate, useParams } from 'react-router-dom';
+import ReactDOM from 'react-dom/client';
 import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, verifyEditorPassword, fetchDrafts, createDraft, updateDraft, deleteDraft } from '../../../shared/utils/backendClient';
 import type { CreateArticleRequest, Draft } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
@@ -10,6 +11,9 @@ import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
 import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandDialog, LandPopOver } from '@suminhan/land-design';
 import type { SelectItemType } from '@suminhan/land-design';
+import ComponentPicker from '../components/ComponentPicker';
+import { getComponentConfig } from '../components/interactive';
+import interactiveComponentPlugin from '../utils/markdownItInteractivePlugin';
 import '../styles/shared-markdown.css';
 
 // 图片管理接口
@@ -29,6 +33,9 @@ const mdParser = new MarkdownIt({
   breaks: true,      // 将换行符转换为 <br>
 });
 
+// 添加交互组件插件
+mdParser.use(interactiveComponentPlugin);
+
 // 自定义渲染函数包装器，修复中文标点符号导致的加粗/斜体解析问题
 const originalRender = mdParser.render.bind(mdParser);
 mdParser.render = function(src: string, env?: any): string {
@@ -44,7 +51,10 @@ mdParser.render = function(src: string, env?: any): string {
     // 修复单个 _ 的情况 _xxx：_ -> _xxx_：
     .replace(/_([^_\n]+?)([：。，！？；）】」』、])_/g, '_$1_$2');
   
-  return originalRender(fixedSrc, env);
+  const rendered = originalRender(fixedSrc, env);
+  
+  // 保留组件标记，不被 HTML 转义
+  return rendered;
 };
 
 const ArticleEditorPage: React.FC = () => {
@@ -83,6 +93,12 @@ const ArticleEditorPage: React.FC = () => {
   // 图片管理状态
   const [imageStore, setImageStore] = useState<Map<string, ImageItem>>(new Map());
   const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set());
+
+  // 组件选择器状态
+  const [showComponentPicker, setShowComponentPicker] = useState(false);
+
+  // React 组件渲染 roots 缓存
+  const componentRootsRef = useRef<Map<string, ReactDOM.Root>>(new Map());
 
   // Dialog 状态管理
   const [dialogConfig, setDialogConfig] = useState<{
@@ -796,6 +812,108 @@ const ArticleEditorPage: React.FC = () => {
     };
   }, [formData, isEditMode, currentArticleId, isDraftMode, currentDraftId]);
 
+  // 处理组件插入
+  const handleComponentInsert = (type: string, props: Record<string, any>) => {
+    // 构建组件标记
+    const propsString = Object.entries({ type, ...props })
+      .map(([key, value]) => `${key}="${value}"`)
+      .join(' ');
+    
+    const componentMarkup = `\n\n:::component{${propsString}}\n\n`;
+    
+    // 插入到光标位置
+    const editor = editorRef.current;
+    if (editor) {
+      const textarea = editor.nodeMdText?.current;
+      if (textarea) {
+        const cursorPos = textarea.selectionStart;
+        const textBefore = formData.content.substring(0, cursorPos);
+        const textAfter = formData.content.substring(cursorPos);
+        const newContent = textBefore + componentMarkup + textAfter;
+        
+        setFormData(prev => ({ ...prev, content: newContent }));
+        
+        // 设置光标位置到插入内容之后
+        setTimeout(() => {
+          textarea.selectionStart = textarea.selectionEnd = cursorPos + componentMarkup.length;
+          textarea.focus();
+        }, 0);
+      }
+    }
+  };
+
+  // 渲染交互组件到预览区
+  useEffect(() => {
+    const renderInteractiveComponents = () => {
+      const previewContainer = document.querySelector('.rc-md-editor .custom-html-style');
+      if (!previewContainer) return;
+
+      // 查找所有组件占位符
+      const placeholders = previewContainer.querySelectorAll<HTMLElement>('.interactive-component-placeholder');
+      
+      placeholders.forEach((placeholder) => {
+        const id = placeholder.id;
+        const type = placeholder.getAttribute('data-component-type');
+        const propsJson = placeholder.getAttribute('data-component-props');
+        
+        if (!id || !type || !propsJson) return;
+
+        // 如果已经渲染过，跳过
+        if (placeholder.getAttribute('data-rendered') === 'true') return;
+
+        try {
+          const props = JSON.parse(propsJson);
+          delete props.type; // 移除 type 属性，因为已经单独存储
+
+          const config = getComponentConfig(type);
+          if (!config) {
+            placeholder.innerHTML = `<div class="text-red-500 text-sm p-2 border border-red-300 rounded">未知组件: ${type}</div>`;
+            return;
+          }
+
+          // 清理旧的 root（如果存在）
+          const existingRoot = componentRootsRef.current.get(id);
+          if (existingRoot) {
+            existingRoot.unmount();
+          }
+
+          // 创建新的 root 并渲染
+          const root = ReactDOM.createRoot(placeholder);
+          root.render(React.createElement(config.component, props));
+          componentRootsRef.current.set(id, root);
+
+          // 标记为已渲染
+          placeholder.setAttribute('data-rendered', 'true');
+        } catch (error) {
+          console.error('Failed to render component:', error);
+          placeholder.innerHTML = `<div class="text-red-500 text-sm p-2 border border-red-300 rounded">组件渲染失败</div>`;
+        }
+      });
+    };
+
+    // 延迟执行以确保 DOM 已更新
+    const timer = setTimeout(renderInteractiveComponents, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      // 不在这里清理 roots，因为会在下次渲染时清理
+    };
+  }, [formData.content]);
+
+  // 组件卸载时清理所有 roots
+  useEffect(() => {
+    return () => {
+      componentRootsRef.current.forEach((root) => {
+        try {
+          root.unmount();
+        } catch (error) {
+          console.error('Failed to unmount root:', error);
+        }
+      });
+      componentRootsRef.current.clear();
+    };
+  }, []);
+
   // Custom toolbar style overrides
   useEffect(() => {
     const style = document.createElement('style');
@@ -931,6 +1049,13 @@ const ArticleEditorPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] dark:bg-[#1a1a1a] flex flex-col relative transition-colors duration-300">
+      {/* 组件选择器 */}
+      <ComponentPicker
+        show={showComponentPicker}
+        onClose={() => setShowComponentPicker(false)}
+        onSelect={handleComponentInsert}
+      />
+
       {/* 全局 Dialog */}
       <LandDialog
         show={dialogConfig.show}
@@ -1078,6 +1203,15 @@ const ArticleEditorPage: React.FC = () => {
             tipProps={{placement:'bottom'}}
           >
           </LandButton>
+
+          <LandButton
+            type='text'
+            onClick={() => setShowComponentPicker(true)}
+            icon={<Icon name='box' strokeWidth={4} size={18}/>}
+            tip='插入交互组件'
+            tipProps={{placement:'bottom'}}
+          >
+          </LandButton>
           
           {!isEditMode && (
             <LandButton
@@ -1109,7 +1243,11 @@ const ArticleEditorPage: React.FC = () => {
             <MdEditor
               ref={editorRef}
               style={{ height: '100%', minHeight: '500px', backgroundColor: 'transparent' }}
-              renderHTML={(text: string) => mdParser.render(text)}
+              renderHTML={(text: string) => {
+                const rendered = mdParser.render(text);
+                // 使用自定义渲染器来处理交互组件
+                return `<div class="interactive-markdown-wrapper">${rendered}</div>`;
+              }}
               onChange={handleEditorChange}
               value={formData.content}
               onImageUpload={handleEditorImageUpload}
@@ -1117,7 +1255,7 @@ const ArticleEditorPage: React.FC = () => {
                 view: {
                   menu: true,
                   md: true,
-                  html: false
+                  html: true
                 },
                 canView: {
                     menu: true,
@@ -1130,6 +1268,14 @@ const ArticleEditorPage: React.FC = () => {
               }}
               className="typora-editor"
             />
+            
+            {/* 注入交互组件渲染器到预览区 */}
+            <style>{`
+              .rc-md-editor .custom-html-style,
+              .rc-md-editor .markdown-content {
+                position: relative;
+              }
+            `}</style>
             
             {/* 图片上传进度提示 */}
             {uploadingImages.size > 0 && (
