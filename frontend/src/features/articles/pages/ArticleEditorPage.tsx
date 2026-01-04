@@ -302,13 +302,13 @@ const ArticleEditorPage: React.FC = () => {
       if (isDraftMode && currentDraftId) {
         // 更新现有草稿
         await updateDraft(currentDraftId, formData);
-        showAlert('草稿已更新', '草稿已成功保存到服务器');
+        showAlert('草稿已更新', '草稿已成功保存到数据库');
       } else {
         // 创建新草稿
         const newDraft = await createDraft(formData);
         setCurrentDraftId(newDraft.id);
         setIsDraftMode(true);
-        showAlert('草稿已保存', '草稿已成功保存到服务器');
+        showAlert('草稿已保存', '草稿已成功保存到数据库');
       }
       setLastSavedTime(new Date());
       
@@ -1011,24 +1011,26 @@ const ArticleEditorPage: React.FC = () => {
               value={formData.title}
               onChange={handleChange}
               placeholder="Untitled..."
-              className="w-full text-4xl md:text-5xl font-bold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-700 text-gray-900 dark:text-gray-100"
+              className="truncate w-full text-4xl md:text-5xl font-bold bg-transparent border-none outline-none placeholder-gray-300 dark:placeholder-gray-700 text-gray-900 dark:text-gray-100"
               autoFocus
             />
-            <span className="text-xs text-gray-400 dark:text-gray-500 font-mono whitespace-nowrap">{formData.content.length} 字</span>
-          </div>
-          {isEditMode && (
-            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              编辑模式
-            </span>
-          )}
-          {isDraftMode && (
-            <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
+            <div className='flex gap-2 text-xs items-center'>
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-mono whitespace-nowrap">{formData.content.length} 字</span>
+             {isDraftMode && (
+            <span style={{fontSize: '12px'}} className="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
               草稿
             </span>
           )}
           {lastSavedTime && (
-            <span className="text-xs text-gray-400 dark:text-gray-500">
+            <span style={{fontSize: '12px'}} className="text-xs text-gray-400 dark:text-gray-500">
               {isEditMode ? '已更新' : isDraftMode ? '草稿已保存' : '已保存'} {lastSavedTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+            </div>
+          </div>
+          {isEditMode && (
+            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+              编辑模式
             </span>
           )}
         </div>
@@ -1065,12 +1067,11 @@ const ArticleEditorPage: React.FC = () => {
           
           {!isEditMode && (
             <LandButton
-              type='text'
+              type='fill'
               onClick={handleSaveDraft}
               disabled={isSaving}
-              icon={<Icon name='save' strokeWidth={4} size={18}/>}
-              tip='保存草稿'
               tipProps={{placement:'bottom'}}
+              text='保存草稿'
             >
             </LandButton>
           )}
@@ -1336,7 +1337,7 @@ const ArticleEditorPage: React.FC = () => {
                   加载中...
                 </div>
               ) : articles.length === 0 ? (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
+                <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-xs">
                   还没有文章
                 </div>
               ) : (
