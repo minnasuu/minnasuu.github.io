@@ -1,16 +1,13 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../../shared/contexts/LanguageContext";
-import { useTranslations } from "../../../shared/hooks/useTranslations";
 import { fetchArticles } from "../../../shared/utils/backendClient";
 import type { Article } from "../../../shared/types";
 import "../styles/ArticlesPage.scss"; // 引入新的 SCSS 文件
-import { Icon } from "@suminhan/land-design";
 import BackButton from "../../../shared/components/BackButton";
 
 const ArticlesPage: React.FC = () => {
   const { language } = useLanguage();
-  const { t } = useTranslations();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,42 +104,42 @@ const ArticlesPage: React.FC = () => {
               >
                 {/* 文本区域 */}
                 <div className="article-content">
+                  {/* 日期显示在左侧固定位置 */}
+                  <time className="article-date-timeline">
+                    {new Date(article.publishDate).toLocaleDateString(
+                      language === "zh" ? "zh-CN" : "en-US",
+                      { year: "numeric", month: "2-digit", day: "2-digit" }
+                    )}
+                  </time>
+
+                  {/* 标题行：包含类型标签 */}
                   <div className="article-meta-top">
-                    <span className="article-date">
-                      {new Date(article.publishDate).toLocaleDateString(
-                        language === "zh" ? "zh-CN" : "en-US",
-                        { year: "numeric", month: "long", day: "numeric" }
-                      )}
-                    </span>
-                    <span className="article-type-badge">
+                    <h2 className="article-title">{article.title}</h2>
+                    <span 
+                      className="article-type-badge"
+                      data-type={article.type}
+                    >
                       {article.type}
                     </span>
                   </div>
 
-                  <h2 className="article-title">{article.title}</h2>
-                  <p className="article-summary">{article.summary}</p>
+                  {/* 摘要 */}
+                  <div className="article-summary">
+                    <p>{article.summary}</p>
+                  </div>
 
-                  <div className="article-footer">
+                  {/* 标签作为外部链接 */}
+                  {article.tags && article.tags.length > 0 && (
                     <div className="article-tags">
                       {article.tags.map((tag, idx) => (
                         <span key={idx} className="tag-pill">
-                          #{tag}
+                          {tag}
                         </span>
                       ))}
                     </div>
-                    <div className="view-btn">
-                      <span className="btn-text">{t("articles.readMore")}</span>
-                      <Icon
-                        name="arrow-line"
-                        className="btn-icon -rotate-90"
-                        strokeWidth={4}
-                      />
-                      {/* 或者使用 LandButton，但为了自定义样式这里简化了 */}
-                    </div>
-                  </div>
+                  )}
                 </div>
-
-                {/* 图片区域 */}
+                 {/* 图片区域 */}
                 <div className="article-visual">
                   <div className="visual-inner">
                     {article.coverImage?.endsWith(".mp4") ? (

@@ -37,9 +37,9 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
 
-// 主容器
+// 主容器 - Timeline 风格更窄
 .articles-container {
-  max-width: 1000px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 0 40px;
 }
@@ -216,60 +216,31 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   gap: 0; // 移除默认间距，通过 padding 控制
 }
 
-// --- 统一视觉风格的文章卡片 ---
+// --- Timeline 风格的文章卡片 ---
 .article-item {
   position: relative;
-  padding: 2rem 0; // 增加留白
-  border-bottom: 1px solid rgba(0,0,0,0.03); // 极细的线
+  padding: 6rem 0 6rem 100px; // 左侧留出日期空间
+  border-bottom: 1px solid rgba(0,0,0,0.08);
   
-  &:last-child { border-bottom: none; }
+  &:first-child {
+    padding-top: 2rem;
+  }
   
-  // 极简编号
-  counter-increment: article-counter;
-  
-  &::before {
-    content: counter(article-counter, decimal-leading-zero);
-    position: absolute;
-    top: 6.5rem; // 对齐标题
-    left: -40px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: rgba(0,0,0,0.2);
-    font-family: "SF Mono", monospace; // 工业感等宽字体
-    letter-spacing: 0.05em;
-    transform: rotate(-90deg); // 竖排编号
-    transform-origin: center;
+  &:last-child { 
+    border-bottom: none;
+    padding-bottom: 0;
   }
   
   .article-link-wrapper {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
+    display: flex;
+    gap: 20px;
     text-decoration: none;
     color: inherit;
-    position: relative;
-    isolation: isolate;
+    transition: opacity 0.3s ease;
     
-    transition: opacity 0.4s ease;
-    
-    // 极简交互：仅透明度变化
     &:hover {
-      .article-visual {
-        opacity: 0.5; // 稍微显现
-      }
-
-      .visual-inner img, .visual-inner canvas, .visual-inner video {
-        filter: blur(0px); // 清晰化
-        transform: scale(1.02);
-      }
-      
       .article-title {
-        color: #000;
-      }
-      
-      .view-btn {
-        opacity: 1;
-        transform: translateY(0);
+        opacity: 0.6;
       }
     }
   }
@@ -280,165 +251,149 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   counter-reset: article-counter;
 }
 
-// 内容层 (Z-Index 高)
+// 内容层 - Timeline 风格
 .articles-list .article-content {
-  grid-area: 1 / 1 / 2 / 2;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  max-width: 720px; // 增加宽度
-  margin: 0 auto;
-  text-align: center;
-  pointer-events: none;
-  position: relative;
+  display: block;
+  flex: 1;
+  max-width: 680px;
+  
+  // 日期显示在左侧
+  .article-date-timeline {
+    position: absolute;
+    left: 0;
+    top: 6rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: $color-text-main;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 
+// 移除或隐藏图片区域（Timeline 风格不需要）
 .article-visual {
-  position: relative;
-  grid-area: 1 / 1 / 2 / 2;
-  z-index: 1;
-  width: 100%;
-  height: 500px; // 增加高度
-  align-self: center;
-  opacity: 0; // 默认完全隐藏，Hover 时出现
-  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-  pointer-events: auto;
-  
-  .visual-inner {
+  width: 160px;
+  height: 90px;
+  .visual-inner,
+  .visual-inner img{
     width: 100%;
     height: 100%;
-    overflow: hidden;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+}
+
+// 标题样式 - Timeline 风格
+.article-meta-top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  
+  .article-type-badge {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
     
-    // 移除复杂遮罩，保持干净
+    // 不同类型不同颜色
+    &[data-type="Engineering"] {
+      color: #2067ff;
+      background: rgba(37, 99, 235, 0.08);
+    }
     
-    img, video, canvas {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: grayscale(100%) blur(10px); // 默认模糊
-      transition: all 1s ease;
-      transform: scale(1.1);
+    &[data-type="Experience"] {
+      color: #f59927;
+      background: rgba(5, 150, 105, 0.08);
+    }
+    
+    &[data-type="AI"] {
+      color: #3aede7;
+      background: rgba(124, 58, 237, 0.08);
+    }
+    
+    &[data-type="Thinking"] {
+      color: #ff5599;
+      background: rgba(220, 38, 38, 0.08);
+    }
+    
+    // 默认样式
+    &:not([data-type]) {
+      color: $color-text-light;
+      background: rgba(0, 0, 0, 0.04);
     }
   }
 }
 
-// 文字排版优化
-.article-meta-top {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  position: relative;
-  
-  // 移除复杂装饰线，使用极简短线
-  &::after {
-    content: '';
-    width: 20px;
-    height: 1px;
-    background: #000;
-    position: absolute;
-    bottom: -1rem;
-  }
-  
-  .article-date {
-    font-family: $font-primary; // 换回无衬线，更现代
-    font-weight: 500;
-    color: $color-text-main;
-    font-size: 0.9rem;
-    letter-spacing: 0.05em;
-  }
-  
-  .article-type-badge {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    border: 1px solid #000; // 纯黑边框
-    padding: 4px 12px;
-    border-radius: 100px; // 胶囊型
-    color: #000;
-    background: transparent;
-  }
-}
-
-.article-title {
-  font-size: 3rem; // 稍微减小，增加精致感
-  line-height: 1.2;
+.article-content h2.article-title {
+  font-size: 1.5rem;
+  line-height: 1.4;
   font-weight: 600;
-  margin: 0 0 2rem 0;
-  color: #1a1a1a;
-  letter-spacing: -0.02em;
-  transition: color 0.3s ease;
+  margin-top: 0;
+  color: $color-text-main;
+  letter-spacing: -0.01em;
+  transition: opacity 0.3s ease;
+  position: relative;
+  padding-left: 2.2rem; // 为 ### 留出空间
   
-  // 移除首字母放大
+  // Timeline 风格：Markdown 标题标记
+  &::before {
+    content: '###';
+    position: absolute;
+    left: 0;
+    color: rgba(0, 0, 0, 0.15);
+    font-weight: 400;
+    font-size: 1.1rem;
+  }
 }
 
 .article-summary {
   font-size: 1rem;
-  line-height: 1.8; // 增加行高
+  line-height: 1.6;
   color: $color-text-sub;
-  margin: 0 auto 3rem;
-  max-width: 520px;
+  margin: 0 0 1.5rem 0;
   font-weight: 400;
-  opacity: 0.7;
+  max-width: 100%;
+  
+  // Timeline 风格：段落式排版
+  p {
+    margin-bottom: 0.8rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
+// Timeline 风格：外部链接样式
 .article-tags {
   display: flex;
-  justify-content: center;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1rem;
   
   .tag-pill {
-    font-size: 0.8rem;
-    color: $color-text-light;
-    position: relative;
-    padding-bottom: 2px;
-    transition: all 0.3s ease;
-    
-    &::before { 
-      content: '';
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      background-color: #ddd;
-      border-radius: 50%;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-    
-    &:hover {
-      color: #000;
-      
-      &::before {
-        background-color: #000;
-      }
-    }
+    padding: 0.25rem 0.8rem;
+    font-size: 0.9rem;
+    border-radius: 0.4rem;
+    color: $color-text-main;
+    color: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(0,0,0,0.1);
+    cursor: text;
   }
 }
 
+// 移除查看按钮
 .view-btn {
-  margin-top: 2rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  opacity: 0; // 默认隐藏
-  transform: translateY(10px);
-  transition: all 0.4s ease;
-  
-  .btn-text {
-    border-bottom: 1px solid #000;
-    padding-bottom: 2px;
-  }
+  display: none;
 }
 
 
-// 响应式
+// 响应式 - Timeline 风格
 @media (max-width: 768px) {
   .articles-hero {
     padding: 4rem 0 5rem;
@@ -505,30 +460,20 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   
   .article-item {
-    padding: 3rem 0;
+    padding: 4rem 0 4rem 0; // 移动端不需要左边距
     
-    &::before {
-      display: none; // 隐藏编号
+    .article-date-timeline {
+      position: static;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
     }
   }
   
   .article-title {
-    font-size: 2.2rem;
+    font-size: 1.3rem;
   }
   
-  .article-visual {
-    height: 300px;
-    opacity: 0.4;
-  }
-  
-  .view-btn {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  .article-meta-top {
-    .article-date {
-      font-size: 1rem;
-    }
+  .article-summary {
+    font-size: 0.95rem;
   }
 }
