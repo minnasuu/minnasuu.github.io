@@ -116,6 +116,26 @@ const ArticleEditorPage: React.FC = () => {
     message: '',
   });
 
+  // Toast 提示状态管理（用于快捷键保存的轻量级提示）
+  const [toastConfig, setToastConfig] = useState<{
+    show: boolean;
+    type: 'success' | 'warning' | 'error';
+    message: string;
+  }>({
+    show: false,
+    type: 'success',
+    message: '',
+  });
+
+  // 显示 Toast 提示
+  const showToast = (type: 'success' | 'warning' | 'error', message: string) => {
+    setToastConfig({ show: true, type, message });
+    // 3秒后自动关闭
+    setTimeout(() => {
+      setToastConfig(prev => ({ ...prev, show: false }));
+    }, 3000);
+  };
+
   // 显示提示对话框
   const showAlert = (title: string, message: string) => {
     setDialogConfig({
@@ -312,10 +332,14 @@ const ArticleEditorPage: React.FC = () => {
   };
 
   // 保存草稿到服务器
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = async (isShortcut: boolean = false) => {
     // 验证内容不为空
     if (!formData.content.trim()) {
-      showAlert('无法保存', '请先输入文章内容');
+      if (isShortcut) {
+        showToast('warning', '无法保存，请先输入文章内容');
+      } else {
+        showAlert('无法保存', '请先输入文章内容');
+      }
       return;
     }
 
@@ -324,13 +348,21 @@ const ArticleEditorPage: React.FC = () => {
       if (isDraftMode && currentDraftId) {
         // 更新现有草稿
         await updateDraft(currentDraftId, formData);
-        showAlert('草稿已更新', '草稿已成功保存到数据库');
+        if (isShortcut) {
+          showToast('success', '草稿已更新');
+        } else {
+          showAlert('草稿已更新', '草稿已成功保存到数据库');
+        }
       } else {
         // 创建新草稿
         const newDraft = await createDraft(formData);
         setCurrentDraftId(newDraft.id);
         setIsDraftMode(true);
-        showAlert('草稿已保存', '草稿已成功保存到数据库');
+        if (isShortcut) {
+          showToast('success', '草稿已保存');
+        } else {
+          showAlert('草稿已保存', '草稿已成功保存到数据库');
+        }
       }
       setLastSavedTime(new Date());
       
@@ -341,7 +373,11 @@ const ArticleEditorPage: React.FC = () => {
       ));
     } catch (error) {
       console.error('Failed to save draft:', error);
-      showAlert('保存失败', '草稿保存失败，请稍后重试');
+      if (isShortcut) {
+        showToast('error', '保存失败，请稍后重试');
+      } else {
+        showAlert('保存失败', '草稿保存失败，请稍后重试');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -451,10 +487,14 @@ const ArticleEditorPage: React.FC = () => {
   };
 
   // 发布/更新文章
-  const handlePublish = async () => {
+  const handlePublish = async (isShortcut: boolean = false) => {
     // 验证内容不为空
     if (!formData.content.trim()) {
-      showAlert('无法发布', '请先输入文章内容');
+      if (isShortcut) {
+        showToast('warning', '无法发布，请先输入文章内容');
+      } else {
+        showAlert('无法发布', '请先输入文章内容');
+      }
       return;
     }
 
@@ -475,7 +515,11 @@ const ArticleEditorPage: React.FC = () => {
       // 4. 发布或更新文章
       if (isEditMode && currentArticleId) {
         await updateArticle(currentArticleId, publishData);
-        showAlert('更新成功', '文章已成功更新！');
+        if (isShortcut) {
+          showToast('success', '文章已成功更新');
+        } else {
+          showAlert('更新成功', '文章已成功更新！');
+        }
         setLastSavedTime(new Date());
         // 清除对应的草稿
         localStorage.removeItem(`draft_${currentArticleId}`);
@@ -483,7 +527,11 @@ const ArticleEditorPage: React.FC = () => {
         const newArticle = await createArticle(publishData);
         setCurrentArticleId(newArticle.id);
         setIsEditMode(true);
-        showAlert('发布成功', '文章已成功发布！');
+        if (isShortcut) {
+          showToast('success', '文章已成功发布');
+        } else {
+          showAlert('发布成功', '文章已成功发布！');
+        }
         setLastSavedTime(new Date());
         
         // 如果是从草稿发布，删除草稿
@@ -516,7 +564,11 @@ const ArticleEditorPage: React.FC = () => {
       ));
     } catch (error) {
       console.error('Failed to publish article:', error);
-      showAlert('操作失败', error instanceof Error ? error.message : '操作失败，请稍后重试');
+      if (isShortcut) {
+        showToast('error', error instanceof Error ? error.message : '操作失败，请稍后重试');
+      } else {
+        showAlert('操作失败', error instanceof Error ? error.message : '操作失败，请稍后重试');
+      }
     } finally {
       setIsSaving(false);
     }
@@ -795,13 +847,13 @@ const ArticleEditorPage: React.FC = () => {
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
         e.preventDefault();
         
-        // 已发布的文章：直接更新发布
+        // 已发布的文章：直接更新发布（快捷键模式）
         if (isEditMode && currentArticleId) {
-          handlePublish();
+          handlePublish(true);
         } 
-        // 草稿或新文章：保存草稿
+        // 草稿或新文章：保存草稿（快捷键模式）
         else {
-          handleSaveDraft();
+          handleSaveDraft(true);
         }
       }
     };
@@ -918,6 +970,18 @@ const ArticleEditorPage: React.FC = () => {
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
+      /* Toast 动画 */
+      @keyframes slideInFromTop {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
       /* 编辑器基础样式 */
       .rc-md-editor {
         border: none !important;
@@ -1049,6 +1113,30 @@ const ArticleEditorPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] dark:bg-[#1a1a1a] flex flex-col relative transition-colors duration-300">
+      {/* Toast 提示（轻量级提示，用于快捷键保存） */}
+      {toastConfig.show && (
+        <div 
+          className="fixed top-20 right-6 z-[9999] animate-in slide-in-from-top duration-300"
+          style={{
+            animation: 'slideInFromTop 0.3s ease-out',
+          }}
+        >
+          <div className={`
+            flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border
+            ${toastConfig.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200' : ''}
+            ${toastConfig.type === 'warning' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200' : ''}
+            ${toastConfig.type === 'error' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200' : ''}
+          `}>
+            <Icon 
+              name={toastConfig.type === 'success' ? 'check' : toastConfig.type === 'warning' ? 'warning' : 'close'} 
+              size={20} 
+              strokeWidth={3} 
+            />
+            <span className="text-sm font-medium">{toastConfig.message}</span>
+          </div>
+        </div>
+      )}
+
       {/* 组件选择器 */}
       <ComponentPicker
         show={showComponentPicker}
@@ -1216,7 +1304,7 @@ const ArticleEditorPage: React.FC = () => {
           {!isEditMode && (
             <LandButton
               type='outline'
-              onClick={handleSaveDraft}
+              onClick={() => handleSaveDraft(false)}
               disabled={isSaving || !formData.content.trim()}
               tipProps={{placement:'bottom'}}
               text='保存草稿'
