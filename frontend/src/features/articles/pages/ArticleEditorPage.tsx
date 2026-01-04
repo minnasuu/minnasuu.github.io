@@ -297,6 +297,12 @@ const ArticleEditorPage: React.FC = () => {
 
   // 保存草稿到服务器
   const handleSaveDraft = async () => {
+    // 验证内容不为空
+    if (!formData.content.trim()) {
+      showAlert('无法保存', '请先输入文章内容');
+      return;
+    }
+
     setIsSaving(true);
     try {
       if (isDraftMode && currentDraftId) {
@@ -430,6 +436,12 @@ const ArticleEditorPage: React.FC = () => {
 
   // 发布/更新文章
   const handlePublish = async () => {
+    // 验证内容不为空
+    if (!formData.content.trim()) {
+      showAlert('无法发布', '请先输入文章内容');
+      return;
+    }
+
     setIsSaving(true);
     try {
       // 1. 先上传所有图片
@@ -1046,7 +1058,7 @@ const ArticleEditorPage: React.FC = () => {
           </LandButton>
 
           <LandPopOver placement='bottom' content='上传并解析 Markdown 文件' theme='dark'>
-            <label className='relative w-9 h-9 flex items-center justify-center ounded-lg hover:bg-[var(--color-bg-secondary)] dark:hover:bg-gray-800 transition-colors cursor-pointer z-1 flex-shrink-0'>
+            <label className='relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-[var(--color-bg-secondary)] dark:hover:bg-gray-800 transition-colors cursor-pointer z-1 flex-shrink-0'>
             <input
               type="file"
               accept=".md,.markdown"
@@ -1069,9 +1081,9 @@ const ArticleEditorPage: React.FC = () => {
           
           {!isEditMode && (
             <LandButton
-              type='fill'
+              type='outline'
               onClick={handleSaveDraft}
-              disabled={isSaving}
+              disabled={isSaving || !formData.content.trim()}
               tipProps={{placement:'bottom'}}
               text='保存草稿'
             >
@@ -1081,7 +1093,7 @@ const ArticleEditorPage: React.FC = () => {
           <LandButton
             type='background'
             onClick={() => handleSubmit()}
-            disabled={isSaving}
+            disabled={isSaving || !formData.content.trim()}
           >
             {isSaving ? '保存中...' : (isEditMode ? '更新' : '发布')}
           </LandButton>
