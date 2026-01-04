@@ -8,7 +8,7 @@ import type { CreateArticleRequest, Draft } from '../../../shared/utils/backendC
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
-import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandDialog } from '@suminhan/land-design';
+import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandDialog, LandPopOver } from '@suminhan/land-design';
 import type { SelectItemType } from '@suminhan/land-design';
 import '../styles/shared-markdown.css';
 
@@ -1045,7 +1045,8 @@ const ArticleEditorPage: React.FC = () => {
           >
           </LandButton>
 
-          <label className='relative w-9 h-9 flex items-center justify-center ounded-lg hover:bg-[var(--color-bg-secondary)] dark:hover:bg-gray-800 transition-colors cursor-pointer z-1 flex-shrink-0'>
+          <LandPopOver placement='bottom' content='上传并解析 Markdown 文件' theme='dark'>
+            <label className='relative w-9 h-9 flex items-center justify-center ounded-lg hover:bg-[var(--color-bg-secondary)] dark:hover:bg-gray-800 transition-colors cursor-pointer z-1 flex-shrink-0'>
             <input
               type="file"
               accept=".md,.markdown"
@@ -1055,6 +1056,7 @@ const ArticleEditorPage: React.FC = () => {
             />
               <Icon name='upload' strokeWidth={4} size={18}/>
           </label>
+          </LandPopOver>
 
           <LandButton
             type='text'
