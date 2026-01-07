@@ -39,9 +39,10 @@
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 80px;
-  height: 4px;
-  background: #dde2e9;
+  width: 36px;
+  height: 5px;
+  background: #202020;
+  border-radius: 5px;
 }
 
 .markdown-content h2 {
@@ -166,10 +167,9 @@
   overflow-x: auto;
   font-size: 14px;
   line-height: 1.6;
-  background-color: #f6f8fa;
+  background-color: rgba(0, 0, 0, 0.01);
   border: 1px solid #e8e8e8;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .markdown-content pre code {
@@ -241,7 +241,6 @@
   border-radius: 8px;
   margin: 24px auto;
   display: block;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 分割线样式 */
@@ -255,7 +254,7 @@
 
 /* 链接样式 */
 .markdown-content a {
-  color: #0066cc;
+  color: var(--color-blue-600);
   text-decoration: none;
   font-weight: 500;
   border-bottom: 1px solid transparent;
@@ -263,8 +262,7 @@
 }
 
 .markdown-content a:hover {
-  color: #0052a3;
-  border-bottom-color: #0066cc;
+  border-bottom-color: var(--color-blue-600);
 }
 
 /* 文本样式 */

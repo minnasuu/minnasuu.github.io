@@ -33,9 +33,9 @@ const ArticleCode: React.FC<Props> = ({
     >
       <div
         className="flex items-center justify-between w-full bg-gray-3 border-b border-gray-200 border-box"
-        style={{ padding: "12px 16px" }}
+        style={{ padding: "8px 16px" }}
       >
-        <p className="font-bold">{language}</p>
+        <p className="font-bold" style={{marginBottom:0}}>{language}</p>
         <div className="flex items-center gap-12">
           <LandButton type="transparent" onClick={handleCopy} text="复制" />
         </div>

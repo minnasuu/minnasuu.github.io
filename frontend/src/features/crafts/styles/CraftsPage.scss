@@ -706,13 +706,9 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
   .panel-usecase {
     margin-bottom: 20px;
-    padding: 16px;
-    background: rgba(99, 102, 241, 0.04);
-    border-radius: 12px;
-    border-left: 3px solid $color-accent;
 
     h4 {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -741,7 +737,6 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       background: #ffffff;
       padding: 6px 12px;
       border-radius: 100px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
       box-shadow: $shadow-sm;
     }
   }
