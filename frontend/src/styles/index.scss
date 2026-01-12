@@ -44,3 +44,6 @@ body{
   from { transform: scale(0.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+// 导入AI日志样式
+@import '../features/ai-log/styles/AILogPage.scss';

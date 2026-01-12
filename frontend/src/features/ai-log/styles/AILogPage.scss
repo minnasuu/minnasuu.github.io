@@ -1,0 +1,883 @@
+// 变量定义 - 参考文章页面
+$font-primary: "Wotfard", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+$font-serif: "ChenYuluoyan-Thin", "Times New Roman", serif;
+$color-bg: #ffffff;
+$color-text-main: #000000;
+$color-text-sub: #555555;
+$color-text-light: #999999;
+$transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+// AI日志页面样式 - 简约白色风格
+.ai-log-page {
+  min-height: 100vh;
+  background-color: $color-bg;
+  font-family: $font-primary;
+  color: $color-text-main;
+  padding-bottom: 10rem;
+
+  .ai-log-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  // 加载状态
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-left: 2px solid $color-text-main;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      color: $color-text-sub;
+      font-size: 0.95rem;
+      font-weight: 400;
+    }
+  }
+
+  // 页面头部 - 参考文章页面的Hero设计
+  .ai-log-header {
+    padding: 6rem 0 4rem;
+    text-align: center;
+    position: relative;
+    
+    .ai-log-title {
+      font-size: 4rem;
+      font-weight: 200;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+      color: $color-text-main;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 1px;
+        background: rgba(0,0,0,0.15);
+      }
+    }
+    
+    .ai-log-subtitle {
+      font-size: 0.95rem;
+      color: $color-text-sub;
+      line-height: 2;
+      letter-spacing: 0.08em;
+      font-weight: 400;
+      opacity: 0.7;
+      margin-bottom: 3rem;
+    }
+    
+    .period-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 6px;
+      overflow: hidden;
+      display: inline-flex;
+      
+      .tab-button {
+        padding: 0.75rem 2rem;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.3s $transition-smooth;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: $color-text-sub;
+        position: relative;
+        
+        &:hover {
+          color: $color-text-main;
+          background: rgba(0,0,0,0.02);
+        }
+        
+        &.active {
+          background: $color-text-main;
+          color: white;
+        }
+        
+        &:not(:last-child) {
+          border-right: 1px solid rgba(0,0,0,0.1);
+        }
+      }
+    }
+  }
+
+  // 周期信息
+  .period-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    
+    h2 {
+      margin: 0;
+      color: $color-text-main;
+      font-size: 1.8rem;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+    
+    .last-updated {
+      color: $color-text-light;
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
+  }
+
+  // 日志内容区域
+  .log-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 6rem;
+  }
+
+  // 通用section样式 - 简约设计
+  section {
+    position: relative;
+    
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 2.5rem;
+      color: $color-text-main;
+      letter-spacing: -0.01em;
+      position: relative;
+      padding-left: 2.2rem;
+      
+      // Markdown风格的标记
+      &::before {
+        content: '###';
+        position: absolute;
+        left: 0;
+        color: rgba(0, 0, 0, 0.15);
+        font-weight: 400;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  // 知识技能部分
+  .knowledge-skills-section {
+    .skills-overview {
+      background: #fafafa;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      
+      .overview-stats {
+        display: flex;
+        gap: 3rem;
+        margin-bottom: 2rem;
+        
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          
+          .stat-label {
+            font-size: 0.85rem;
+            color: $color-text-light;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+          }
+          
+          .stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            color: $color-text-main;
+            font-variant-numeric: tabular-nums;
+          }
+        }
+      }
+      
+      .growth-highlights {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        
+        .growth-item {
+          h4 {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: $color-text-main;
+            font-weight: 500;
+          }
+          
+          ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+          }
+          
+          .skill-tag {
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(0,0,0,0.1);
+            
+            &.new {
+              color: #2067ff;
+              background: rgba(32, 103, 255, 0.05);
+              border-color: rgba(32, 103, 255, 0.2);
+            }
+            
+            &.improved {
+              color: #f59927;
+              background: rgba(245, 153, 39, 0.05);
+              border-color: rgba(245, 153, 39, 0.2);
+            }
+          }
+        }
+      }
+    }
+    
+    .skills-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      
+      .skill-card {
+        background: #fafafa;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.3s $transition-smooth;
+        
+        &:hover {
+          border-color: rgba(0,0,0,0.15);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .skill-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 1rem;
+          
+          .skill-name {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin: 0;
+            color: $color-text-main;
+            letter-spacing: -0.01em;
+          }
+          
+          .skill-category {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(0,0,0,0.1);
+            color: $color-text-sub;
+            background: white;
+          }
+        }
+        
+        .skill-description {
+          color: $color-text-sub;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          margin-bottom: 1.5rem;
+          font-weight: 400;
+        }
+        
+        .skill-level {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          margin-bottom: 1rem;
+          
+          .level-bar {
+            flex: 1;
+            height: 3px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            
+            .level-fill {
+              height: 100%;
+              background: $color-text-main;
+              border-radius: 2px;
+              transition: width 0.6s $transition-smooth;
+            }
+          }
+          
+          .level-text {
+            font-weight: 500;
+            color: $color-text-main;
+            min-width: 40px;
+            font-size: 0.9rem;
+            font-variant-numeric: tabular-nums;
+          }
+        }
+        
+        .skill-meta {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          
+          .last-updated {
+            font-size: 0.8rem;
+            color: $color-text-light;
+          }
+          
+          .related-links {
+            display: flex;
+            gap: 0.5rem;
+            
+            .skill-link {
+              text-decoration: none;
+              font-size: 1rem;
+              opacity: 0.6;
+              transition: opacity 0.2s ease;
+              
+              &:hover {
+                opacity: 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 学习计划部分
+  .learning-plan-section {
+    .plan-overview {
+      background: #fafafa;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      
+      .goals-section, .focus-section {
+        h4 {
+          font-size: 1rem;
+          margin-bottom: 1.5rem;
+          color: $color-text-main;
+          font-weight: 500;
+        }
+      }
+      
+      .goals-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        
+        .goal-item {
+          padding: 1rem 0;
+          border-bottom: 1px solid rgba(0,0,0,0.05);
+          color: $color-text-sub;
+          line-height: 1.5;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+        }
+      }
+      
+      .focus-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        
+        .focus-tag {
+          padding: 0.3rem 0.8rem;
+          border: 1px solid rgba(0,0,0,0.1);
+          color: $color-text-sub;
+          border-radius: 4px;
+          font-size: 0.85rem;
+          font-weight: 500;
+          background: white;
+        }
+      }
+    }
+    
+    .tasks-section {
+      .task-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        
+        .task-tab {
+          padding: 1rem 0;
+          margin-right: 2rem;
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-weight: 500;
+          font-size: 0.9rem;
+          color: $color-text-light;
+          border-bottom: 2px solid transparent;
+          
+          &:hover {
+            color: $color-text-sub;
+          }
+          
+          &.active {
+            color: $color-text-main;
+            border-bottom-color: $color-text-main;
+          }
+        }
+      }
+      
+      .tasks-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        
+        .task-card {
+          background: #fafafa;
+          border: 1px solid rgba(0,0,0,0.08);
+          border-radius: 8px;
+          padding: 1.5rem;
+          transition: all 0.3s $transition-smooth;
+          
+          &:hover {
+            border-color: rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          }
+          
+          .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            
+            .task-title {
+              font-size: 1.1rem;
+              font-weight: 500;
+              margin: 0;
+              color: $color-text-main;
+              letter-spacing: -0.01em;
+            }
+            
+            .task-badges {
+              display: flex;
+              gap: 0.5rem;
+              
+              .priority-badge, .status-badge {
+                padding: 0.2rem 0.6rem;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                font-weight: 500;
+                border: 1px solid rgba(0,0,0,0.1);
+              }
+              
+              .priority-badge {
+                &.high { color: #dc2626; background: rgba(220, 38, 38, 0.05); }
+                &.medium { color: #f59927; background: rgba(245, 153, 39, 0.05); }
+                &.low { color: #059669; background: rgba(5, 150, 105, 0.05); }
+              }
+              
+              .status-badge {
+                &.pending { color: $color-text-light; background: white; }
+                &.in_progress { color: #2067ff; background: rgba(32, 103, 255, 0.05); }
+                &.completed { color: #059669; background: rgba(5, 150, 105, 0.05); }
+              }
+            }
+          }
+          
+          .task-description {
+            color: $color-text-sub;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+          }
+          
+          .task-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            
+            .meta-item {
+              display: flex;
+              gap: 0.5rem;
+              
+              .meta-label {
+                font-weight: 500;
+                color: $color-text-sub;
+              }
+              
+              .meta-value {
+                color: $color-text-light;
+              }
+            }
+          }
+          
+          .task-resources {
+            .resources-label {
+              font-weight: 500;
+              color: $color-text-sub;
+              margin-right: 0.5rem;
+              font-size: 0.85rem;
+            }
+            
+            .resources-list {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+              margin-top: 0.5rem;
+              
+              .resource-tag {
+                padding: 0.2rem 0.6rem;
+                border: 1px solid rgba(0,0,0,0.1);
+                color: $color-text-sub;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                background: white;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // AI学习部分
+  .ai-learning-section {
+    .knowledge-section, .suggestions-section, .recommendations-section {
+      background: #fafafa;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      
+      h4 {
+        color: $color-text-main;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+    }
+    
+    .knowledge-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      
+      .knowledge-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 6px;
+        
+        .knowledge-icon {
+          font-size: 1.2rem;
+          margin-top: 0.1rem;
+        }
+        
+        .knowledge-text {
+          color: $color-text-sub;
+          font-weight: 400;
+          line-height: 1.5;
+        }
+      }
+    }
+    
+    .suggestions-list, .recommendations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      
+      .suggestion-card, .recommendation-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 6px;
+        
+        .suggestion-icon, .recommendation-icon {
+          font-size: 1.1rem;
+          margin-top: 0.2rem;
+        }
+        
+        .suggestion-text, .recommendation-text {
+          color: $color-text-sub;
+          line-height: 1.6;
+          margin: 0;
+          font-size: 0.95rem;
+        }
+      }
+    }
+    
+    .ai-insights {
+      background: #fafafa;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-top: 2rem;
+      
+      h4 {
+        color: $color-text-main;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+      
+      .insights-panel {
+        display: flex;
+        gap: 3rem;
+        justify-content: flex-start;
+        
+        .insight-metric {
+          display: flex;
+          flex-direction: column;
+          
+          .metric-label {
+            font-size: 0.85rem;
+            color: $color-text-light;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+          }
+          
+          .metric-value {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: $color-text-main;
+            font-variant-numeric: tabular-nums;
+          }
+        }
+      }
+    }
+  }
+
+  // 总结部分
+  .summary-section {
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+      
+      .summary-card {
+        background: #fafafa;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 0.3s $transition-smooth;
+        
+        &:hover {
+          border-color: rgba(0,0,0,0.15);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .card-header {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          
+          .card-icon {
+            font-size: 1.2rem;
+          }
+          
+          .card-title {
+            margin: 0;
+            color: $color-text-main;
+            font-size: 1rem;
+            font-weight: 500;
+          }
+        }
+        
+        .card-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          
+          .card-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            color: $color-text-sub;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            
+            &:last-child {
+              border-bottom: none;
+            }
+          }
+        }
+      }
+    }
+    
+    .reflection-area {
+      background: #fafafa;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      padding: 2rem;
+      
+      h4 {
+        color: $color-text-main;
+        margin-bottom: 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+      }
+      
+      .reflection-content {
+        .reflection-insights {
+          p {
+            color: $color-text-sub;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 历史记录占位符
+  .history-placeholder {
+    text-align: center;
+    padding: 6rem 2rem;
+    color: $color-text-light;
+    
+    p {
+      font-size: 1rem;
+      font-weight: 400;
+    }
+  }
+
+  // 响应式设计
+  @media (max-width: 768px) {
+    .ai-log-container {
+      padding: 0 20px;
+    }
+    
+    .ai-log-header {
+      padding: 4rem 0 3rem;
+      
+      .ai-log-title {
+        font-size: 2.5rem;
+      }
+      
+      .period-tabs {
+        flex-direction: column;
+        width: 100%;
+        
+        .tab-button {
+          border-right: none !important;
+          
+          &:not(:last-child) {
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+          }
+        }
+      }
+    }
+    
+    .period-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    
+    .log-sections {
+      gap: 4rem;
+    }
+    
+    .overview-stats {
+      flex-direction: column;
+      gap: 1.5rem !important;
+    }
+    
+    .growth-highlights {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .plan-overview {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .skills-list {
+      grid-template-columns: 1fr !important;
+      
+      .skill-card {
+        min-width: unset;
+      }
+    }
+    
+    .tasks-list {
+      grid-template-columns: 1fr !important;
+      
+      .task-card {
+        min-width: unset;
+      }
+    }
+    
+    .summary-grid {
+      grid-template-columns: 1fr !important;
+    }
+    
+    .insights-panel {
+      flex-direction: column !important;
+      gap: 1.5rem !important;
+    }
+  }
+
+  // 主题适配保持简约
+  &.terminal {
+    background: #0a0a0a;
+    color: #00ff00;
+    
+    .section-title::before {
+      color: rgba(0, 255, 0, 0.3);
+    }
+    
+    .period-tabs .tab-button {
+      border-color: rgba(0, 255, 0, 0.3);
+      color: #00ff00;
+      
+      &.active {
+        background: #00ff00;
+        color: #0a0a0a;
+      }
+    }
+  }
+}
+
+// 动画
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
