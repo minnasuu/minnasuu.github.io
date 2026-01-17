@@ -98,8 +98,8 @@ export default tseslint.config({
      }, ...innerContent])
    },2000)
   }
-  return <div className="width-100 flex column bg-gray" style={{height:'400px'}}>
-    <StyledLandContent className="flex-1 height-1 width-100 pb-24 flex column items-start mx-auto border-box" >
+  return <div className="w-full h-full flex column bg-gray">
+    <StyledLandContent className="flex-1 h-px w-full pb-24 flex column items-start mx-auto border-box" >
       <AgentScrollLayout onPreLoad={loadHistory} isEnd>
         {innerContent?.map(i => i.content)}
       </AgentScrollLayout>

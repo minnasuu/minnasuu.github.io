@@ -11,7 +11,6 @@ import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
 import { Icon, LandButton,  LandHighlightTextarea, LandTagInput, LandNumberInput, LandSelect, LandDialog, LandPopOver } from '@suminhan/land-design';
 import type { SelectItemType } from '@suminhan/land-design';
-import ComponentPicker from '../components/ComponentPicker';
 import { getComponentConfig } from '../components/interactive';
 import interactiveComponentPlugin from '../utils/markdownItInteractivePlugin';
 import '../styles/shared-markdown.css';
@@ -93,9 +92,6 @@ const ArticleEditorPage: React.FC = () => {
   // 图片管理状态
   const [imageStore, setImageStore] = useState<Map<string, ImageItem>>(new Map());
   const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set());
-
-  // 组件选择器状态
-  const [showComponentPicker, setShowComponentPicker] = useState(false);
 
   // React 组件渲染 roots 缓存
   const componentRootsRef = useRef<Map<string, ReactDOM.Root>>(new Map());
@@ -864,35 +860,6 @@ const ArticleEditorPage: React.FC = () => {
     };
   }, [formData, isEditMode, currentArticleId, isDraftMode, currentDraftId]);
 
-  // 处理组件插入
-  const handleComponentInsert = (type: string, props: Record<string, any>) => {
-    // 构建组件标记
-    const propsString = Object.entries({ type, ...props })
-      .map(([key, value]) => `${key}="${value}"`)
-      .join(' ');
-    
-    const componentMarkup = `\n\n:::component{${propsString}}\n\n`;
-    
-    // 插入到光标位置
-    const editor = editorRef.current;
-    if (editor) {
-      const textarea = editor.nodeMdText?.current;
-      if (textarea) {
-        const cursorPos = textarea.selectionStart;
-        const textBefore = formData.content.substring(0, cursorPos);
-        const textAfter = formData.content.substring(cursorPos);
-        const newContent = textBefore + componentMarkup + textAfter;
-        
-        setFormData(prev => ({ ...prev, content: newContent }));
-        
-        // 设置光标位置到插入内容之后
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = cursorPos + componentMarkup.length;
-          textarea.focus();
-        }, 0);
-      }
-    }
-  };
 
   // 渲染交互组件到预览区
   useEffect(() => {
@@ -1137,13 +1104,6 @@ const ArticleEditorPage: React.FC = () => {
         </div>
       )}
 
-      {/* 组件选择器 */}
-      <ComponentPicker
-        show={showComponentPicker}
-        onClose={() => setShowComponentPicker(false)}
-        onSelect={handleComponentInsert}
-      />
-
       {/* 全局 Dialog */}
       <LandDialog
         show={dialogConfig.show}
@@ -1288,15 +1248,6 @@ const ArticleEditorPage: React.FC = () => {
             onClick={() => setShowSettings(!showSettings)}
             icon={<Icon name='setting' strokeWidth={4} size={18}/>}
             tip='设置文章信息'
-            tipProps={{placement:'bottom'}}
-          >
-          </LandButton>
-
-          <LandButton
-            type='text'
-            onClick={() => setShowComponentPicker(true)}
-            icon={<Icon name='code-file' strokeWidth={4} size={18}/>}
-            tip='插入交互组件'
             tipProps={{placement:'bottom'}}
           >
           </LandButton>
@@ -1534,7 +1485,7 @@ const ArticleEditorPage: React.FC = () => {
               <LandButton text='新建文章' type='background' icon={<Icon name='add' strokeWidth={4}/>}  onClick={handleNewArticle}/>
 
               <div className='mt-6'>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">草稿</h3>
+                <h3 className="py-2 px-4 w-fit rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 bg-gray-50 dark:bg-gray-900/20">草稿</h3>
                 {drafts.length === 0 ? (
                   <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-xs">
                     暂无草稿
@@ -1579,7 +1530,7 @@ const ArticleEditorPage: React.FC = () => {
               </div>
 
               <div className='mt-6'>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">已发布文章</h3>
+                <h3 className="py-2 px-4 w-fit rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 bg-green-50 dark:bg-green-900/20">已发布文章</h3>
                 {isLoadingArticles ? (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
                   加载中...

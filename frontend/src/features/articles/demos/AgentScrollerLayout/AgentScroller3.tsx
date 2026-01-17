@@ -12,7 +12,7 @@ import { MDcontent } from "./mock.ts";
 
 const content = MDcontent;
 
-const AgentScroller2: React.FC = () => {
+const AgentScroller3: React.FC = () => {
   useEffect(() => {
     const scroller = document.querySelector('.ckt-agent-scroll-layout2-2');
     scroller?.scrollTo({
@@ -132,4 +132,4 @@ const AgentScroller2: React.FC = () => {
   </div>
 }
 
-export default AgentScroller2;
+export default AgentScroller3;

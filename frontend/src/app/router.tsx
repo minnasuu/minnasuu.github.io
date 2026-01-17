@@ -12,6 +12,7 @@ import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
 import { DotsOverlay } from '../features/crafts/nodes/DotsOverlay';
 import { AILogPage } from '../features/ai-log';
+import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
 
 // 滚动重置组件
 const ScrollToTop: React.FC = () => {
@@ -52,6 +53,9 @@ const AppRouter: React.FC = () => {
             
             {/* CRAFTS DEMO */}
             <Route path="/crafts/demo/dots-overlay" element={<DotsOverlay/>}/>
+
+            {/* ARTICLES DEMO */}
+            <Route path='/articles/demo/AgentScrollLayout/:type' element={<AgentScrollLayout/>}/>
           </Routes>
         </Router>
       </ThemeProvider>
