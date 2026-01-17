@@ -104,7 +104,7 @@
 
 /* 代码块 */
 .chat-markdown pre {
-  margin: 12px 0;
+  margin: 0;
   border-radius: 8px;
   overflow: hidden;
 }
