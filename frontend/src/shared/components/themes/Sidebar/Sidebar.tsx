@@ -179,7 +179,6 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
           type='transparent' 
           text={`📄 ${t('文档')}`}
           />
-          {articles.length > 10 && <Link to="/articles" className="view-more-link">{t('articles.viewAll')}</Link>}
         </div>
         {isLoadingArticles ? (
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
@@ -214,13 +213,11 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       {/* 作品 - 卡片形式 */}
       <div className={sectionClass}>
         <div className="section-header">
-          {/* <h3>♾️ {t('crafts.title')}</h3> */}
            <LandButton.ButtonArrow 
           onClick={() => navigate('/crafts')} 
           type='transparent' 
           text={`♾️ ${t('crafts.title')}`}
           />
-          {crafts.length > 10 && <Link to="/crafts" className="view-more-link">{t('crafts.viewAll')}</Link>}
         </div>
         {isLoadingCrafts ? (
           <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
