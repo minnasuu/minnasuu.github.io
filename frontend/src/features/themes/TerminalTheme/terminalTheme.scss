@@ -15,6 +15,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  .language-button{
+    color: rgba(255, 255, 255, 0.8);
+    &:hover{
+      color: #fff;
+    }
+  }
 }
 
 .terminal-buttons {
@@ -315,7 +321,10 @@
     .section-header {
       border-bottom: 1px solid #333;
       
-      h3 {
+      h3,
+      .land-button-content-text,
+     .land-button-mask-content-text,
+     svg {
         color: #eee;
       }
     }

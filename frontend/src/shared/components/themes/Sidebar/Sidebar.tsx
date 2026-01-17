@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { personalDataMultiLang } from '../../../../data/personalData';
@@ -10,6 +10,7 @@ import StackedCardList from '../StackedCardList/StackedCardList';
 import type { StackedCardItem } from '../StackedCardList/StackedCardList';
 import type { SidebarThemeConfig } from './types';
 import './sidebar.scss';
+import { LandButton } from '@suminhan/land-design';
 
 interface SidebarProps {
   /** 主题配置 */
@@ -17,6 +18,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ themeConfig }: SidebarProps) {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const { t } = useTranslations();
   const data = personalDataMultiLang[language];
@@ -172,7 +174,11 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       {/* 文章 - 卡片形式 */}
       <div className={sectionClass}>
         <div className="section-header">
-          <h3>📄 {t('文档')}</h3>
+          <LandButton.ButtonArrow 
+          onClick={() => navigate('/articles')} 
+          type='transparent' 
+          text={`📄 ${t('文档')}`}
+          />
           {articles.length > 10 && <Link to="/articles" className="view-more-link">{t('articles.viewAll')}</Link>}
         </div>
         {isLoadingArticles ? (
@@ -208,7 +214,12 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       {/* 作品 - 卡片形式 */}
       <div className={sectionClass}>
         <div className="section-header">
-          <h3>♾️ {t('crafts.title')}</h3>
+          {/* <h3>♾️ {t('crafts.title')}</h3> */}
+           <LandButton.ButtonArrow 
+          onClick={() => navigate('/crafts')} 
+          type='transparent' 
+          text={`♾️ ${t('crafts.title')}`}
+          />
           {crafts.length > 10 && <Link to="/crafts" className="view-more-link">{t('crafts.viewAll')}</Link>}
         </div>
         {isLoadingCrafts ? (
