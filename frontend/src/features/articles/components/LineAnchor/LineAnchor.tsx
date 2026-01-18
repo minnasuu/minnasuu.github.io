@@ -68,7 +68,7 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
     if (!contentRef.current || anchors.length === 0) return;
 
     // 获取滚动容器
-    const scrollContainer = document.querySelector('.article-detail-container') as HTMLDivElement;
+    const scrollContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
     if (!scrollContainer) return;
 
     // 使用内容区域的总高度
@@ -88,7 +88,7 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
       // 计算当前标题到下一个标题之间的内容高度
       const currentTop = element.offsetTop;
       const nextElement = anchors[index + 1] ? document.getElementById(anchors[index + 1].key) : null;
-      const nextTop = nextElement ? nextElement.offsetTop : contentHeight;
+      const nextTop = nextElement ? nextElement.offsetTop : (contentRef.current!.offsetTop + contentHeight);
       
       const sectionHeight = nextTop - currentTop;
       
@@ -115,7 +115,7 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
     if (!contentRef.current || anchors.length === 0) return;
 
     // 获取滚动容器
-    const scrollContainer = document.querySelector('.article-detail-container') as HTMLDivElement;
+    const scrollContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
     if (!scrollContainer) return;
 
     const scrollTop = scrollContainer.scrollTop;
@@ -129,10 +129,8 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
       const element = document.getElementById(anchors[index].key);
       if (!element) continue;
       
-      // 获取元素相对于滚动容器的位置
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      const elementTop = elementRect.top - containerRect.top + scrollTop;
+      // 获取元素相对于页面的位置（因为滚动容器是整个页面）
+      const elementTop = element.offsetTop;
       
       // 如果标题在容器视口上方（包括一些偏移量），则这是当前章节
       if (scrollTop >= elementTop - 100) {
@@ -146,17 +144,14 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
         const element = document.getElementById(anchor.key);
         if (!element) return { ...anchor, isActive: false };
 
-        // 获取元素相对于滚动容器的位置
-        const containerRect = scrollContainer.getBoundingClientRect();
-        const elementRect = element.getBoundingClientRect();
-        const elementTop = elementRect.top - containerRect.top + scrollTop;
+        // 获取元素相对于页面的位置
+        const elementTop = element.offsetTop;
         
         const nextElement = anchors[index + 1] ? document.getElementById(anchors[index + 1].key) : null;
-        let nextTop = contentRef.current!.scrollHeight;
+        let nextTop = contentRef.current!.scrollHeight + contentRef.current!.offsetTop;
         
         if (nextElement) {
-          const nextElementRect = nextElement.getBoundingClientRect();
-          nextTop = nextElementRect.top - containerRect.top + scrollTop;
+          nextTop = nextElement.offsetTop;
         }
         
         // 简单判断：章节内容是否与容器视口有交集
@@ -225,7 +220,7 @@ const LineAnchor: React.FC<LineAnchorProps> = ({
 
   // 监听滚动容器的滚动事件
   useEffect(() => {
-    const scrollContainer = document.querySelector('.article-detail-container') as HTMLDivElement;
+    const scrollContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
     if (!scrollContainer) return;
 
     // 防抖处理，提高性能

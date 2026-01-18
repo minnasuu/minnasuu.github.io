@@ -37,7 +37,7 @@ export const AgentScrollLayout = () => {
             return <AgentScroller/>
         case 'FixScroller1':
             return <FixScroller1/>
-            case 'FixScroller1-fix':
+        case 'FixScroller1-fix':
             return <FixScroller1 fix/>
         case 'FixScroller2':
             return <FixScroller2/>

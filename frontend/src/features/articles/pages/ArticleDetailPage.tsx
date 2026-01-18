@@ -62,10 +62,13 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
   // 页面初始化滚动到顶部
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    window.scrollTo(0, 0);
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: 0, behavior: "auto" });
+    // 滚动整个页面到顶部
+    const pageContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
+    if (pageContainer) {
+      pageContainer.scrollTo({ top: 0, behavior: "auto" });
     }
+    // 也滚动 window，以防万一
+    window.scrollTo(0, 0);
   }, [id]);
 
   const [articleAnchors, setArticleAnchors] = useState<
