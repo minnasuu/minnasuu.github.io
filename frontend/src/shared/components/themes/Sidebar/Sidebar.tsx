@@ -177,7 +177,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
           <LandButton.ButtonArrow 
           onClick={() => navigate('/articles')} 
           type='transparent' 
-          text={`📄 ${t('文档')}`}
+          text={`📄 ${t('articles.title')}`}
           />
         </div>
         {isLoadingArticles ? (

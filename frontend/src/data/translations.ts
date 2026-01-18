@@ -57,6 +57,22 @@ export interface Translations {
     backToProjects: string;
   };
 
+  // 文章部分
+  articles: {
+    title: string;
+    subtitle: string;
+    viewArticle: string;
+    viewCode: string;
+    viewLive: string;
+    viewDetails: string;
+    viewAll: string;
+    technologies: string;
+    featured: string;
+    articleDetails: string;
+    detailsPlaceholder: string;
+    backToArticles: string;
+  };
+
   // 自研工具部分
   crafts: {
     title: string;
@@ -145,6 +161,20 @@ export const translations: Record<Language, Translations> = {
       detailsPlaceholder: "这里是项目的详细描述，包括开发过程、技术难点、解决方案等信息。",
       backToProjects: "返回项目列表"
     },
+    articles: {
+      title: "文章",
+      subtitle: "我写的一些文章",
+      viewArticle: "查看文章",
+      viewCode: "查看代码",
+      viewLive: "在线预览",
+      viewDetails: "查看详情",
+      viewAll: "查看全部",
+      technologies: "技术栈",
+      featured: "精选",
+      articleDetails: "文章详情",
+      detailsPlaceholder: "这里是文章的详细描述，包括开发过程、技术难点、解决方案等信息。",
+      backToArticles: "返回文章列表"
+    },
     crafts: {
       title: "crafts",
       subtitle: "我开发的一些工具和项目",
@@ -226,6 +256,20 @@ export const translations: Record<Language, Translations> = {
       projectDetails: "Project Details",
       detailsPlaceholder: "Here are the detailed descriptions of the project, including development process, technical challenges, solutions, etc.",
       backToProjects: "Back to Projects"
+    },
+    articles: {
+      title: "Articles",
+      subtitle: "Some articles I wrote",
+      viewArticle: "View Article",
+      viewCode: "View Code",
+      viewLive: "View Live",
+      viewDetails: "View Details",
+      viewAll: "View All",
+      technologies: "Technologies",
+      featured: "Featured",
+      articleDetails: "Article Details",
+      detailsPlaceholder: "Here is the detailed description of the article, including the development process, technical difficulties, solutions, etc.",
+      backToArticles: "Back to Articles"
     },
     crafts: {
       title: "Crafts",

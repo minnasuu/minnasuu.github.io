@@ -3,8 +3,8 @@ import type { ThemeConfig } from "../shared/types";
 export const themes: ThemeConfig[] = [
   {
     name: 'terminal',
-    displayName: '科幻终端',
-    description: '黑客风格的终端界面',
+    displayName: '终端',
+    description: '计算机风格的终端界面',
     icon: '💻'
   },
   {
@@ -16,7 +16,7 @@ export const themes: ThemeConfig[] = [
   {
     name: 'wechat',
     displayName: '微信风格',
-    description: '仿微信聊天界面',
+    description: '仿微信个人信息界面',
     icon: '💬'
   }
 ];
