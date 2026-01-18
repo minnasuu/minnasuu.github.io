@@ -25,20 +25,26 @@ export const AgentScrollLayout = () => {
             return <AgentScroller3/>
         case 'AgentScroller4':
             return <AgentScroller4/>
+        case 'AgentScroller4-fix':
+            return <AgentScroller4 fix/>
+        case 'AgentScroller4-fix-scale':
+            return <AgentScroller4 fix scale/>
         case 'AgentScroller5':
-            return <AgentScroller5/>
+            return <AgentScroller5 fix/>
         case 'BlinkOutput':
             return <BlinkOutput/>
         case 'AgentScroller':
             return <AgentScroller/>
         case 'FixScroller1':
             return <FixScroller1/>
+            case 'FixScroller1-fix':
+            return <FixScroller1 fix/>
         case 'FixScroller2':
             return <FixScroller2/>
         case 'HistoryScroller1':
             return <HistoryScroller1/>
         case 'HistoryScroller2':
-            return <HistoryScroller2/>
+            return <HistoryScroller2 fix/>
         case 'HistoryScroller3':
             return <HistoryScroller3/>
         case 'HistoryScrollerDemo1':
