@@ -81,7 +81,7 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
     // 给一点时间让React渲染完成
     const timer = setTimeout(() => {
       if (contentRef.current) {
-        const headings = contentRef.current.querySelectorAll("h1, h2");
+        const headings = contentRef.current.querySelectorAll("h1");
         const anchors: { key: string; title: string }[] = [];
 
         headings.forEach((heading, index) => {
