@@ -1,7 +1,7 @@
-export { default as KnowledgeSkillsSection } from './KnowledgeSkillsSection';
-export { default as LearningPlanSection } from './LearningPlanSection';
-export { default as AILearningSection } from './AILearningSection';
-export { default as SummarySection } from './SummarySection';
-export { PeriodController } from './PeriodController';
+// 新的四个模块
+export { default as CriteriaSection } from './CriteriaSection';
+export { default as InputSection } from './InputSection';
+export { default as OutputSection } from './OutputSection';
+export { default as ReflectionSection } from './ReflectionSection';
 export { GoalCreator } from './GoalCreator';
 export { GoalStatus } from './GoalStatus';

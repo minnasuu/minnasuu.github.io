@@ -119,6 +119,11 @@ export interface Goal {
   createdAt: string;
   updatedAt: string;
   
+  // 周期时间跟踪
+  actualStartDate?: string; // 实际开始时间（点击开始时设置）
+  pausedAt?: string; // 暂停时间
+  totalPausedDuration?: number; // 总暂停时长（毫秒）
+  
   // 目标相关的学习内容
   targetSkills: string[]; // 目标要掌握的技能
   milestones: GoalMilestone[]; // 里程碑

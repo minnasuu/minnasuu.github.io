@@ -5,14 +5,14 @@ import BackButton from '../../../shared/components/BackButton';
 import { LandButton } from '@suminhan/land-design';
 import type { Goal, AILogEntry } from '../../../shared/types';
 import {
-  KnowledgeSkillsSection,
-  LearningPlanSection,
-  AILearningSection,
-  SummarySection,
+  InputSection,
+  OutputSection,
+  ReflectionSection,
   GoalCreator,
   GoalStatus
 } from '../components';
 import '../styles/AILogPage.scss';
+import '../styles/NewSections.scss';
 
 const AILogPage: React.FC = () => {
   const { language } = useLanguage();
@@ -165,6 +165,9 @@ const AILogPage: React.FC = () => {
     const newGoal: Goal = {
       ...goalData,
       id: `goal-${Date.now()}`,
+      status: 'planning', // 创建时默认为规划状态
+      progress: 0,
+      totalPausedDuration: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -174,14 +177,17 @@ const AILogPage: React.FC = () => {
     setShowGoalCreator(false);
   };
 
-  // 开始目标
+  // 开始目标 - 正式进入周期
   const handleStartGoal = () => {
     if (!currentGoal) return;
 
+    const now = new Date().toISOString();
     const updatedGoal = {
       ...currentGoal,
       status: 'active' as const,
-      updatedAt: new Date().toISOString()
+      actualStartDate: currentGoal.actualStartDate || now, // 首次开始时设置实际开始时间
+      pausedAt: undefined, // 清除暂停时间
+      updatedAt: now
     };
 
     setCurrentGoal(updatedGoal);
@@ -213,18 +219,43 @@ const AILogPage: React.FC = () => {
     localStorage.removeItem('currentGoal');
   };
 
-  // 暂停目标
+  // 暂停目标 - 记录暂停时间
   const handlePauseGoal = () => {
     if (!currentGoal) return;
 
+    const now = new Date().toISOString();
     const pausedGoal = {
       ...currentGoal,
       status: 'paused' as const,
-      updatedAt: new Date().toISOString()
+      pausedAt: now,
+      updatedAt: now
     };
 
     setCurrentGoal(pausedGoal);
     localStorage.setItem('currentGoal', JSON.stringify(pausedGoal));
+  };
+
+  // 恢复目标 - 计算暂停时长并重新开始
+  const handleResumeGoal = () => {
+    if (!currentGoal || !currentGoal.pausedAt) return;
+
+    const now = new Date();
+    const pausedTime = new Date(currentGoal.pausedAt);
+    const pausedDuration = now.getTime() - pausedTime.getTime();
+    
+    const resumedGoal = {
+      ...currentGoal,
+      status: 'active' as const,
+      pausedAt: undefined,
+      totalPausedDuration: (currentGoal.totalPausedDuration || 0) + pausedDuration,
+      updatedAt: now.toISOString()
+    };
+
+    setCurrentGoal(resumedGoal);
+    localStorage.setItem('currentGoal', JSON.stringify(resumedGoal));
+    
+    // 重新加载日志数据
+    loadGoalLog(resumedGoal.id);
   };
 
   // 编辑目标
@@ -327,32 +358,26 @@ const AILogPage: React.FC = () => {
                   onStart={handleStartGoal}
                   onComplete={handleCompleteGoal}
                   onPause={handlePauseGoal}
+                  onResume={handleResumeGoal}
                 />
 
                 {currentGoal.status === 'active' && currentLog && (
                   <div className="log-sections">
-                    <KnowledgeSkillsSection 
-                      skills={currentLog.knowledgeSkills}
-                      growth={currentLog.skillsGrowth}
-                      language={language}
-                      theme={currentTheme}
+                    {/* 判断标准、输入、输出（我的 & AI）、总结 */}
+                    <InputSection 
                       goalTitle={currentGoal.title}
-                    />
-                    
-                    <LearningPlanSection 
-                      plan={currentLog.learningPlan}
                       language={language}
                       theme={currentTheme}
                     />
                     
-                    <AILearningSection 
-                      aiLearning={currentLog.aiLearning}
+                    <OutputSection 
+                      goalTitle={currentGoal.title}
                       language={language}
                       theme={currentTheme}
                     />
                     
-                    <SummarySection 
-                      summary={currentLog.summary}
+                    <ReflectionSection 
+                      goalTitle={currentGoal.title}
                       language={language}
                       theme={currentTheme}
                     />

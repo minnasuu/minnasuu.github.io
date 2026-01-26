@@ -240,4 +240,23 @@
       gap: 0.5rem !important;
     }
   }
+
+  // 暂停状态样式
+  .progress-note {
+    margin-top: 0.5rem;
+    
+    .pause-indicator {
+      font-size: 0.85rem;
+      color: #f59927;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+
+  // 元数据网格优化
+  .meta-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
 }

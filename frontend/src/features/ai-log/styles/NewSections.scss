@@ -1,0 +1,1346 @@
+// 新的四个模块样式 - 匹配项目简约白色风格
+// 使用项目现有的设计语言和颜色系统
+
+// 变量定义 - 保持与项目一致
+$font-primary: "Wotfard", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+$color-bg: #ffffff;
+$color-text-main: #000000;
+$color-text-sub: #555555;
+$color-text-light: #999999;
+$color-border: rgba(0,0,0,0.1);
+$color-border-light: rgba(0,0,0,0.05);
+$color-bg-section: #f8fafb;
+$color-bg-card: #ffffff;
+$color-primary: #0066cc;
+$color-success: #28a745;
+$color-warning: #ffc107;
+$color-danger: #dc3545;
+$color-info: #17a2b8;
+$transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+// Todo List 样式 - 输入输出折叠展示
+.inputs-todo-list,
+.outputs-todo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.input-todo-item,
+.output-todo-item {
+  border: 1px solid $color-border-light;
+  border-radius: 8px;
+  background: $color-bg-card;
+  transition: all 0.3s $transition-smooth;
+  
+  &:hover {
+    border-color: $color-border;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  &[open] {
+    border-color: $color-primary;
+    box-shadow: 0 4px 12px rgba(0,102,204,0.1);
+    
+    .expand-arrow {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.input-todo-summary,
+.output-todo-summary {
+  display: block;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  
+  &::-webkit-details-marker {
+    display: none;
+  }
+  
+  &::marker {
+    display: none;
+  }
+}
+
+.todo-summary-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.todo-checkbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid $color-border;
+  border-radius: 4px;
+  background: $color-success;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: bold;
+  flex-shrink: 0;
+  
+  &.ai-checkbox {
+    background: $color-info;
+    border-color: $color-info;
+    border-radius: 50%;
+  }
+  
+  .checkbox-icon {
+    line-height: 1;
+  }
+}
+
+.todo-main-info {
+  flex: 1;
+  min-width: 0;
+  
+  .input-title,
+  .output-title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 0.5rem 0;
+    color: $color-text-main;
+    line-height: 1.4;
+  }
+  
+  .input-meta,
+  .output-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+}
+
+.todo-expand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  
+  .expand-arrow {
+    font-size: 0.8rem;
+    color: $color-text-light;
+    transition: transform 0.3s $transition-smooth;
+  }
+}
+
+.input-details-expanded,
+.output-details-expanded {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  border-top: 1px solid $color-border-light;
+  margin-top: 0.5rem;
+  
+  .input-description,
+  .output-description {
+    color: $color-text-sub;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  
+  .output-content {
+    color: $color-text-sub;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: $color-bg-section;
+    border-radius: 6px;
+    border-left: 3px solid $color-info;
+  }
+}
+
+// 进度条样式优化
+.completion-bar,
+.confidence-bar {
+  width: 100%;
+  height: 4px;
+  background: $color-border-light;
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0.5rem 0;
+  
+  .completion-fill,
+  .confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $color-success, lighten($color-success, 10%));
+    border-radius: 2px;
+    transition: width 0.6s $transition-smooth;
+  }
+  
+  .confidence-fill {
+    background: linear-gradient(90deg, $color-info, lighten($color-info, 10%));
+  }
+}
+
+// 标签和徽章样式优化
+.input-type,
+.output-type {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: $color-bg-section;
+  color: $color-text-sub;
+  border: 1px solid $color-border-light;
+}
+
+.input-difficulty,
+.output-quality,
+.output-category {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  
+  &.success,
+  &.excellent {
+    background: lighten($color-success, 45%);
+    color: darken($color-success, 10%);
+    border: 1px solid lighten($color-success, 30%);
+  }
+  
+  &.warning,
+  &.good,
+  &.medium {
+    background: lighten($color-warning, 35%);
+    color: darken($color-warning, 20%);
+    border: 1px solid lighten($color-warning, 20%);
+  }
+  
+  &.danger,
+  &.needs_improvement,
+  &.hard {
+    background: lighten($color-danger, 40%);
+    color: darken($color-danger, 10%);
+    border: 1px solid lighten($color-danger, 25%);
+  }
+}
+
+.input-time,
+.completion-text,
+.confidence-text {
+  font-size: 0.8rem;
+  color: $color-text-light;
+  font-weight: 500;
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .todo-summary-content {
+    gap: 0.75rem;
+  }
+  
+  .input-details-expanded,
+  .output-details-expanded {
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .todo-main-info {
+    .input-meta,
+    .output-meta {
+      gap: 0.5rem;
+    }
+  }
+}
+
+// 通用样式
+.section-header {
+  margin-bottom: 3rem;
+  text-align: center;
+  
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 200;
+    letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+    color: $color-text-main;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 1px;
+      background: $color-border;
+    }
+  }
+  
+  .section-subtitle {
+    color: $color-text-sub;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+  }
+}
+
+// 判断标准组件
+.criteria-section {
+  margin-bottom: 4rem;
+  
+  .overall-progress {
+    background: $color-bg-section;
+    border: 1px solid $color-border-light;
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 3rem;
+    
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      
+      h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: $color-text-main;
+        letter-spacing: 0.02em;
+      }
+      
+      .progress-percentage {
+        font-weight: 600;
+        font-size: 1.5rem;
+        color: $color-primary;
+        letter-spacing: -0.02em;
+      }
+    }
+    
+    .progress-bar {
+      height: 6px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 3px;
+      overflow: hidden;
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, $color-primary 0%, lighten($color-primary, 10%) 100%);
+        transition: width 0.6s $transition-smooth;
+      }
+    }
+  }
+  
+  .criteria-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    
+    .criterion-card {
+      background: $color-bg-card;
+      border: 1px solid $color-border-light;
+      border-radius: 12px;
+      padding: 2.5rem;
+      transition: all 0.3s $transition-smooth;
+      
+      &:hover {
+        border-color: $color-border;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      }
+      
+      .criterion-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 2rem;
+        
+        .criterion-info {
+          flex: 1;
+          
+          .criterion-name {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin: 0 0 0.75rem 0;
+            color: $color-text-main;
+            letter-spacing: 0.01em;
+          }
+          
+          .criterion-description {
+            color: $color-text-sub;
+            margin: 0;
+            line-height: 1.6;
+            font-size: 0.95rem;
+          }
+        }
+        
+        .criterion-weight {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          background: $color-bg-section;
+          padding: 1rem;
+          border-radius: 8px;
+          min-width: 80px;
+          
+          .weight-label {
+            font-size: 0.8rem;
+            color: $color-text-light;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.05em;
+          }
+          
+          .weight-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: $color-primary;
+          }
+        }
+      }
+      
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        
+        .metric-item {
+          background: $color-bg-section;
+          padding: 1.5rem;
+          border-radius: 8px;
+          border: 1px solid $color-border-light;
+          transition: all 0.2s $transition-smooth;
+          
+          &:hover {
+            background: lighten($color-bg-section, 2%);
+          }
+          
+          .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            
+            .metric-name {
+              font-weight: 500;
+              color: $color-text-main;
+              font-size: 0.95rem;
+            }
+            
+            .metric-status {
+              padding: 0.3rem 0.75rem;
+              border-radius: 6px;
+              font-size: 0.8rem;
+              font-weight: 500;
+              letter-spacing: 0.02em;
+              
+              &.success { 
+                background: rgba($color-success, 0.1); 
+                color: darken($color-success, 10%); 
+              }
+              &.warning { 
+                background: rgba($color-warning, 0.1); 
+                color: darken($color-warning, 20%); 
+              }
+              &.default { 
+                background: $color-border-light; 
+                color: $color-text-sub; 
+              }
+            }
+          }
+          
+          .metric-values {
+            .metric-value {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 0.5rem;
+              
+              .value-label {
+                color: $color-text-sub;
+                font-size: 0.9rem;
+              }
+              
+              .value-text {
+                font-weight: 500;
+                
+                &.target { color: $color-primary; }
+                &.current { color: $color-text-main; }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 输入组件
+.input-section {
+  margin-bottom: 4rem;
+  
+  .input-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    
+    .stat-card {
+      background: $color-bg-card;
+      border: 1px solid $color-border-light;
+      padding: 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.3s $transition-smooth;
+      
+      &:hover {
+        border-color: $color-border;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      }
+      
+      .stat-icon {
+        font-size: 1.8rem;
+        opacity: 0.8;
+      }
+      
+      .stat-content {
+        display: flex;
+        flex-direction: column;
+        
+        .stat-label {
+          font-size: 0.85rem;
+          color: $color-text-sub;
+          margin-bottom: 0.25rem;
+          letter-spacing: 0.02em;
+        }
+        
+        .stat-value {
+          font-weight: 600;
+          color: $color-text-main;
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+  
+  .input-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2.5rem;
+    justify-content: center;
+    border: 1px solid $color-border-light;
+    border-radius: 8px;
+    overflow: hidden;
+    display: inline-flex;
+    
+    .input-tab {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: $color-bg-card;
+      cursor: pointer;
+      transition: all 0.2s $transition-smooth;
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: $color-text-sub;
+      border-right: 1px solid $color-border-light;
+      
+      &:last-child {
+        border-right: none;
+      }
+      
+      &:hover {
+        background: $color-bg-section;
+        color: $color-text-main;
+      }
+      
+      &.active {
+        background: $color-text-main;
+        color: $color-bg-card;
+        font-weight: 500;
+      }
+    }
+  }
+  
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 2rem;
+    
+    .input-card {
+      background: $color-bg-card;
+      border: 1px solid $color-border-light;
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s $transition-smooth;
+      
+      &:hover {
+        border-color: $color-border;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+      }
+      
+      .input-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        
+        .input-meta {
+          display: flex;
+          gap: 0.75rem;
+          
+          .input-type, .input-difficulty {
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+          }
+          
+          .input-type {
+            background: rgba($color-primary, 0.1);
+            color: darken($color-primary, 10%);
+          }
+          
+          .input-difficulty {
+            &.success { 
+              background: rgba($color-success, 0.1); 
+              color: darken($color-success, 10%); 
+            }
+            &.warning { 
+              background: rgba($color-warning, 0.1); 
+              color: darken($color-warning, 20%); 
+            }
+            &.danger { 
+              background: rgba($color-danger, 0.1); 
+              color: darken($color-danger, 10%); 
+            }
+          }
+        }
+        
+        .input-time {
+          font-weight: 500;
+          color: $color-text-sub;
+          font-size: 0.9rem;
+        }
+      }
+      
+      .input-title {
+        font-size: 1.2rem;
+        font-weight: 500;
+        margin: 0 0 0.75rem 0;
+        color: $color-text-main;
+        line-height: 1.4;
+      }
+      
+      .input-description {
+        color: $color-text-sub;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+      
+      .input-details {
+        .input-source, .input-notes {
+          margin-bottom: 1rem;
+          
+          .detail-label {
+            font-weight: 500;
+            color: $color-text-sub;
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+          }
+          
+          .detail-value {
+            color: $color-text-main;
+          }
+        }
+        
+        .notes-content {
+          margin: 0.5rem 0 0 0;
+          padding: 1rem;
+          background: $color-bg-section;
+          border-radius: 8px;
+          font-size: 0.9rem;
+          line-height: 1.5;
+          color: $color-text-sub;
+          border: 1px solid $color-border-light;
+        }
+        
+        .input-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          
+          .input-tag {
+            background: $color-bg-section;
+            border: 1px solid $color-border-light;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: $color-text-sub;
+            transition: all 0.2s $transition-smooth;
+            
+            &:hover {
+              background: darken($color-bg-section, 3%);
+            }
+          }
+        }
+        
+        .input-date {
+          font-size: 0.85rem;
+          color: $color-text-light;
+          text-align: right;
+        }
+      }
+    }
+  }
+}
+
+// 输出组件
+.output-section {
+  margin-bottom: 4rem;
+  
+  .output-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2.5rem;
+    justify-content: center;
+    border: 1px solid $color-border-light;
+    border-radius: 8px;
+    overflow: hidden;
+    display: inline-flex;
+    
+    .output-tab {
+      padding: 1rem 2rem;
+      border: none;
+      background: $color-bg-card;
+      cursor: pointer;
+      transition: all 0.2s $transition-smooth;
+      font-weight: 500;
+      color: $color-text-sub;
+      border-right: 1px solid $color-border-light;
+      
+      &:last-child {
+        border-right: none;
+      }
+      
+      &:hover {
+        background: $color-bg-section;
+        color: $color-text-main;
+      }
+      
+      &.active {
+        background: $color-text-main;
+        color: $color-bg-card;
+      }
+    }
+  }
+  
+  .output-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+    
+    .stat-card {
+      background: $color-bg-card;
+      border: 1px solid $color-border-light;
+      padding: 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.3s $transition-smooth;
+      
+      &:hover {
+        border-color: $color-border;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      }
+      
+      .stat-icon {
+        font-size: 1.8rem;
+        opacity: 0.8;
+      }
+      
+      .stat-content {
+        display: flex;
+        flex-direction: column;
+        
+        .stat-label {
+          font-size: 0.85rem;
+          color: $color-text-sub;
+          margin-bottom: 0.25rem;
+          letter-spacing: 0.02em;
+        }
+        
+        .stat-value {
+          font-weight: 600;
+          color: $color-text-main;
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+  
+  .outputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 2rem;
+    
+    .output-card {
+      background: $color-bg-card;
+      border: 1px solid $color-border-light;
+      border-radius: 12px;
+      padding: 2.5rem;
+      transition: all 0.3s $transition-smooth;
+      
+      &:hover {
+        border-color: $color-border;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+      }
+      
+      .output-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+        
+        .output-meta {
+          display: flex;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          
+          .output-type, .output-quality, .output-category {
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+          }
+          
+          .output-type {
+            background: rgba($color-primary, 0.1);
+            color: darken($color-primary, 10%);
+          }
+          
+          .output-quality {
+            background: rgba($color-success, 0.1);
+            color: darken($color-success, 10%);
+          }
+          
+          .output-category {
+            background: rgba($color-info, 0.1);
+            color: darken($color-info, 10%);
+          }
+        }
+        
+        .completion-rate, .confidence-score {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          min-width: 90px;
+          
+          .completion-text, .confidence-text {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: $color-text-main;
+          }
+          
+          .completion-bar, .confidence-bar {
+            width: 70px;
+            height: 4px;
+            background: $color-border-light;
+            border-radius: 2px;
+            overflow: hidden;
+            
+            .completion-fill, .confidence-fill {
+              height: 100%;
+              background: linear-gradient(90deg, $color-primary 0%, lighten($color-primary, 10%) 100%);
+              transition: width 0.6s $transition-smooth;
+            }
+          }
+        }
+      }
+      
+      .output-title {
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin: 0 0 0.75rem 0;
+        color: $color-text-main;
+        line-height: 1.4;
+      }
+      
+      .output-description, .output-content {
+        color: $color-text-sub;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+        font-size: 0.95rem;
+      }
+      
+      .output-metrics, .output-evidence, .output-recommendations {
+        margin-bottom: 1.5rem;
+        
+        h5 {
+          font-size: 1rem;
+          font-weight: 500;
+          margin: 0 0 1rem 0;
+          color: $color-text-main;
+          letter-spacing: 0.01em;
+        }
+        
+        .metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 1rem;
+          
+          .metric-item {
+            background: $color-bg-section;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid $color-border-light;
+            
+            .metric-name {
+              font-size: 0.8rem;
+              color: $color-text-sub;
+              display: block;
+              margin-bottom: 0.25rem;
+            }
+            
+            .metric-value {
+              font-weight: 600;
+              color: $color-text-main;
+              font-size: 1rem;
+            }
+            
+            .metric-improvement {
+              font-size: 0.8rem;
+              color: $color-success;
+              font-weight: 500;
+            }
+          }
+        }
+        
+        .evidence-list, .recommendations-list {
+          margin: 0;
+          padding-left: 1.2rem;
+          
+          li {
+            margin-bottom: 0.5rem;
+            color: $color-text-sub;
+            font-size: 0.9rem;
+            line-height: 1.5;
+          }
+        }
+      }
+      
+      .output-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid $color-border-light;
+        
+        .output-impact, .output-actionability {
+          .impact-badge, .actionability-badge {
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            
+            &.high, &.immediate { 
+              background: rgba($color-danger, 0.1); 
+              color: darken($color-danger, 10%); 
+            }
+            &.medium, &.short_term { 
+              background: rgba($color-warning, 0.1); 
+              color: darken($color-warning, 20%); 
+            }
+            &.low, &.long_term { 
+              background: rgba($color-success, 0.1); 
+              color: darken($color-success, 10%); 
+            }
+          }
+        }
+        
+        .output-date {
+          font-size: 0.85rem;
+          color: $color-text-light;
+        }
+        
+        .output-link {
+          color: $color-primary;
+          text-decoration: none;
+          font-size: 0.9rem;
+          font-weight: 500;
+          transition: color 0.2s $transition-smooth;
+          
+          &:hover {
+            color: darken($color-primary, 10%);
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
+
+// 反思组件
+.reflection-section {
+  margin-bottom: 4rem;
+  
+  .progress-overview {
+    background: $color-bg-section;
+    border: 1px solid $color-border-light;
+    padding: 2.5rem;
+    border-radius: 12px;
+    margin-bottom: 3rem;
+    
+    h4 {
+      margin: 0 0 2rem 0;
+      font-size: 1.3rem;
+      font-weight: 500;
+      color: $color-text-main;
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    
+    .overall-progress {
+      margin-bottom: 2.5rem;
+      
+      .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        
+        .progress-label {
+          font-weight: 500;
+          color: $color-text-main;
+        }
+        
+        .progress-percentage {
+          font-weight: 600;
+          color: $color-primary;
+          font-size: 1.5rem;
+        }
+      }
+      
+      .progress-bar {
+        height: 8px;
+        background: rgba(0,0,0,0.05);
+        border-radius: 4px;
+        overflow: hidden;
+        
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, $color-primary 0%, lighten($color-primary, 10%) 100%);
+          transition: width 0.6s $transition-smooth;
+        }
+      }
+    }
+    
+    .criteria-progress {
+      h5 {
+        margin: 0 0 1.5rem 0;
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: $color-text-main;
+        text-align: center;
+      }
+      
+      .criteria-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        
+        .criterion-progress {
+          background: $color-bg-card;
+          padding: 1.5rem;
+          border-radius: 8px;
+          border: 1px solid $color-border-light;
+          
+          .criterion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            
+            .criterion-name {
+              font-weight: 500;
+              color: $color-text-main;
+            }
+            
+            .criterion-status {
+              padding: 0.3rem 0.75rem;
+              border-radius: 6px;
+              font-size: 0.8rem;
+              font-weight: 500;
+              
+              &.success { 
+                background: rgba($color-success, 0.1); 
+                color: darken($color-success, 10%); 
+              }
+              &.warning { 
+                background: rgba($color-warning, 0.1); 
+                color: darken($color-warning, 20%); 
+              }
+              &.danger { 
+                background: rgba($color-danger, 0.1); 
+                color: darken($color-danger, 10%); 
+              }
+            }
+          }
+          
+          .criterion-bar {
+            height: 6px;
+            background: $color-border-light;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+            
+            .criterion-fill {
+              height: 100%;
+              transition: width 0.6s $transition-smooth;
+              
+              &.success { background: $color-success; }
+              &.warning { background: $color-warning; }
+              &.danger { background: $color-danger; }
+            }
+          }
+          
+          .criterion-percentage {
+            font-size: 0.85rem;
+            color: $color-text-sub;
+            text-align: right;
+          }
+        }
+      }
+    }
+  }
+  
+  .reflections-section {
+    margin-bottom: 3rem;
+    
+    .reflections-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      
+      h4 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 500;
+        color: $color-text-main;
+      }
+      
+      .reflection-stats {
+        display: flex;
+        gap: 2rem;
+        
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          
+          .stat-label {
+            font-size: 0.8rem;
+            color: $color-text-sub;
+            margin-bottom: 0.25rem;
+          }
+          
+          .stat-value {
+            font-weight: 600;
+            color: $color-text-main;
+            font-size: 1.1rem;
+          }
+        }
+      }
+    }
+    
+    .reflection-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 2rem;
+      justify-content: center;
+      border: 1px solid $color-border-light;
+      border-radius: 8px;
+      overflow: hidden;
+      display: inline-flex;
+      
+      .reflection-tab {
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: $color-bg-card;
+        cursor: pointer;
+        transition: all 0.2s $transition-smooth;
+        font-size: 0.85rem;
+        font-weight: 400;
+        color: $color-text-sub;
+        border-right: 1px solid $color-border-light;
+        
+        &:last-child {
+          border-right: none;
+        }
+        
+        &:hover {
+          background: $color-bg-section;
+          color: $color-text-main;
+        }
+        
+        &.active {
+          background: $color-text-main;
+          color: $color-bg-card;
+          font-weight: 500;
+        }
+      }
+    }
+    
+    .reflections-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 2rem;
+      
+      .reflection-card {
+        background: $color-bg-card;
+        border: 1px solid $color-border-light;
+        border-radius: 12px;
+        padding: 2rem;
+        transition: all 0.3s $transition-smooth;
+        
+        &:hover {
+          border-color: $color-border;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        }
+        
+        .reflection-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          
+          .reflection-meta {
+            display: flex;
+            gap: 0.75rem;
+            
+            .reflection-type, .reflection-impact {
+              padding: 0.3rem 0.75rem;
+              border-radius: 6px;
+              font-size: 0.8rem;
+              font-weight: 500;
+            }
+            
+            .reflection-type {
+              background: rgba($color-primary, 0.1);
+              color: darken($color-primary, 10%);
+            }
+            
+            .reflection-impact {
+              &.high { 
+                background: rgba($color-danger, 0.1); 
+                color: darken($color-danger, 10%); 
+              }
+              &.medium { 
+                background: rgba($color-warning, 0.1); 
+                color: darken($color-warning, 20%); 
+              }
+              &.low { 
+                background: rgba($color-success, 0.1); 
+                color: darken($color-success, 10%); 
+              }
+            }
+          }
+          
+          .reflection-date {
+            font-size: 0.85rem;
+            color: $color-text-light;
+          }
+        }
+        
+        .reflection-title {
+          font-size: 1.2rem;
+          font-weight: 500;
+          margin: 0 0 0.75rem 0;
+          color: $color-text-main;
+          line-height: 1.4;
+        }
+        
+        .reflection-description {
+          color: $color-text-sub;
+          margin-bottom: 1.5rem;
+          line-height: 1.6;
+          font-size: 0.95rem;
+        }
+        
+        .reflection-content {
+          .action-items, .lessons-learned {
+            margin-bottom: 1.5rem;
+            
+            h6 {
+              font-size: 0.95rem;
+              font-weight: 500;
+              margin: 0 0 0.75rem 0;
+              color: $color-text-main;
+            }
+            
+            .action-list, .lessons-list {
+              margin: 0;
+              padding-left: 1.2rem;
+              
+              li {
+                margin-bottom: 0.5rem;
+                color: $color-text-sub;
+                font-size: 0.9rem;
+                line-height: 1.5;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+  .section-header .section-title {
+    font-size: 2rem;
+  }
+  
+  .criteria-list .criterion-card .criterion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  
+  .inputs-grid, .outputs-grid, .reflections-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .input-tabs, .output-tabs, .reflection-tabs {
+    flex-direction: column;
+    
+    .input-tab, .output-tab, .reflection-tab {
+      text-align: center;
+      border-right: none;
+      border-bottom: 1px solid $color-border-light;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+  
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .ai-log-container {
+    padding: 0 20px;
+  }
+}

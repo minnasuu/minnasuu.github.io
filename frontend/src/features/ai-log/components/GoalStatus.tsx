@@ -8,6 +8,7 @@ interface GoalStatusProps {
   onStart: () => void;
   onComplete: () => void;
   onPause: () => void;
+  onResume: () => void;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
   onStart,
   onComplete,
   onPause,
+  onResume,
   className = ''
 }) => {
   const getStatusText = (status: Goal['status']) => {
@@ -71,12 +73,65 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
   const getDaysRemaining = () => {
     const endDate = new Date(goal.endDate);
     const today = new Date();
+    
+    // 如果目标还未正式开始，使用计划的结束日期
+    if (goal.status === 'planning') {
+      const diffTime = endDate.getTime() - today.getTime();
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+    
+    // 如果目标已开始，计算实际剩余时间（排除暂停时间）
+    if (goal.actualStartDate) {
+      const actualStartDate = new Date(goal.actualStartDate);
+      const totalPausedMs = goal.totalPausedDuration || 0;
+      
+      // 如果当前是暂停状态，还需要加上当前暂停的时间
+      let currentPausedMs = 0;
+      if (goal.status === 'paused' && goal.pausedAt) {
+        currentPausedMs = today.getTime() - new Date(goal.pausedAt).getTime();
+      }
+      
+      // 计算实际已用时间（排除暂停时间）
+      const actualElapsedMs = today.getTime() - actualStartDate.getTime() - totalPausedMs - currentPausedMs;
+      const actualElapsedDays = actualElapsedMs / (1000 * 60 * 60 * 24);
+      
+      return goal.duration - actualElapsedDays;
+    }
+    
+    // 兜底逻辑
     const diffTime = endDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const getActualProgress = () => {
+    if (goal.status === 'planning') {
+      return 0;
+    }
+    
+    if (goal.actualStartDate) {
+      const today = new Date();
+      const actualStartDate = new Date(goal.actualStartDate);
+      const totalPausedMs = goal.totalPausedDuration || 0;
+      
+      // 如果当前是暂停状态，还需要加上当前暂停的时间
+      let currentPausedMs = 0;
+      if (goal.status === 'paused' && goal.pausedAt) {
+        currentPausedMs = today.getTime() - new Date(goal.pausedAt).getTime();
+      }
+      
+      // 计算实际已用时间（排除暂停时间）
+      const actualElapsedMs = today.getTime() - actualStartDate.getTime() - totalPausedMs - currentPausedMs;
+      const actualElapsedDays = actualElapsedMs / (1000 * 60 * 60 * 24);
+      
+      const progressPercentage = Math.min((actualElapsedDays / goal.duration) * 100, 100);
+      return Math.max(progressPercentage, goal.progress); // 取手动进度和时间进度的较大值
+    }
+    
+    return goal.progress;
   };
 
   const daysRemaining = getDaysRemaining();
+  const actualProgress = getActualProgress();
 
   return (
     <div className={`goal-status ${className}`}>
@@ -126,6 +181,20 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
               />
             </>
           )}
+          {goal.status === 'paused' && (
+            <>
+              <LandButton
+                text="继续"
+                type="background"
+                onClick={onResume}
+              />
+              <LandButton
+                text="完成目标"
+                type="transparent"
+                onClick={onComplete}
+              />
+            </>
+          )}
         </div>
       </div>
 
@@ -136,24 +205,35 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
       <div className="goal-progress">
         <div className="progress-header">
           <span className="progress-label">完成进度</span>
-          <span className="progress-percentage">{goal.progress}%</span>
+          <span className="progress-percentage">{Math.round(actualProgress)}%</span>
         </div>
         <div className="progress-bar">
           <div 
             className="progress-fill"
-            style={{ width: `${goal.progress}%` }}
+            style={{ width: `${actualProgress}%` }}
           />
         </div>
+        {goal.status === 'paused' && (
+          <div className="progress-note">
+            <span className="pause-indicator">⏸️ 目标已暂停，暂停期间不计入周期时间</span>
+          </div>
+        )}
       </div>
 
       <div className="goal-meta">
         <div className="meta-grid">
           <div className="meta-item">
-            <span className="meta-label">开始日期</span>
+            <span className="meta-label">计划开始</span>
             <span className="meta-value">{formatDate(goal.startDate)}</span>
           </div>
+          {goal.actualStartDate && (
+            <div className="meta-item">
+              <span className="meta-label">实际开始</span>
+              <span className="meta-value">{formatDate(goal.actualStartDate)}</span>
+            </div>
+          )}
           <div className="meta-item">
-            <span className="meta-label">结束日期</span>
+            <span className="meta-label">计划结束</span>
             <span className="meta-value">{formatDate(goal.endDate)}</span>
           </div>
           <div className="meta-item">
@@ -161,11 +241,21 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
             <span className="meta-value">{goal.duration} 天</span>
           </div>
           <div className="meta-item">
-            <span className="meta-label">剩余时间</span>
+            <span className="meta-label">
+              {goal.status === 'planning' ? '计划剩余' : '实际剩余'}
+            </span>
             <span className={`meta-value ${daysRemaining < 0 ? 'overdue' : ''}`}>
-              {daysRemaining < 0 ? `已超期 ${Math.abs(daysRemaining)} 天` : `${daysRemaining} 天`}
+              {daysRemaining < 0 ? `已超期 ${Math.abs(Math.round(daysRemaining))} 天` : `${Math.round(daysRemaining)} 天`}
             </span>
           </div>
+          {goal.totalPausedDuration && goal.totalPausedDuration > 0 && (
+            <div className="meta-item">
+              <span className="meta-label">累计暂停</span>
+              <span className="meta-value">
+                {Math.round(goal.totalPausedDuration / (1000 * 60 * 60 * 24))} 天
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
