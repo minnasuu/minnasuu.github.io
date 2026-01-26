@@ -104,10 +104,41 @@ export interface LearningTask {
   completedAt?: string;
 }
 
-export interface AILogEntry {
+// 目标定义
+export interface Goal {
   id: string;
-  period: string; // 周期标识，如 "2026-W02" 或 "2026-01"
-  periodType: 'weekly' | 'monthly';
+  title: string;
+  description: string;
+  category: 'technical' | 'career' | 'personal' | 'project';
+  priority: 'high' | 'medium' | 'low';
+  duration: number; // 目标周期（天）
+  startDate: string;
+  endDate: string;
+  status: 'planning' | 'active' | 'completed' | 'paused' | 'cancelled';
+  progress: number; // 0-100 完成进度
+  createdAt: string;
+  updatedAt: string;
+  
+  // 目标相关的学习内容
+  targetSkills: string[]; // 目标要掌握的技能
+  milestones: GoalMilestone[]; // 里程碑
+  successCriteria: string[]; // 成功标准
+}
+
+export interface GoalMilestone {
+  id: string;
+  title: string;
+  description: string;
+  targetDate: string;
+  status: 'pending' | 'completed';
+  completedAt?: string;
+}
+
+// 目标日志条目（替代原来的AILogEntry）
+export interface GoalLogEntry {
+  id: string;
+  goalId: string;
+  goal: Goal;
   createdAt: string;
   
   // 知识技能总结
@@ -123,7 +154,7 @@ export interface AILogEntry {
   learningPlan: {
     authorTasks: LearningTask[]; // 需要作者操作的任务
     aiTasks: LearningTask[]; // AI自动学习的任务
-    goals: string[]; // 本周期目标
+    goals: string[]; // 本阶段目标
     focus: string[]; // 重点关注领域
   };
   
@@ -132,14 +163,20 @@ export interface AILogEntry {
     completedTasks: LearningTask[];
     newKnowledge: string[]; // AI学到的新知识点
     suggestions: string[]; // AI给出的建议
-    nextPeriodRecommendations: string[]; // 下周期推荐
+    nextPeriodRecommendations: string[]; // 下阶段推荐
   };
   
   // 总结和反思
   summary: {
-    achievements: string[]; // 本周期成就
+    achievements: string[]; // 本阶段成就
     challenges: string[]; // 遇到的挑战
     insights: string[]; // 获得的洞察
     nextSteps: string[]; // 下一步行动
   };
+}
+
+// 保持向后兼容
+export interface AILogEntry extends GoalLogEntry {
+  period: string; // 兼容旧的周期标识
+  periodType: 'weekly' | 'monthly';
 }

@@ -1,0 +1,243 @@
+// 目标状态显示样式
+.goal-status {
+  background: #f1f8ff;
+  border: 1px solid #BEDAFF;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 3rem;
+
+  .goal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+
+    .goal-title-section {
+      flex: 1;
+
+      .goal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        color: #333;
+      }
+
+      .goal-badges {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+
+        .status-badge {
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          background: rgba(0,0,0,0.05);
+        }
+
+        .category-badge {
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 500;
+          background: rgba(0,0,0,0.05);
+          color: #666;
+        }
+
+        .priority-badge {
+          padding: 0.25rem 0.75rem;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: 500;
+
+          &.priority-high {
+            background: rgba(220, 38, 38, 0.1);
+            color: #dc2626;
+          }
+
+          &.priority-medium {
+            background: rgba(245, 153, 39, 0.1);
+            color: #f59927;
+          }
+
+          &.priority-low {
+            background: rgba(5, 150, 105, 0.1);
+            color: #059669;
+          }
+        }
+      }
+    }
+
+    .goal-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .goal-description {
+    margin-bottom: 2rem;
+
+    p {
+      color: #555;
+      line-height: 1.6;
+      margin: 0;
+    }
+  }
+
+  .goal-progress {
+    margin-bottom: 2rem;
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+
+      .progress-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .progress-percentage {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2067ff;
+        font-variant-numeric: tabular-nums;
+      }
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(0,0,0,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2067ff 0%, #4f9eff 100%);
+        border-radius: 4px;
+        transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+    }
+  }
+
+  .goal-meta {
+    margin-bottom: 2rem;
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+
+      .meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .meta-label {
+          font-size: 0.8rem;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .meta-value {
+          font-size: 0.9rem;
+          color: #333;
+          font-weight: 400;
+
+          &.overdue {
+            color: #dc2626;
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+
+  .goal-skills {
+    margin-bottom: 2rem;
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 1rem 0;
+      color: #333;
+    }
+
+    .skills-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      .skill-tag {
+        padding: 0.3rem 0.8rem;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 4px;
+        font-size: 0.85rem;
+        color: #555;
+      }
+    }
+  }
+
+  .goal-criteria {
+    h4 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 0 0 1rem 0;
+      color: #333;
+    }
+
+    .criteria-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      .criteria-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        color: #555;
+        line-height: 1.5;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &::before {
+          content: '✓';
+          color: #059669;
+          font-weight: bold;
+          margin-right: 0.75rem;
+        }
+      }
+    }
+  }
+
+  // 响应式设计
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+
+    .goal-header {
+      flex-direction: column;
+      gap: 1rem;
+
+      .goal-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+
+    .meta-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    .goal-badges {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem !important;
+    }
+  }
+}

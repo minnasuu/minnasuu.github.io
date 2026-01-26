@@ -7,13 +7,17 @@ $color-text-sub: #555555;
 $color-text-light: #999999;
 $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 
+// 导入子组件样式
+@import './PeriodController.scss';
+@import './GoalCreator.scss';
+@import './GoalStatus.scss';
+
 // AI日志页面样式 - 简约白色风格
 .ai-log-page {
   min-height: 100vh;
   background-color: $color-bg;
   font-family: $font-primary;
   color: $color-text-main;
-  padding-bottom: 10rem;
 
   .ai-log-container {
     max-width: 800px;
@@ -124,8 +128,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 4rem;
-    padding-bottom: 2rem;
     border-bottom: 1px solid rgba(0,0,0,0.08);
     
     h2 {
@@ -361,6 +363,312 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
               }
             }
           }
+        }
+      }
+    }
+
+    // 新的技能对比布局样式
+    .skills-comparison {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      
+      .skill-comparison-card {
+        background: #fafafa;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 12px;
+        padding: 2rem;
+        transition: all 0.3s $transition-smooth;
+        
+        &:hover {
+          border-color: rgba(0,0,0,0.15);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        
+        .skill-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 2rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid rgba(0,0,0,0.1);
+          
+          .skill-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0;
+            color: $color-text-main;
+            letter-spacing: -0.02em;
+          }
+          
+          .skill-category {
+            padding: 0.3rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            border: 1px solid rgba(0,0,0,0.1);
+            color: $color-text-sub;
+            background: white;
+          }
+        }
+        
+        .comparison-content {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 3rem;
+          
+          @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+          }
+          
+          .section-subtitle {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 1.5rem 0;
+            color: $color-text-main;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+          
+          // 左侧：行业标准
+          .industry-standard {
+            .standard-levels {
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+              
+              .level-item {
+                padding: 1rem;
+                border: 1px solid rgba(0,0,0,0.1);
+                border-radius: 8px;
+                background: white;
+                transition: all 0.3s ease;
+                
+                &.achieved {
+                  background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+                  border-color: #4ade80;
+                  
+                  .level-header .level-name {
+                    color: #16a34a;
+                    font-weight: 600;
+                  }
+                }
+                
+                .level-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 0.5rem;
+                  
+                  .level-name {
+                    font-weight: 500;
+                    color: $color-text-main;
+                    font-size: 0.9rem;
+                  }
+                  
+                  .level-threshold {
+                    font-size: 0.8rem;
+                    color: $color-text-light;
+                    font-weight: 500;
+                    background: rgba(0,0,0,0.05);
+                    padding: 0.2rem 0.5rem;
+                    border-radius: 4px;
+                  }
+                }
+                
+                .level-description {
+                  font-size: 0.85rem;
+                  color: $color-text-sub;
+                  margin: 0 0 0.8rem 0;
+                  line-height: 1.4;
+                }
+                
+                .level-requirements {
+                  margin: 0;
+                  padding-left: 1rem;
+                  
+                  li {
+                    font-size: 0.8rem;
+                    color: $color-text-light;
+                    line-height: 1.4;
+                    margin-bottom: 0.3rem;
+                    
+                    &:last-child {
+                      margin-bottom: 0;
+                    }
+                  }
+                }
+              }
+            }
+            
+            .no-standard {
+              color: $color-text-light;
+              font-style: italic;
+              text-align: center;
+              padding: 2rem;
+              background: rgba(0,0,0,0.02);
+              border-radius: 8px;
+            }
+          }
+          
+          // 右侧：当前水平
+          .current-level {
+            .current-status {
+              .level-indicator {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 2rem;
+                
+                .level-circle {
+                  width: 80px;
+                  height: 80px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  margin-bottom: 0.8rem;
+                  border: 1px solid rgba(0,0,0,0.05);
+                  
+                  .level-percentage {
+                    color: #000;
+                    font-size: 1.2rem;
+                    font-weight: 600;
+                  }
+                }
+                
+                .level-name {
+                  font-size: 1rem;
+                  font-weight: 500;
+                  color: $color-text-main;
+                }
+              }
+              
+              .skill-progress {
+                margin-bottom: 1.5rem;
+                
+                .progress-bar {
+                  height: 6px;
+                  background: rgba(0,0,0,0.05);
+                  border-radius: 3px;
+                  overflow: hidden;
+                  
+                  .progress-fill {
+                    height: 100%;
+                    border-radius: 3px;
+                    transition: width 0.8s $transition-smooth;
+                    
+                    &.low {
+                      background: linear-gradient(90deg, #f87171 0%, #ef4444 100%);
+                    }
+                    
+                    &.medium {
+                      background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
+                    }
+                    
+                    &.high {
+                      background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+                    }
+                  }
+                }
+              }
+              
+              .skill-description {
+                color: $color-text-sub;
+                font-size: 0.95rem;
+                line-height: 1.6;
+                margin-bottom: 1.5rem;
+                padding: 1rem;
+                background: rgba(0,0,0,0.02);
+                border-radius: 8px;
+              }
+              
+              .next-level-info {
+                background: linear-gradient(135deg, #fef3c7 0%, #fef7cd 100%);
+                border: 1px solid #fbbf24;
+                border-radius: 8px;
+                padding: 1rem;
+                margin-bottom: 1.5rem;
+                
+                h6 {
+                  margin: 0 0 0.5rem 0;
+                  font-size: 0.9rem;
+                  font-weight: 600;
+                  color: #92400e;
+                }
+                
+                .gap-info {
+                  font-size: 0.8rem;
+                  color: #a16207;
+                  margin: 0 0 0.8rem 0;
+                  font-weight: 500;
+                }
+                
+                .next-requirements {
+                  margin: 0;
+                  padding-left: 1rem;
+                  
+                  li {
+                    font-size: 0.8rem;
+                    color: #a16207;
+                    line-height: 1.4;
+                    margin-bottom: 0.3rem;
+                    
+                    &:last-child {
+                      margin-bottom: 0;
+                    }
+                  }
+                }
+              }
+              
+              .skill-meta {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 1rem;
+                border-top: 1px solid rgba(0,0,0,0.1);
+                
+                .last-updated {
+                  font-size: 0.8rem;
+                  color: $color-text-light;
+                }
+                
+                .related-links {
+                  display: flex;
+                  gap: 0.5rem;
+                  
+                  .skill-link {
+                    text-decoration: none;
+                    font-size: 1rem;
+                    opacity: 0.6;
+                    transition: opacity 0.2s ease;
+                    
+                    &:hover {
+                      opacity: 1;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // 无技能数据状态
+      .no-skill-data {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(0,0,0,0.02);
+        border-radius: 12px;
+        border: 1px dashed rgba(0,0,0,0.1);
+        
+        p {
+          color: $color-text-light;
+          font-size: 1rem;
+          margin: 0;
         }
       }
     }
@@ -779,6 +1087,38 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
   }
 
+  // 无目标状态
+  .no-goal-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    
+    .no-goal-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+      text-align: center;
+      max-width: 500px;
+      padding: 3rem 2rem;
+      
+      h3 {
+        font-size: 1.5rem;
+        font-weight: 500;
+        margin: 0 0 1rem 0;
+        color: $color-text-main;
+      }
+      
+      p {
+        font-size: 1rem;
+        color: $color-text-sub;
+        line-height: 1.6;
+        margin: 0 0 2rem 0;
+      }
+    }
+  }
+
   // 响应式设计
   @media (max-width: 768px) {
     .ai-log-container {
@@ -790,19 +1130,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
       
       .ai-log-title {
         font-size: 2.5rem;
-      }
-      
-      .period-tabs {
-        flex-direction: column;
-        width: 100%;
-        
-        .tab-button {
-          border-right: none !important;
-          
-          &:not(:last-child) {
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-          }
-        }
       }
     }
     
