@@ -1,4 +1,4 @@
-import { Icon } from '@suminhan/land-design';
+import { Icon, LandButton } from '@suminhan/land-design';
 import React, { useState } from 'react';
 
 interface MyOutput {
@@ -505,27 +505,15 @@ const OutputSection: React.FC<OutputSectionProps> = ({
                         </div>
                       </div>
                     </div>
-                    <div className="todo-actions">
-                      <button 
-                        className="action-btn edit-btn"
-                        onClick={(e) => {
+                     <div className="flex">
+                        <LandButton type='text' icon={ <Icon name="edit" />}  onClick={(e) => {
                           e.preventDefault();
                           setEditingOutput(output.id);
-                        }}
-                        title={t.edit}
-                      >
-                        <Icon name="edit" />
-                      </button>
-                      <button 
-                        className="action-btn delete-btn"
-                        onClick={(e) => {
+                        }}/>
+                        <LandButton type='text' icon={<Icon name="delete" />}  onClick={(e) => {
                           e.preventDefault();
                           handleDeleteMyOutput(output.id);
-                        }}
-                        title={t.delete}
-                      >
-                        <Icon name="delete" />
-                      </button>
+                        }}/>
                     </div>
                     <div className="todo-expand-icon">
                       <Icon name='arrow' className='expand-arrow'/>
@@ -577,14 +565,13 @@ const OutputSection: React.FC<OutputSectionProps> = ({
           </div>
 
           {/* 添加新输出按钮 */}
-          <div className="add-output-section">
-            <button 
-              className="btn btn-primary add-output-btn"
-              onClick={handleAddMyOutput}
-            >
-              <Icon name="plus" />
-              {t.addOutput}
-            </button>
+          <div className="add-output-section mt-4">
+            <LandButton 
+                          onClick={handleAddMyOutput}
+                          icon={<Icon name="add" />}
+                          text={t.addOutput}
+                        >
+                        </LandButton>
           </div>
         </div>
       )}
