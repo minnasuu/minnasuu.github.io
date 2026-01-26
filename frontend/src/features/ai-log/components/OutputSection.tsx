@@ -44,10 +44,19 @@ const OutputSection: React.FC<OutputSectionProps> = ({
   language
 }) => {
   const [activeTab, setActiveTab] = useState<'my' | 'ai'>('my');
+  const [myOutputs, setMyOutputs] = useState<MyOutput[]>([]);
+  const [aiOutputs, setAIOutputs] = useState<AIOutput[]>([]);
+  const [editingOutput, setEditingOutput] = useState<string | null>(null);
+
+  // 初始化数据
+  React.useEffect(() => {
+    setMyOutputs(generateMyOutputsFromGoal(goalTitle));
+    setAIOutputs(generateAIOutputsFromGoal(goalTitle));
+  }, [goalTitle]);
 
   const texts = {
     zh: {
-      title: '学习输出',
+      title: '输出',
       subtitle: '展示学习成果和AI分析结果',
       myOutput: '我的输出',
       aiOutput: 'AI输出',
@@ -88,10 +97,19 @@ const OutputSection: React.FC<OutputSectionProps> = ({
       viewDetails: '查看详情',
       totalOutputs: '总输出数',
       avgQuality: '平均质量',
-      avgConfidence: '平均置信度'
+      avgConfidence: '平均置信度',
+      edit: '编辑',
+      delete: '删除',
+      save: '保存',
+      cancel: '取消',
+      addOutput: '添加输出',
+      title_placeholder: '请输入标题',
+      description_placeholder: '请输入描述',
+      link_placeholder: '请输入链接',
+      content_placeholder: '请输入内容'
     },
     en: {
-      title: 'Learning Output',
+      title: 'Output',
       subtitle: 'Showcase learning outcomes and AI analysis results',
       myOutput: 'My Output',
       aiOutput: 'AI Output',
@@ -132,14 +150,82 @@ const OutputSection: React.FC<OutputSectionProps> = ({
       viewDetails: 'View Details',
       totalOutputs: 'Total Outputs',
       avgQuality: 'Avg Quality',
-      avgConfidence: 'Avg Confidence'
+      avgConfidence: 'Avg Confidence',
+      edit: 'Edit',
+      delete: 'Delete',
+      save: 'Save',
+      cancel: 'Cancel',
+      addOutput: 'Add Output',
+      title_placeholder: 'Enter title',
+      description_placeholder: 'Enter description',
+      link_placeholder: 'Enter link',
+      content_placeholder: 'Enter content'
     }
   };
 
   const t = texts[language];
 
+  // 编辑功能函数
+  const handleDeleteMyOutput = (id: string) => {
+    setMyOutputs(prev => prev.filter(output => output.id !== id));
+  };
+
+  const handleDeleteAIOutput = (id: string) => {
+    setAIOutputs(prev => prev.filter(output => output.id !== id));
+  };
+
+  const handleEditMyOutput = (id: string, updatedOutput: Partial<MyOutput>) => {
+    setMyOutputs(prev => prev.map(output => 
+      output.id === id ? { ...output, ...updatedOutput } : output
+    ));
+    setEditingOutput(null);
+  };
+
+  const handleEditAIOutput = (id: string, updatedOutput: Partial<AIOutput>) => {
+    setAIOutputs(prev => prev.map(output => 
+      output.id === id ? { ...output, ...updatedOutput } : output
+    ));
+    setEditingOutput(null);
+  };
+
+  const handleAddMyOutput = () => {
+    const newOutput: MyOutput = {
+      id: `my-output-${Date.now()}`,
+      type: 'code',
+      title: '新输出项',
+      description: '请输入描述',
+      completionRate: 0,
+      quality: 'average',
+      impact: 'medium',
+      link: '',
+      screenshots: [],
+      metrics: [],
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setMyOutputs(prev => [...prev, newOutput]);
+    setEditingOutput(newOutput.id); // 立即进入编辑模式
+  };
+
+  const handleAddAIOutput = () => {
+    const newOutput: AIOutput = {
+      id: `ai-output-${Date.now()}`,
+      type: 'analysis',
+      title: '新AI输出项',
+      description: '请输入描述',
+      confidence: 80,
+      actionability: 'short_term',
+      category: 'learning',
+      content: '请输入内容',
+      evidence: [],
+      recommendations: [],
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setAIOutputs(prev => [...prev, newOutput]);
+    setEditingOutput(newOutput.id); // 立即进入编辑模式
+  };
+
   // 根据目标生成我的输出数据
-  const generateMyOutputs = (goalTitle: string): MyOutput[] => {
+  const generateMyOutputsFromGoal = (goalTitle: string): MyOutput[] => {
     const lowerTitle = goalTitle.toLowerCase();
     
     if (lowerTitle.includes('动画') || lowerTitle.includes('animation')) {
@@ -212,7 +298,7 @@ const OutputSection: React.FC<OutputSectionProps> = ({
   };
 
   // 根据目标生成AI输出数据
-  const generateAIOutputs = (goalTitle: string): AIOutput[] => {
+  const generateAIOutputsFromGoal = (goalTitle: string): AIOutput[] => {
     const lowerTitle = goalTitle.toLowerCase();
     
     if (lowerTitle.includes('动画') || lowerTitle.includes('animation')) {
@@ -305,9 +391,6 @@ const OutputSection: React.FC<OutputSectionProps> = ({
     ];
   };
 
-  const myOutputs = generateMyOutputs(goalTitle);
-  const aiOutputs = generateAIOutputs(goalTitle);
-
   const getTypeLabel = (type: string, isAI: boolean = false) => {
     if (isAI) {
       const aiTypeMap: { [key: string]: string } = {
@@ -371,23 +454,8 @@ const OutputSection: React.FC<OutputSectionProps> = ({
 
   // 统计数据
   const totalMyOutputs = myOutputs.length;
-  const avgQuality = myOutputs.reduce((sum, output) => {
-    const qualityScore = output.quality === 'excellent' ? 4 : 
-                        output.quality === 'good' ? 3 : 
-                        output.quality === 'average' ? 2 : 1;
-    return sum + qualityScore;
-  }, 0) / myOutputs.length;
 
   const totalAIOutputs = aiOutputs.length;
-  const avgConfidence = aiOutputs.reduce((sum, output) => sum + output.confidence, 0) / aiOutputs.length;
-
-  const getQualityFromScore = (score: number) => {
-    if (score >= 3.5) return t.excellent;
-    if (score >= 2.5) return t.good;
-    if (score >= 1.5) return t.average;
-    return t.needs_improvement;
-  };
-
   return (
     <section className="output-section">
       <div className="section-header">
@@ -413,23 +481,6 @@ const OutputSection: React.FC<OutputSectionProps> = ({
 
       {activeTab === 'my' && (
         <div className="my-outputs">
-          {/* 我的输出统计 */}
-          <div className="output-stats">
-            <div className="stat-card">
-              <div className="stat-icon">📊</div>
-              <div className="stat-content">
-                <span className="stat-label">{t.totalOutputs}</span>
-                <span className="stat-value">{totalMyOutputs}</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">⭐</div>
-              <div className="stat-content">
-                <span className="stat-label">{t.avgQuality}</span>
-                <span className="stat-value">{getQualityFromScore(avgQuality)}</span>
-              </div>
-            </div>
-          </div>
 
           {/* 我的输出列表 - Todo List 折叠展示 */}
           <div className="outputs-todo-list">
@@ -454,8 +505,30 @@ const OutputSection: React.FC<OutputSectionProps> = ({
                         </div>
                       </div>
                     </div>
+                    <div className="todo-actions">
+                      <button 
+                        className="action-btn edit-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingOutput(output.id);
+                        }}
+                        title={t.edit}
+                      >
+                        <Icon name="edit" />
+                      </button>
+                      <button 
+                        className="action-btn delete-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteMyOutput(output.id);
+                        }}
+                        title={t.delete}
+                      >
+                        <Icon name="delete" />
+                      </button>
+                    </div>
                     <div className="todo-expand-icon">
-                      <span className="expand-arrow">▼</span>
+                      <Icon name='arrow' className='expand-arrow'/>
                     </div>
                   </div>
                 </summary>
@@ -502,28 +575,22 @@ const OutputSection: React.FC<OutputSectionProps> = ({
               </details>
             ))}
           </div>
+
+          {/* 添加新输出按钮 */}
+          <div className="add-output-section">
+            <button 
+              className="btn btn-primary add-output-btn"
+              onClick={handleAddMyOutput}
+            >
+              <Icon name="plus" />
+              {t.addOutput}
+            </button>
+          </div>
         </div>
       )}
 
       {activeTab === 'ai' && (
         <div className="ai-outputs">
-          {/* AI输出统计 */}
-          <div className="output-stats">
-            <div className="stat-card">
-              <div className="stat-icon">🤖</div>
-              <div className="stat-content">
-                <span className="stat-label">{t.totalOutputs}</span>
-                <span className="stat-value">{totalAIOutputs}</span>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">🎯</div>
-              <div className="stat-content">
-                <span className="stat-label">{t.avgConfidence}</span>
-                <span className="stat-value">{Math.round(avgConfidence)}%</span>
-              </div>
-            </div>
-          </div>
 
           {/* AI输出列表 - Todo List 折叠展示 */}
           <div className="outputs-todo-list">
@@ -547,6 +614,28 @@ const OutputSection: React.FC<OutputSectionProps> = ({
                           <span className="confidence-text">{output.confidence}%</span>
                         </div>
                       </div>
+                    </div>
+                    <div className="todo-actions">
+                      <button 
+                        className="action-btn edit-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setEditingOutput(output.id);
+                        }}
+                        title={t.edit}
+                      >
+                        <Icon name="edit" />
+                      </button>
+                      <button 
+                        className="action-btn delete-btn"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleDeleteAIOutput(output.id);
+                        }}
+                        title={t.delete}
+                      >
+                        <Icon name="delete" />
+                      </button>
                     </div>
                     <div className="todo-expand-icon">
                         <Icon name='arrow' className='expand-arrow'/>
@@ -596,6 +685,17 @@ const OutputSection: React.FC<OutputSectionProps> = ({
                 </div>
               </details>
             ))}
+          </div>
+
+          {/* 添加新AI输出按钮 */}
+          <div className="add-output-section">
+            <button 
+              className="btn btn-primary add-output-btn"
+              onClick={handleAddAIOutput}
+            >
+              <Icon name="plus" />
+              {t.addOutput}
+            </button>
           </div>
         </div>
       )}

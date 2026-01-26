@@ -136,16 +136,17 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 
 .input-details-expanded,
 .output-details-expanded {
-  padding: 0 1.5rem 1.5rem 1.5rem;
+  padding: 1.5rem;
   border-top: 1px solid $color-border-light;
-  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   
   .input-description,
   .output-description {
     color: $color-text-sub;
     font-size: 0.9rem;
     line-height: 1.5;
-    margin-bottom: 1rem;
   }
   
   .output-content {
@@ -239,11 +240,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
 @media (max-width: 768px) {
   .todo-summary-content {
     gap: 0.75rem;
-  }
-  
-  .input-details-expanded,
-  .output-details-expanded {
-    padding: 0 1rem 1rem 1rem;
   }
   
   .todo-main-info {
@@ -481,15 +477,15 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   margin-bottom: 4rem;
   
   .input-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    display: flex;
     gap: 1.5rem;
     margin-bottom: 3rem;
     
     .stat-card {
+        flex: 1;
       background: $color-bg-card;
       border: 1px solid $color-border-light;
-      padding: 1.5rem;
+      padding: 1rem;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -692,7 +688,7 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
         
         .input-date {
           font-size: 0.85rem;
-          color: $color-text-light;
+          color: rgba(0,0,0,0.4);
           text-align: right;
         }
       }
@@ -1323,7 +1319,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   
   .input-tabs, .output-tabs, .reflection-tabs {
-    flex-direction: column;
     
     .input-tab, .output-tab, .reflection-tab {
       text-align: center;
