@@ -11,6 +11,7 @@
     padding: 60px 20px;
     text-align: center;
     color: var(--text-secondary);
+    pointer-events: none;
 
     .loading-spinner {
       width: 40px;
