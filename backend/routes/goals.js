@@ -95,6 +95,22 @@ router.post('/', async (req, res) => {
   try {
     const goalData = req.body;
     
+    console.log('Creating goal with data:', JSON.stringify(goalData, null, 2));
+    
+    // 验证必填字段
+    if (!goalData.title || !goalData.description || !goalData.startDate || !goalData.endDate) {
+      console.error('Missing required fields:', { 
+        hasTitle: !!goalData.title, 
+        hasDescription: !!goalData.description,
+        hasStartDate: !!goalData.startDate,
+        hasEndDate: !!goalData.endDate
+      });
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: 'title, description, startDate, and endDate are required' 
+      });
+    }
+    
     // 将 totalPausedDuration 转换为 BigInt
     if (goalData.totalPausedDuration !== undefined) {
       goalData.totalPausedDuration = BigInt(goalData.totalPausedDuration);
@@ -104,10 +120,17 @@ router.post('/', async (req, res) => {
       data: goalData
     });
     
+    console.log('Goal created successfully:', goal.id);
+    
     res.status(201).json(goal);
   } catch (error) {
     console.error('Error creating goal:', error);
-    res.status(500).json({ error: 'Failed to create goal' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to create goal',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

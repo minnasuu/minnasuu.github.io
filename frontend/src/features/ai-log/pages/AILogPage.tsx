@@ -67,7 +67,22 @@ const AILogPage: React.FC = () => {
       setShowGoalCreator(false);
     } catch (error) {
       console.error('Failed to create goal:', error);
-      alert('创建目标失败，请重试');
+      
+      // 提供更详细的错误信息
+      let errorMessage = '创建目标失败';
+      if (error instanceof Error) {
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMessage += '：无法连接到后端服务，请确保后端服务正在运行（http://localhost:8001）';
+        } else if (error.message.includes('500')) {
+          errorMessage += '：服务器内部错误，请检查后端日志和数据库连接';
+        } else if (error.message.includes('400')) {
+          errorMessage += '：请求数据格式错误，请检查输入信息';
+        } else {
+          errorMessage += `：${error.message}`;
+        }
+      }
+      
+      alert(errorMessage);
     }
   };
 

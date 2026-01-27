@@ -23,7 +23,21 @@ export interface DifyGenerationResult {
   };
 }
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:8001';
+// 使用统一的 backend URL 获取方式，与 backendClient 保持一致
+const getBackendUrl = (): string => {
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (import.meta.env.PROD) {
+    return ''; // 生产环境使用相对路径
+  }
+  return 'http://localhost:8001';
+};
+
+const API_BASE_URL = getBackendUrl();
 
 class DifyService {
   private baseURL = `${API_BASE_URL}/api/dify`;

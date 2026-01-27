@@ -1,7 +1,21 @@
 import type { Goal } from '../types';
 import type { DifyGenerationResult } from './difyService';
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || 'http://localhost:8001';
+// 使用统一的 backend URL 获取方式，与 backendClient 保持一致
+const getBackendUrl = (): string => {
+  if (import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (import.meta.env.PROD) {
+    return ''; // 生产环境使用相对路径
+  }
+  return 'http://localhost:8001';
+};
+
+const API_BASE_URL = getBackendUrl();
 
 export interface GoalWithData extends Goal {
   generatedData?: DifyGenerationResult;
@@ -71,6 +85,9 @@ class GoalService {
         generatedData: generatedData || null
       };
 
+      console.log('Creating goal with data:', dataToSend);
+      console.log('API URL:', this.baseURL);
+
       const response = await fetch(this.baseURL, {
         method: 'POST',
         headers: {
@@ -80,12 +97,17 @@ class GoalService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create goal: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Server response:', errorText);
+        throw new Error(`Failed to create goal: ${response.status} - ${errorText}`);
       }
 
       return await response.json();
     } catch (error) {
       console.error('Error creating goal:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Failed to fetch: 无法连接到后端服务，请确保后端正在运行');
+      }
       throw error;
     }
   }
