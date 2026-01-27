@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import {  LandDialog, LandInput, LandDatePicker } from '@suminhan/land-design';
 import type { Goal } from '../../../shared/types';
+import { difyService, type DifyGenerationResult } from '../../../shared/services/difyService';
 
 interface GoalCreatorProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (goal: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'>, generatedData?: DifyGenerationResult) => void;
   editingGoal?: Goal | null;
 }
 
@@ -28,6 +29,7 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -56,37 +58,55 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) return;
 
-    // 计算周期天数
-    const startDate = formData.startDate!;
-    const endDate = formData.endDate!;
-    const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    setIsGenerating(true);
+    
+    try {
+      // 计算周期天数
+      const startDate = formData.startDate!;
+      const endDate = formData.endDate!;
+      const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    const goalData: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'> = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      category: formData.category,
-      priority: formData.priority,
-      duration,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
-      status: 'planning',
-      progress: 0,
-      targetSkills: formData.targetSkills
-        .split(',')
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 0),
-      milestones: [],
-      successCriteria: formData.successCriteria
-        .split('\n')
-        .map(criteria => criteria.trim())
-        .filter(criteria => criteria.length > 0)
-    };
+      const goalData: Omit<Goal, 'id' | 'createdAt' | 'updatedAt'> = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        priority: formData.priority,
+        duration,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+        status: 'planning',
+        progress: 0,
+        targetSkills: formData.targetSkills
+          .split(',')
+          .map(skill => skill.trim())
+          .filter(skill => skill.length > 0),
+        milestones: [],
+        successCriteria: formData.successCriteria
+          .split('\n')
+          .map(criteria => criteria.trim())
+          .filter(criteria => criteria.length > 0)
+      };
 
-    onSave(goalData);
-    // 移除 handleClose() 调用，保持对话框打开并展示之前的内容
+      // 如果不是编辑模式，调用 Dify API 生成输入输出数据
+      let generatedData: DifyGenerationResult | undefined;
+      if (!editingGoal) {
+        try {
+          generatedData = await difyService.generateGoalData(formData.title.trim());
+        } catch (error) {
+          console.error('Failed to generate data from Dify:', error);
+          // 继续创建目标，但不包含生成的数据
+        }
+      }
+
+      onSave(goalData, generatedData);
+    } catch (error) {
+      console.error('Error creating goal:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleClose = () => {
@@ -115,7 +135,8 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
       onCancel={handleClose}
       onSubmit={handleSave}
       cancelLabel="取消"
-      submitLabel={editingGoal ? '保存修改' : '创建目标'}
+      submitLabel={isGenerating ? '生成中...' : (editingGoal ? '保存修改' : '创建目标')}
+      submitDisabled={isGenerating}
     >
       <div className="goal-creator">
         <div className="form-section">

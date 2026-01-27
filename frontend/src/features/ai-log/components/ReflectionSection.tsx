@@ -34,7 +34,7 @@ const ReflectionSection: React.FC<ReflectionSectionProps> = ({
 
   const texts = {
     zh: {
-      title: '总结反思',
+      title: '总结',
       subtitle: '深度反思学习过程，规划未来行动',
       goalProgress: '目标进度',
       reflections: '反思记录',
@@ -67,7 +67,7 @@ const ReflectionSection: React.FC<ReflectionSectionProps> = ({
       avgImpact: '平均影响力'
     },
     en: {
-      title: 'Summary & Reflection',
+      title: 'Summary',
       subtitle: 'Deep reflection on learning process and future action planning',
       goalProgress: 'Goal Progress',
       reflections: 'Reflections',

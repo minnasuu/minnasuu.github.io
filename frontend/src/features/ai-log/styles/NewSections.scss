@@ -159,6 +159,60 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     border-radius: 6px;
     border-left: 3px solid $color-info;
   }
+  .input-details {
+        .input-source, .input-notes {
+          margin-bottom: 1rem;
+          
+          .detail-label {
+            font-weight: 500;
+            color: $color-text-sub;
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+          }
+          
+          .detail-value {
+            color: $color-text-main;
+          }
+        }
+        
+        .notes-content {
+          margin: 0.5rem 0 0 0;
+          padding: 1rem;
+          background: $color-bg-section;
+          border-radius: 8px;
+          font-size: 0.9rem;
+          line-height: 1.5;
+          color: $color-text-sub;
+          border: 1px solid $color-border-light;
+        }
+        
+        .input-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+          
+          .input-tag {
+            background: $color-bg-section;
+            border: 1px solid $color-border-light;
+            padding: 0.3rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: $color-text-sub;
+            transition: all 0.2s $transition-smooth;
+            
+            &:hover {
+              background: darken($color-bg-section, 3%);
+            }
+          }
+        }
+        
+        .input-date {
+          font-size: 0.85rem;
+          color: rgba(0,0,0,0.4);
+          text-align: right;
+        }
+      }
 }
 
 // 进度条样式优化
@@ -636,61 +690,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
         margin-bottom: 1.5rem;
         line-height: 1.6;
         font-size: 0.95rem;
-      }
-      
-      .input-details {
-        .input-source, .input-notes {
-          margin-bottom: 1rem;
-          
-          .detail-label {
-            font-weight: 500;
-            color: $color-text-sub;
-            margin-right: 0.5rem;
-            font-size: 0.9rem;
-          }
-          
-          .detail-value {
-            color: $color-text-main;
-          }
-        }
-        
-        .notes-content {
-          margin: 0.5rem 0 0 0;
-          padding: 1rem;
-          background: $color-bg-section;
-          border-radius: 8px;
-          font-size: 0.9rem;
-          line-height: 1.5;
-          color: $color-text-sub;
-          border: 1px solid $color-border-light;
-        }
-        
-        .input-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-          margin-bottom: 1rem;
-          
-          .input-tag {
-            background: $color-bg-section;
-            border: 1px solid $color-border-light;
-            padding: 0.3rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            color: $color-text-sub;
-            transition: all 0.2s $transition-smooth;
-            
-            &:hover {
-              background: darken($color-bg-section, 3%);
-            }
-          }
-        }
-        
-        .input-date {
-          font-size: 0.85rem;
-          color: rgba(0,0,0,0.4);
-          text-align: right;
-        }
       }
     }
   }

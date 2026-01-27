@@ -185,3 +185,22 @@ export interface AILogEntry extends GoalLogEntry {
   period: string; // 兼容旧的周期标识
   periodType: 'weekly' | 'monthly';
 }
+
+// 新的输入输出数据类型
+export interface MyToDoListDataType {
+  id: string;
+  title: string;
+  description?: string;
+  timeSpent?: number; // 分钟
+  difficulty: 'easy' | 'medium' | 'hard';
+  is_system?: boolean;
+}
+
+export interface AIToDoListDataType {
+  id: string;
+  title: string;
+  description?: string;
+  timeSpent?: number; // 分钟
+  difficulty?: 'easy' | 'medium' | 'hard';
+  is_system?: boolean;
+}

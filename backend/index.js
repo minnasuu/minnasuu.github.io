@@ -11,6 +11,8 @@ const draftRoutes = require('./routes/drafts');
 const craftRoutes = require('./routes/crafts');
 const uploadRoutes = require('./routes/upload');
 const authRoutes = require('./routes/auth');
+const goalRoutes = require('./routes/goals');
+const difyRoutes = require('./routes/dify');
 
 // 加载环境变量 - 尝试多个可能的位置
 const possibleEnvPaths = [
@@ -74,13 +76,15 @@ app.use('/api/drafts', draftRoutes);
 app.use('/api/crafts', craftRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/goals', goalRoutes);
+app.use('/api/dify', difyRoutes);
 
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 Dify Proxy Server is running on http://localhost:${PORT}`);
-  console.log(`📝 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌐 CORS allowed origin: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`🔑 DIFY_API_KEY configured: ${process.env.DIFY_API_KEY ? '✅ Yes' : '❌ No'}`);
-  console.log(`🔗 DIFY_API_URL: ${process.env.DIFY_API_URL || 'https://api.dify.ai/v1'}`);
-  console.log(`🔐 EDITOR_PASSWORD configured: ${process.env.EDITOR_PASSWORD ? '✅ Yes' : '❌ No (using default)'}`);
+  // console.log(`📝 Health check: http://localhost:${PORT}/health`);
+  // console.log(`🌐 CORS allowed origin: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  // console.log(`🔑 DIFY_API_KEY configured: ${process.env.DIFY_API_KEY ? '✅ Yes' : '❌ No'}`);
+  // console.log(`🔗 DIFY_API_URL: ${process.env.DIFY_API_URL || 'https://api.dify.ai/v1'}`);
+  // console.log(`🔐 EDITOR_PASSWORD configured: ${process.env.EDITOR_PASSWORD ? '✅ Yes' : '❌ No (using default)'}`);
 });

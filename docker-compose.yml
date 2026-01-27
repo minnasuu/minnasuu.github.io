@@ -22,6 +22,7 @@ services:
       - NODE_ENV=production
       - PORT=8001
       - DIFY_API_KEY=${DIFY_API_KEY}
+      - DIFY_GOAL_API_KEY=${DIFY_GOAL_API_KEY}
       - DIFY_API_URL=${DIFY_API_URL:-https://api.dify.ai/v1}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/minna_blog

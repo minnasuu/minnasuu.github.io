@@ -58,3 +58,26 @@ model Craft {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Goal {
+  id                    String   @id @default(uuid())
+  title                 String
+  description           String   @db.Text
+  category              String   // technical, personal, creative, business, health, social
+  priority              String   // high, medium, low
+  status                String   // planning, active, paused, completed, archived
+  progress              Int      @default(0)
+  duration              Int      // 周期天数
+  startDate             String   // YYYY-MM-DD
+  endDate               String   // YYYY-MM-DD
+  actualStartDate       String?  // 实际开始日期
+  pausedAt              String?  // 暂停时间
+  totalPausedDuration   BigInt   @default(0) // 总暂停时长（毫秒）
+  targetSkills          String[]
+  milestones            Json?    // 里程碑数组
+  successCriteria       String[] // 成功标准
+  generatedData         Json?    // 存储 Dify 生成的输入输出数据
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+

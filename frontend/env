@@ -3,6 +3,7 @@
 
 # Dify API Configuration
 DIFY_API_KEY=app-hsdN9lBGRuoyfq50LLYh1k4A
+DIFY_GOAL_API_KEY=app-vIaEPdJZUomOpZKDuVbeIYXQ
 DIFY_API_URL=https://api.dify.ai/v1
 
 # Frontend URL (for CORS)
