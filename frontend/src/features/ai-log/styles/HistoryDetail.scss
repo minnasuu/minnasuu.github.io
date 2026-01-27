@@ -171,6 +171,46 @@
           white-space: pre-wrap;
           word-break: break-word;
         }
+
+        .content-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+
+          .list-item {
+            background: var(--hover-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px 16px;
+
+            h4 {
+              margin: 0 0 8px 0;
+              font-size: 15px;
+              font-weight: 600;
+              color: var(--text-primary);
+            }
+
+            p {
+              margin: 0 0 8px 0;
+              font-size: 13px;
+              color: var(--text-secondary);
+              line-height: 1.6;
+            }
+
+            .item-meta {
+              display: flex;
+              gap: 12px;
+              font-size: 12px;
+              color: var(--text-secondary);
+
+              span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+              }
+            }
+          }
+        }
       }
     }
   }

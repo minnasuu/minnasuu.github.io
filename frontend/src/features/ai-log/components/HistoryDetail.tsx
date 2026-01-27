@@ -27,8 +27,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
       completedAt: '完成时间',
       duration: '持续时间',
       category: '分类',
-      tags: '标签',
-      difficulty: '难度',
       priority: '优先级',
       myInputs: '我的输入',
       aiInputs: 'AI生成的输入',
@@ -38,11 +36,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
       statuses: {
         completed: '已完成',
         cancelled: '已取消'
-      },
-      difficulties: {
-        easy: '简单',
-        medium: '中等',
-        hard: '困难'
       },
       priorities: {
         low: '低',
@@ -62,8 +55,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
       completedAt: 'Completed',
       duration: 'Duration',
       category: 'Category',
-      tags: 'Tags',
-      difficulty: 'Difficulty',
       priority: 'Priority',
       myInputs: 'My Inputs',
       aiInputs: 'AI Generated Inputs',
@@ -73,11 +64,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
       statuses: {
         completed: 'Completed',
         cancelled: 'Cancelled'
-      },
-      difficulties: {
-        easy: 'Easy',
-        medium: 'Medium',
-        hard: 'Hard'
       },
       priorities: {
         low: 'Low',
@@ -167,41 +153,17 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
                 <div className="info-value">{goal.progress || 0}%</div>
               </div>
 
-              {goal.category && (
-                <div className="info-item">
-                  <label>{t.category}</label>
-                  <div className="info-value">{goal.category}</div>
-                </div>
-              )}
+              <div className="info-item">
+                <label>{t.category}</label>
+                <div className="info-value">{goal.category}</div>
+              </div>
 
-              {goal.difficulty && (
-                <div className="info-item">
-                  <label>{t.difficulty}</label>
-                  <div className="info-value">
-                    {t.difficulties[goal.difficulty as keyof typeof t.difficulties]}
-                  </div>
+              <div className="info-item">
+                <label>{t.priority}</label>
+                <div className="info-value">
+                  {t.priorities[goal.priority as keyof typeof t.priorities]}
                 </div>
-              )}
-
-              {goal.priority && (
-                <div className="info-item">
-                  <label>{t.priority}</label>
-                  <div className="info-value">
-                    {t.priorities[goal.priority as keyof typeof t.priorities]}
-                  </div>
-                </div>
-              )}
-
-              {goal.tags && goal.tags.length > 0 && (
-                <div className="info-item full-width">
-                  <label>{t.tags}</label>
-                  <div className="info-value tags">
-                    {goal.tags.map((tag, index) => (
-                      <span key={index} className="tag">{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           </section>
 
@@ -236,42 +198,86 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
           {generatedData && (
             <>
               {/* 输入部分 */}
-              {(generatedData.inputData?.myInputs || generatedData.inputData?.aiInputs) && (
+              {(generatedData.inputData?.myInputs?.length > 0 || generatedData.inputData?.aiInputs?.length > 0) && (
                 <section className="detail-section">
                   <h3>📥 输入</h3>
                   
-                  {generatedData.inputData.myInputs && (
+                  {generatedData.inputData.myInputs && generatedData.inputData.myInputs.length > 0 && (
                     <div className="content-block">
                       <label>{t.myInputs}</label>
-                      <div className="content-text">{generatedData.inputData.myInputs}</div>
+                      <div className="content-list">
+                        {generatedData.inputData.myInputs.map((item, index) => (
+                          <div key={item.id || index} className="list-item">
+                            <h4>{item.title}</h4>
+                            {item.description && <p>{item.description}</p>}
+                            <div className="item-meta">
+                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
+                              {item.difficulty && <span>📊 {item.difficulty}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   
-                  {generatedData.inputData.aiInputs && (
+                  {generatedData.inputData.aiInputs && generatedData.inputData.aiInputs.length > 0 && (
                     <div className="content-block">
                       <label>{t.aiInputs}</label>
-                      <div className="content-text">{generatedData.inputData.aiInputs}</div>
+                      <div className="content-list">
+                        {generatedData.inputData.aiInputs.map((item, index) => (
+                          <div key={item.id || index} className="list-item">
+                            <h4>{item.title}</h4>
+                            {item.description && <p>{item.description}</p>}
+                            <div className="item-meta">
+                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
+                              {item.difficulty && <span>📊 {item.difficulty}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </section>
               )}
 
               {/* 输出部分 */}
-              {(generatedData.outputData?.myOutputs || generatedData.outputData?.aiOutputs) && (
+              {(generatedData.outputData?.myOutputs?.length > 0 || generatedData.outputData?.aiOutputs?.length > 0) && (
                 <section className="detail-section">
                   <h3>📤 输出</h3>
                   
-                  {generatedData.outputData.myOutputs && (
+                  {generatedData.outputData.myOutputs && generatedData.outputData.myOutputs.length > 0 && (
                     <div className="content-block">
                       <label>{t.myOutputs}</label>
-                      <div className="content-text">{generatedData.outputData.myOutputs}</div>
+                      <div className="content-list">
+                        {generatedData.outputData.myOutputs.map((item, index) => (
+                          <div key={item.id || index} className="list-item">
+                            <h4>{item.title}</h4>
+                            {item.description && <p>{item.description}</p>}
+                            <div className="item-meta">
+                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
+                              {item.difficulty && <span>📊 {item.difficulty}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                   
-                  {generatedData.outputData.aiOutputs && (
+                  {generatedData.outputData.aiOutputs && generatedData.outputData.aiOutputs.length > 0 && (
                     <div className="content-block">
                       <label>{t.aiOutputs}</label>
-                      <div className="content-text">{generatedData.outputData.aiOutputs}</div>
+                      <div className="content-list">
+                        {generatedData.outputData.aiOutputs.map((item, index) => (
+                          <div key={item.id || index} className="list-item">
+                            <h4>{item.title}</h4>
+                            {item.description && <p>{item.description}</p>}
+                            <div className="item-meta">
+                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
+                              {item.difficulty && <span>📊 {item.difficulty}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </section>

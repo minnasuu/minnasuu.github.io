@@ -128,6 +128,9 @@ export interface Goal {
   targetSkills: string[]; // 目标要掌握的技能
   milestones: GoalMilestone[]; // 里程碑
   successCriteria: string[]; // 成功标准
+  
+  // Dify 生成的数据
+  generatedData?: any; // JSON 数据，包含输入输出信息
 }
 
 export interface GoalMilestone {
