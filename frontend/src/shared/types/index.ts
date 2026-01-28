@@ -197,6 +197,7 @@ export interface MyToDoListDataType {
   timeSpent?: number; // 分钟
   difficulty: 'easy' | 'medium' | 'hard';
   is_system?: boolean;
+  completed?: boolean; // 是否完成
 }
 
 export interface AIToDoListDataType {
@@ -206,4 +207,5 @@ export interface AIToDoListDataType {
   timeSpent?: number; // 分钟
   difficulty?: 'easy' | 'medium' | 'hard';
   is_system?: boolean;
+  completed?: boolean; // 是否完成
 }

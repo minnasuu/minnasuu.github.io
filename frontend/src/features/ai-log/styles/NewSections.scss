@@ -47,6 +47,21 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
       transform: rotate(180deg);
     }
   }
+  
+  &.completed {
+    opacity: 0.7;
+    background: lighten($color-bg-section, 2%);
+    
+    .input-title,
+    .output-title {
+      text-decoration: line-through;
+      color: $color-text-light;
+    }
+    
+    &:hover {
+      opacity: 0.85;
+    }
+  }
 }
 
 .input-todo-summary,
@@ -80,11 +95,28 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   height: 24px;
   border: 2px solid $color-border;
   border-radius: 4px;
-  background: $color-success;
+  background: white;
   color: white;
   font-size: 0.8rem;
   font-weight: bold;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s $transition-smooth;
+  
+  &:hover {
+    border-color: $color-primary;
+    background: lighten($color-primary, 45%);
+  }
+  
+  &.checked {
+    background: $color-success;
+    border-color: $color-success;
+    
+    &:hover {
+      background: darken($color-success, 5%);
+      border-color: darken($color-success, 5%);
+    }
+  }
   
   &.ai-checkbox {
     background: $color-info;
@@ -94,6 +126,10 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   
   .checkbox-icon {
     line-height: 1;
+    
+    &.ai-icon {
+      font-size: 0.9rem;
+    }
   }
 }
 

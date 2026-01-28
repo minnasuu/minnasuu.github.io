@@ -126,7 +126,8 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
       description: '请输入描述',
       timeSpent: 60,
       difficulty: 'medium',
-      is_system: false
+      is_system: false,
+      completed: false
     };
     const updatedInputs = [...myInputs, newInput];
     setMyInputs(updatedInputs);
@@ -143,12 +144,32 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
       description: '请输入描述',
       timeSpent: 30,
       difficulty: 'medium',
-      is_system: false
+      is_system: false,
+      completed: false
     };
     const updatedInputs = [...aiInputs, newInput];
     setAIInputs(updatedInputs);
     onAIInputsChange?.(updatedInputs);
     setEditingInput(newInput.id); // 立即进入编辑模式
+  };
+
+  // 切换完成状态
+  const handleToggleMyInputCompleted = (id: string) => {
+    if (readonly) return;
+    const updatedInputs = myInputs.map(input => 
+      input.id === id ? { ...input, completed: !input.completed } : input
+    );
+    setMyInputs(updatedInputs);
+    onMyInputsChange?.(updatedInputs);
+  };
+
+  const handleToggleAIInputCompleted = (id: string) => {
+    if (readonly) return;
+    const updatedInputs = aiInputs.map(input => 
+      input.id === id ? { ...input, completed: !input.completed } : input
+    );
+    setAIInputs(updatedInputs);
+    onAIInputsChange?.(updatedInputs);
   };
 
 
@@ -417,11 +438,18 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
               {/* 我的输入列表 - Todo List 折叠展示 */}
               <div className="inputs-todo-list">
                 {myInputs.map((input) => (
-                  <details key={input.id} className={`input-todo-item ${input}`}>
+                  <details key={input.id} className={`input-todo-item ${input.completed ? 'completed' : ''}`}>
                     <summary className="input-todo-summary">
                       <div className="todo-summary-content">
-                        <div className="todo-checkbox">
-                          <span className="checkbox-icon">✓</span>
+                        <div 
+                          className={`todo-checkbox ${input.completed ? 'checked' : ''}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleToggleMyInputCompleted(input.id);
+                          }}
+                        >
+                          {input.completed && <span className="checkbox-icon">✓</span>}
                         </div>
                         <div className="todo-main-info">
                           <h4 className="input-title">{input.title}</h4>
@@ -522,11 +550,18 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
               {/* AI输入列表 - Todo List 折叠展示 */}
               <div className="inputs-todo-list">
                 {aiInputs.map((input) => (
-                  <details key={input.id} className={`input-todo-item ai-input`}>
+                  <details key={input.id} className={`input-todo-item ai-input ${input.completed ? 'completed' : ''}`}>
                     <summary className="input-todo-summary">
                       <div className="todo-summary-content">
-                        <div className="todo-checkbox">
-                          <span className="checkbox-icon">🤖</span>
+                        <div 
+                          className={`todo-checkbox ${input.completed ? 'checked' : ''}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleToggleAIInputCompleted(input.id);
+                          }}
+                        >
+                          {input.completed && <span className="checkbox-icon">✓</span>}
                         </div>
                         <div className="todo-main-info">
                           <h4 className="input-title">{input.title}</h4>
