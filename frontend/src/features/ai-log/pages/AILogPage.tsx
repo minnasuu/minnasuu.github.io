@@ -327,12 +327,22 @@ const AILogPage: React.FC = () => {
           isOpen={!!selectedGoal}
           goal={selectedGoal}
           onClose={() => setSelectedGoal(null)}
-          onUpdate={() => {
+          onUpdate={async () => {
+            // 更新当前选中的目标数据
+            if (selectedGoal) {
+              try {
+                const updatedGoal = await goalService.getGoal(selectedGoal.id);
+                setSelectedGoal(updatedGoal);
+              } catch (error) {
+                console.error('Failed to refresh selected goal:', error);
+              }
+            }
+            
             // 重新加载目标列表
             if (page !== 1) {
               setPage(1);
             } else {
-              loadGoals();
+              await loadGoals();
             }
           }}
         />
