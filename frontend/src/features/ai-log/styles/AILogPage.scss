@@ -56,6 +56,17 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     text-align: center;
     position: relative;
     
+    .header-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      
+      > div {
+        text-align: left;
+      }
+    }
+    
     .ai-log-title {
       font-size: 4rem;
       font-weight: 200;
@@ -68,8 +79,7 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
         content: '';
         position: absolute;
         bottom: -8px;
-        left: 50%;
-        transform: translateX(-50%);
+        left: 0;
         width: 60px;
         height: 1px;
         background: rgba(0,0,0,0.15);
@@ -83,7 +93,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
       letter-spacing: 0.08em;
       font-weight: 400;
       opacity: 0.7;
-      margin-bottom: 3rem;
     }
     
     .period-tabs {
@@ -221,6 +230,119 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
   }
 
+  // 目标列表
+  .goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  // 目标卡片
+  .goal-card {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s $transition-smooth;
+    
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      transform: translateY(-2px);
+    }
+    
+    .goal-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      
+      .goal-card-title {
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin: 0;
+        color: $color-text-main;
+        flex: 1;
+      }
+      
+      .goal-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        white-space: nowrap;
+        
+        &.status-pending {
+          background: rgba(100, 100, 100, 0.1);
+          color: #555;
+        }
+        
+        &.status-active {
+          background: rgba(0, 122, 255, 0.1);
+          color: #007aff;
+        }
+        
+        &.status-paused {
+          background: rgba(255, 149, 0, 0.1);
+          color: #ff9500;
+        }
+        
+        &.status-completed {
+          background: rgba(52, 199, 89, 0.1);
+          color: #34c759;
+        }
+        
+        &.status-cancelled {
+          background: rgba(255, 59, 48, 0.1);
+          color: #ff3b30;
+        }
+      }
+    }
+    
+    .goal-card-description {
+      color: $color-text-sub;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 0 0 1rem 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .goal-card-meta {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      
+      .meta-item {
+        color: $color-text-light;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+    }
+    
+    .goal-card-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  // 加载更多按钮
+  .load-more {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+
   // 响应式设计
   @media (max-width: 768px) {
     .ai-log-container {
@@ -229,6 +351,12 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     
     .ai-log-header {
       padding: 4rem 0 3rem;
+      
+      .header-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+      }
       
       .ai-log-title {
         font-size: 2.5rem;
@@ -243,6 +371,22 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     
     .log-sections {
       gap: 4rem;
+    }
+    
+    .goal-card {
+      .goal-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .goal-card-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      
+      .goal-card-actions {
+        flex-wrap: wrap;
+      }
     }
     
     .overview-stats {
