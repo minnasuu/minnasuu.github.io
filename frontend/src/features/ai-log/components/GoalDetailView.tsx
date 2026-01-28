@@ -1,13 +1,13 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { useLanguage } from '../../../shared/contexts/LanguageContext';
 import { useTheme } from '../../../shared/contexts/ThemeContext';
 import { LandButton } from '@suminhan/land-design';
 import type { Goal } from '../../../shared/types';
 import type { DifyGenerationResult } from '../../../shared/services/difyService';
 import { goalService } from '../../../shared/services/goalService';
-import InputSection, { InputSectionRef } from './InputSection';
-import OutputSection, { OutputSectionRef } from './OutputSection';
-import GoalStatus from './GoalStatus';
+import InputSection, { type InputSectionRef } from './InputSection';
+import OutputSection, { type OutputSectionRef } from './OutputSection';
+import { GoalStatus } from './GoalStatus';
 import '../styles/GoalDetailView.scss';
 
 interface GoalDetailViewProps {
@@ -71,8 +71,8 @@ const GoalDetailView: React.FC<GoalDetailViewProps> = ({ isOpen, goal, onClose, 
           aiInputs: inputData?.aiInputs || []
         },
         outputData: {
-          myOutputs: outputData?.myOutputs || [],
-          aiOutputs: outputData?.aiOutputs || []
+          myOutputs: outputData?.myInputs || [],
+          aiOutputs: outputData?.aiInputs || []
         }
       } : undefined;
 

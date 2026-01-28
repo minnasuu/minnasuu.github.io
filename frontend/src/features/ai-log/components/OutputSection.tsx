@@ -1,5 +1,5 @@
 import React from 'react';
-import InputSection, { InputSectionRef } from './InputSection';
+import InputSection, { type InputSectionRef } from './InputSection';
 import type { AIToDoListDataType, MyToDoListDataType, ThemeStyle } from '../../../shared/types';
 
 interface OutputSectionProps {
