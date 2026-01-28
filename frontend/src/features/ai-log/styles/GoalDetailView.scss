@@ -1,0 +1,103 @@
+// 目标详情视图 - 全屏模式
+.goal-detail-view {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #ffffff;
+  z-index: 1000;
+  overflow-y: auto;
+  animation: slideInRight 0.3s ease-out;
+
+  .detail-view-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    .back-button {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      color: #333;
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+
+  .detail-view-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+
+    .log-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+      margin-top: 2rem;
+    }
+  }
+
+  // Terminal 主题
+  &.terminal {
+    background: #0a0a0a;
+    color: #00ff00;
+
+    .detail-view-header {
+      background: #0a0a0a;
+      border-bottom-color: rgba(0, 255, 0, 0.2);
+
+      .back-button {
+        color: #00ff00;
+
+        &:hover {
+          background: rgba(0, 255, 0, 0.1);
+        }
+      }
+    }
+  }
+
+  // 响应式
+  @media (max-width: 768px) {
+    .detail-view-header {
+      padding: 1rem;
+    }
+
+    .detail-view-container {
+      padding: 1rem;
+
+      .log-sections {
+        gap: 2rem;
+      }
+    }
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

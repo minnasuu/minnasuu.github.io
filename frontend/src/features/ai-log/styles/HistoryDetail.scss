@@ -14,7 +14,7 @@
 }
 
 .history-detail-dialog {
-  background: var(--card-background);
+  background: #fff;
   border-radius: 16px;
   width: 100%;
   max-width: 800px;
@@ -29,7 +29,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 24px 28px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #ededed;
 
     h2 {
       margin: 0;

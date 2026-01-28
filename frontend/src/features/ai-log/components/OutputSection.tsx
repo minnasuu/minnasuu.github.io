@@ -1,5 +1,5 @@
 import React from 'react';
-import InputSection from './InputSection';
+import InputSection, { InputSectionRef } from './InputSection';
 import type { AIToDoListDataType, MyToDoListDataType, ThemeStyle } from '../../../shared/types';
 
 interface OutputSectionProps {
@@ -15,24 +15,30 @@ interface OutputSectionProps {
   readonly?: boolean;
 }
 
-const OutputSection: React.FC<OutputSectionProps> = ({
+// 导出相同的 ref 接口
+export interface OutputSectionRef extends InputSectionRef {}
+
+const OutputSection = React.forwardRef<OutputSectionRef, OutputSectionProps>(({
   goalTitle='输出',
   theme='light',
   initialAIOutputs,
   initialMyOutputs,
   onMyOutputsChange,
   onAIOutputsChange,
-}) => {
+}, ref) => {
   return (
     <InputSection
-    goalTitle={goalTitle}
-    theme={theme}
-    initialAIInputs={initialAIOutputs}
-    initialMyInputs={initialMyOutputs}
-    onAIInputsChange={onAIOutputsChange}
-    onMyInputsChange={onMyOutputsChange}
+      ref={ref}
+      goalTitle={goalTitle}
+      theme={theme}
+      initialAIInputs={initialAIOutputs}
+      initialMyInputs={initialMyOutputs}
+      onAIInputsChange={onAIOutputsChange}
+      onMyInputsChange={onMyOutputsChange}
     />
   );
-};
+});
+
+OutputSection.displayName = 'OutputSection';
 
 export default OutputSection;

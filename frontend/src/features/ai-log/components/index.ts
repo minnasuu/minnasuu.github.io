@@ -7,3 +7,4 @@ export { GoalCreator } from './GoalCreator';
 export { GoalStatus } from './GoalStatus';
 export { default as HistoryList } from './HistoryList';
 export { default as HistoryDetail } from './HistoryDetail';
+export { default as GoalDetailView } from './GoalDetailView';

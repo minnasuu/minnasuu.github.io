@@ -8,7 +8,7 @@ import type { DifyGenerationResult } from '../../../shared/services/difyService'
 import { goalService } from '../../../shared/services/goalService';
 import {
   GoalCreator,
-  HistoryDetail
+  GoalDetailView
 } from '../components';
 import '../styles/AILogPage.scss';
 import '../styles/NewSections.scss';
@@ -30,10 +30,6 @@ const AILogPage: React.FC = () => {
       setIsLoading(true);
       // 获取所有状态的目标,按更新时间倒序（包含 planning 状态）
       const response = await goalService.getGoals('planning,pending,active,paused,completed,cancelled', page, 10);
-      
-      console.log('API Response:', response);
-      console.log('Goals data:', response.goals);
-      console.log('Page:', page, 'Total pages:', response.totalPages);
       
       if (page === 1) {
         setGoals(response.goals);
@@ -190,15 +186,6 @@ const AILogPage: React.FC = () => {
 
   const t = texts[language];
 
-  // 添加调试信息
-  console.log('Current state:', { 
-    isLoading, 
-    page, 
-    totalPages, 
-    goalsLength: goals.length,
-    goals: goals 
-  });
-
   if (isLoading && page === 1) {
     return (
       <div className={`ai-log-page ${currentTheme}`}>
@@ -335,11 +322,19 @@ const AILogPage: React.FC = () => {
           editingGoal={editingGoal}
         />
 
-        {/* 目标详情对话框 */}
-        <HistoryDetail
+        {/* 目标详情视图 - 包含编辑功能 */}
+        <GoalDetailView
           isOpen={!!selectedGoal}
           goal={selectedGoal}
           onClose={() => setSelectedGoal(null)}
+          onUpdate={() => {
+            // 重新加载目标列表
+            if (page !== 1) {
+              setPage(1);
+            } else {
+              loadGoals();
+            }
+          }}
         />
       </div>
     </div>
