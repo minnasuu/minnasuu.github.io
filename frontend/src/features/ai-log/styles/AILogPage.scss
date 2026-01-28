@@ -275,6 +275,11 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
         font-weight: 500;
         white-space: nowrap;
         
+        &.status-planning {
+          background: rgba(142, 142, 147, 0.1);
+          color: #8e8e93;
+        }
+        
         &.status-pending {
           background: rgba(100, 100, 100, 0.1);
           color: #555;

@@ -28,8 +28,8 @@ const AILogPage: React.FC = () => {
   const loadGoals = async () => {
     try {
       setIsLoading(true);
-      // 获取所有状态的目标,按更新时间倒序
-      const response = await goalService.getGoals('pending,active,paused,completed,cancelled', page, 10);
+      // 获取所有状态的目标,按更新时间倒序（包含 planning 状态）
+      const response = await goalService.getGoals('planning,pending,active,paused,completed,cancelled', page, 10);
       
       console.log('API Response:', response);
       console.log('Goals data:', response.goals);
@@ -140,6 +140,7 @@ const AILogPage: React.FC = () => {
   const getStatusInfo = (status: string) => {
     const statusMap = {
       zh: {
+        planning: '规划中',
         pending: '准备中',
         active: '进行中',
         paused: '已暂停',
@@ -147,6 +148,7 @@ const AILogPage: React.FC = () => {
         cancelled: '已取消'
       },
       en: {
+        planning: 'Planning',
         pending: 'Pending',
         active: 'Active',
         paused: 'Paused',
