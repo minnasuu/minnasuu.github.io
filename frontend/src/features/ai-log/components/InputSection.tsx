@@ -21,8 +21,6 @@ export interface InputSectionRef {
     myInputs: MyToDoListDataType[];
     aiInputs: AIToDoListDataType[];
     summary: {
-      totalMyTime: number;
-      totalAITime: number;
       myInputCount: number;
       aiInputCount: number;
       avgDifficulty: number;
@@ -63,7 +61,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
     subtitle: '记录学习过程中的所有输入和投入',
     myInput: '我的输入',
     aiInput: 'AI输入',
-    timeSpent: '投入时间',
     difficulty: '难度',
     easy: '简单',
     medium: '中等',
@@ -124,7 +121,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
       id: `input-${Date.now()}`,
       title: '新输入项',
       description: '请输入描述',
-      timeSpent: 60,
       difficulty: 'medium',
       is_system: false,
       completed: false
@@ -142,7 +138,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
       id: `ai-input-${Date.now()}`,
       title: '新AI输入项',
       description: '请输入描述',
-      timeSpent: 30,
       difficulty: 'medium',
       is_system: false,
       completed: false
@@ -192,21 +187,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
     return colorMap[difficulty] || 'default';
   };
 
-  const formatTime = (minutes: number) => {
-    if (minutes >= 60) {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return remainingMinutes > 0 
-        ? `${hours}${texts.hours} ${remainingMinutes}${texts.minutes}`
-        : `${hours}${texts.hours}`;
-    }
-    return `${minutes}${texts.minutes}`;
-  };
-
   // 统计数据
-  const totalMyTime = myInputs.reduce((sum, input) => sum + (input.timeSpent || 0), 0);
-  const totalAITime = aiInputs.reduce((sum, input) => sum + (input.timeSpent || 0), 0);
-  
   const myInputCount = myInputs.length;
   const aiInputCount = aiInputs.length;
   
@@ -243,14 +224,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
           className="form-textarea"
         />
         <div className="form-row">
-          <input
-            type="number"
-            value={formData.timeSpent || 0}
-            onChange={(e) => setFormData({ ...formData, timeSpent: parseInt(e.target.value) })}
-            placeholder={texts.timeSpent}
-            className="form-input"
-            min="1"
-          />
           <select
             value={formData.difficulty}
             onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as MyToDoListDataType['difficulty'] })}
@@ -296,14 +269,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
           className="form-textarea"
         />
         <div className="form-row">
-          <input
-            type="number"
-            value={formData.timeSpent || 0}
-            onChange={(e) => setFormData({ ...formData, timeSpent: parseInt(e.target.value) })}
-            placeholder={texts.timeSpent}
-            className="form-input"
-            min="1"
-          />
           {formData.difficulty && (
             <select
               value={formData.difficulty}
@@ -322,12 +287,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         </div>
       </form>
     );
-  };
-
-  const getAvgDifficultyLabel = (score: number) => {
-    if (score <= 1.5) return texts.easy;
-    if (score <= 2.5) return texts.medium;
-    return texts.hard;
   };
 
   // 空状态组件
@@ -359,8 +318,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
       myInputs,
       aiInputs,
       summary: {
-        totalMyTime,
-        totalAITime,
         myInputCount,
         aiInputCount,
         avgDifficulty
@@ -381,7 +338,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
     exportData,
     resetToInitialData,
     getCurrentData: () => ({ myInputs, aiInputs })
-  }), [myInputs, aiInputs, totalMyTime, totalAITime, myInputCount, aiInputCount, avgDifficulty]);
+  }), [myInputs, aiInputs, myInputCount, aiInputCount, avgDifficulty]);
 
   return (
     <section className="input-section">
@@ -410,31 +367,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         <div className="my-inputs">
           {myInputs.length > 0 ? (
             <>
-              {/* 统计概览 */}
-              <div className="input-stats">
-                <div className="stat-card">
-                  <div className="stat-icon">⏱️</div>
-                  <div className="stat-content">
-                    <span className="stat-label">{texts.totalTime}</span>
-                    <span className="stat-value">{formatTime(totalMyTime)}</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon">📚</div>
-                  <div className="stat-content">
-                    <span className="stat-label">{texts.inputCount}</span>
-                    <span className="stat-value">{myInputCount}</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon">📊</div>
-                  <div className="stat-content">
-                    <span className="stat-label">{texts.avgDifficulty}</span>
-                    <span className="stat-value">{getAvgDifficultyLabel(avgDifficulty)}</span>
-                  </div>
-                </div>
-              </div>
-
               {/* 我的输入列表 - Todo List 折叠展示 */}
               <div className="inputs-todo-list">
                 {myInputs.map((input) => (
@@ -487,15 +419,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                       ) : (
                         <>
                           <p className="input-description">{input.description}</p>
-
-                          <div className="input-details">
-                            {input.timeSpent && (
-                              <div className="input-time-detail">
-                                <span className="detail-label">{texts.timeSpent}:</span>
-                                <span className="detail-value">{formatTime(input.timeSpent)}</span>
-                              </div>
-                            )}
-                          </div>
                         </>
                       )}
                     </div>
@@ -525,25 +448,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         <div className="ai-inputs">
           {aiInputs.length > 0 ? (
             <>
-              {/* AI输入统计概览 */}
-              <div className="input-stats">
-                <div className="stat-card">
-                  <div className="stat-icon">⏱️</div>
-                  <div className="stat-content">
-                    <span className="stat-label">{texts.totalTime}</span>
-                    <span className="stat-value">{formatTime(totalAITime)}</span>
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon">🤖</div>
-                  <div className="stat-content">
-                    <span className="stat-label">{texts.inputCount}</span>
-                    <span className="stat-value">{aiInputCount}</span>
-                  </div>
-                </div>
-
-              </div>
-
               {/* AI输入列表 - Todo List 折叠展示 */}
               <div className="inputs-todo-list">
                 {aiInputs.map((input) => (
@@ -598,15 +502,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                       ) : (
                         <>
                           <p className="input-description">{input.description}</p>
-
-                          <div className="input-details">
-                            {input.timeSpent && (
-                              <div className="input-time-detail">
-                                <span className="detail-label">{texts.timeSpent}:</span>
-                                <span className="detail-value">{formatTime(input.timeSpent)}</span>
-                              </div>
-                            )}
-                          </div>
                         </>
                       )}
                     </div>
