@@ -457,9 +457,6 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                             <span className={`input-difficulty ${getDifficultyColor(input.difficulty)}`}>
                               {getDifficultyLabel(input.difficulty)}
                             </span>
-                            {input.timeSpent && (
-                              <span className="input-time">{formatTime(input.timeSpent)}</span>
-                            )}
                           </div>
                         </div>
                         {!readonly && (
@@ -571,33 +568,18 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                                 {getDifficultyLabel(input.difficulty)}
                               </span>
                             )}
-                            {input.timeSpent && (
-                              <span className="input-time">{formatTime(input.timeSpent)}</span>
-                            )}
                           </div>
                         </div>
                         {!readonly && (
-                          <div className="todo-actions">
-                            <button 
-                              className="action-btn edit-btn"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                setEditingInput(input.id);
-                              }}
-                              title={texts.edit}
-                            >
-                              <Icon name="edit" />
-                            </button>
-                            <button 
-                              className="action-btn delete-btn"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleDeleteAIInput(input.id);
-                              }}
-                              title={texts.delete}
-                            >
-                              <Icon name="delete" />
-                            </button>
+                          <div className="flex">
+                            <LandButton type='text' icon={ <Icon name="edit" />}  onClick={(e) => {
+                              e.preventDefault();
+                              setEditingInput(input.id);
+                            }}/>
+                            <LandButton type='text' icon={<Icon name="delete" />}  onClick={(e) => {
+                              e.preventDefault();
+                              handleDeleteAIInput(input.id);
+                            }}/>
                           </div>
                         )}
                         <div className="todo-expand-icon">

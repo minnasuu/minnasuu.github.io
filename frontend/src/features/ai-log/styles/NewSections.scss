@@ -93,7 +93,7 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   justify-content: center;
   width: 24px;
   height: 24px;
-  border: 2px solid $color-border;
+  border: 1px solid $color-border;
   border-radius: 4px;
   background: white;
   color: white;
@@ -1337,6 +1337,145 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 }
 
+// 编辑表单样式
+.edit-input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: $color-bg-section;
+  border-radius: 8px;
+  border: 1px solid $color-border-light;
+
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  }
+
+  .form-input,
+  .form-select {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid $color-border;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: $font-primary;
+    color: $color-text-main;
+    background: $color-bg-card;
+    transition: all 0.2s $transition-smooth;
+
+    &:focus {
+      outline: none;
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+    }
+
+    &::placeholder {
+      color: $color-text-light;
+    }
+  }
+
+  .form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid $color-border;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: $font-primary;
+    color: $color-text-main;
+    background: $color-bg-card;
+    min-height: 100px;
+    resize: vertical;
+    transition: all 0.2s $transition-smooth;
+
+    &:focus {
+      outline: none;
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba($color-primary, 0.1);
+    }
+
+    &::placeholder {
+      color: $color-text-light;
+    }
+  }
+
+  .form-select {
+    cursor: pointer;
+    
+    option {
+      padding: 0.5rem;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s $transition-smooth;
+      font-family: $font-primary;
+
+      &.btn-primary {
+        background: $color-primary;
+        color: white;
+
+        &:hover {
+          background: darken($color-primary, 5%);
+          box-shadow: 0 2px 8px rgba($color-primary, 0.3);
+        }
+
+        &:active {
+          transform: translateY(1px);
+        }
+      }
+
+      &.btn-secondary {
+        background: $color-bg-card;
+        color: $color-text-main;
+        border: 1px solid $color-border;
+
+        &:hover {
+          background: $color-bg-section;
+          border-color: $color-text-sub;
+        }
+
+        &:active {
+          transform: translateY(1px);
+        }
+      }
+    }
+  }
+}
+
+// 添加 AI 编辑表单的特殊样式
+.edit-ai-input-form {
+  .form-input,
+  .form-textarea,
+  .form-select {
+    background: lighten($color-info, 50%);
+    border-color: lighten($color-info, 30%);
+
+    &:focus {
+      border-color: $color-info;
+      box-shadow: 0 0 0 3px rgba($color-info, 0.1);
+    }
+  }
+}
+
 // 响应式设计
 @media (max-width: 768px) {
   .section-header .section-title {
@@ -1372,5 +1511,18 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   
   .ai-log-container {
     padding: 0 20px;
+  }
+
+  .edit-input-form {
+    padding: 1rem;
+    
+    .form-actions {
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+
+      .btn {
+        width: 100%;
+      }
+    }
   }
 }
