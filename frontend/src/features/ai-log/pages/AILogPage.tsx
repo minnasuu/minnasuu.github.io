@@ -31,6 +31,10 @@ const AILogPage: React.FC = () => {
       // 获取所有状态的目标,按更新时间倒序
       const response = await goalService.getGoals('pending,active,paused,completed,cancelled', page, 10);
       
+      console.log('API Response:', response);
+      console.log('Goals data:', response.goals);
+      console.log('Page:', page, 'Total pages:', response.totalPages);
+      
       if (page === 1) {
         setGoals(response.goals);
       } else {
@@ -57,9 +61,12 @@ const AILogPage: React.FC = () => {
       
       setShowGoalCreator(false);
       
-      // 重新加载目标列表
-      setPage(1);
-      await loadGoals();
+      // 重置到第一页并重新加载
+      if (page !== 1) {
+        setPage(1); // 这会触发 useEffect 重新加载
+      } else {
+        await loadGoals(); // 如果已经在第一页，直接重新加载
+      }
     } catch (error) {
       console.error('Failed to create goal:', error);
       
@@ -91,7 +98,11 @@ const AILogPage: React.FC = () => {
       setEditingGoal(null);
       
       // 重新加载目标列表
-      await loadGoals();
+      if (page !== 1) {
+        setPage(1); // 这会触发 useEffect 重新加载
+      } else {
+        await loadGoals(); // 如果已经在第一页，直接重新加载
+      }
     } catch (error) {
       console.error('Failed to update goal:', error);
       alert('更新目标失败，请重试');
@@ -176,6 +187,15 @@ const AILogPage: React.FC = () => {
   };
 
   const t = texts[language];
+
+  // 添加调试信息
+  console.log('Current state:', { 
+    isLoading, 
+    page, 
+    totalPages, 
+    goalsLength: goals.length,
+    goals: goals 
+  });
 
   if (isLoading && page === 1) {
     return (
