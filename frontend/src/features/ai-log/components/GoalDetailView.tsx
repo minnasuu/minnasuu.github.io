@@ -200,7 +200,7 @@ const GoalDetailView: React.FC<GoalDetailViewProps> = ({ isOpen, goal, onClose, 
         {/* 目标状态卡片 */}
         <GoalStatus
           goal={goal}
-          onEdit={() => {}} // 这里可以添加编辑基本信息的功能
+          onEdit={undefined}
           onStart={handleStartGoal}
           onComplete={handleCompleteGoal}
           onPause={handlePauseGoal}

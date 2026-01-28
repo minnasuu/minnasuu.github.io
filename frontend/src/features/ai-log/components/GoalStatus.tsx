@@ -4,7 +4,7 @@ import type { Goal } from '../../../shared/types';
 
 interface GoalStatusProps {
   goal: Goal;
-  onEdit: () => void;
+  onEdit?: () => void;
   onStart: () => void;
   onComplete: () => void;
   onPause: () => void;
@@ -155,11 +155,11 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
         </div>
         
         <div className="goal-actions">
-          <LandButton
+         {onEdit&& <LandButton
             text="编辑"
             type="transparent"
             onClick={onEdit}
-          />
+          />}
           {goal.status === 'planning' && (
             <LandButton
               text="开始目标"
