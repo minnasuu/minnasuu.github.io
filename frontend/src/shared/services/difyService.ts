@@ -78,7 +78,6 @@ class DifyService {
             id: `input-${Date.now()}-1`,
             title: '收集相关资料',
             description: `针对"${goal}"收集相关的学习资料和案例`,
-            timeSpent: 60,
             difficulty: 'medium' as const,
             is_system: false
           },
@@ -86,7 +85,6 @@ class DifyService {
             id: `input-${Date.now()}-2`,
             title: '制定学习计划',
             description: '根据目标制定详细的学习计划和时间安排',
-            timeSpent: 30,
             difficulty: 'easy' as const,
             is_system: false
           }
@@ -96,7 +94,6 @@ class DifyService {
             id: `ai-input-${Date.now()}-1`,
             title: 'AI辅助资料整理',
             description: '使用AI工具整理和分类收集到的学习资料',
-            timeSpent: 20,
             difficulty: 'easy' as const,
             is_system: false
           }
@@ -108,7 +105,6 @@ class DifyService {
             id: `output-${Date.now()}-1`,
             title: '完成学习总结',
             description: `针对"${goal}"撰写学习总结和心得体会`,
-            timeSpent: 45,
             difficulty: 'medium' as const,
             is_system: false
           },
@@ -116,7 +112,6 @@ class DifyService {
             id: `output-${Date.now()}-2`,
             title: '实践应用',
             description: '将学到的知识应用到实际项目中',
-            timeSpent: 120,
             difficulty: 'hard' as const,
             is_system: false
           }
@@ -126,7 +121,6 @@ class DifyService {
             id: `ai-output-${Date.now()}-1`,
             title: 'AI生成学习报告',
             description: '基于学习过程自动生成详细的学习报告',
-            timeSpent: 10,
             difficulty: 'easy' as const,
             is_system: false
           }
