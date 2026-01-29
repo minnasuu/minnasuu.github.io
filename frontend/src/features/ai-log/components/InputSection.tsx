@@ -226,15 +226,19 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
           className="form-textarea"
         />
         <div className="form-row">
-          <select
-            value={formData.difficulty}
-            onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as MyToDoListDataType['difficulty'] })}
-            className="form-select"
-          >
-            <option value="easy">{texts.easy}</option>
-            <option value="medium">{texts.medium}</option>
-            <option value="hard">{texts.hard}</option>
-          </select>
+          <LandSelect
+            selected={formData.difficulty}
+            data={[
+              { label: '简单', key: 'easy' },
+              { label: '中等', key: 'medium' },
+              { label: '困难', key: 'hard' },
+            ]}
+            onChange={item => {
+              if (item.key !== undefined && (item.key === 'easy' || item.key === 'medium' || item.key === 'hard')) {
+                setFormData({ ...formData, difficulty: item.key });
+              }
+            }}
+            />
         </div>
         <div className="form-actions">
           <LandButton type='background' status='default'>{texts.save}</LandButton>
@@ -343,13 +347,17 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         <div className="form-row">
           {formData.difficulty && (
             <LandSelect
-            selectedValues={[formData.difficulty]}
+            selected={formData.difficulty}
             data={[
               { label: '简单', key: 'easy' },
               { label: '中等', key: 'medium' },
               { label: '困难', key: 'hard' },
             ]}
-            onChange={item => setFormData({ ...formData, difficulty: item.key as AIToDoListDataType['difficulty'] })}
+            onChange={item => {
+              if (item.key !== undefined && (item.key === 'easy' || item.key === 'medium' || item.key === 'hard')) {
+                setFormData({ ...formData, difficulty: item.key });
+              }
+            }}
             />
           )}
         </div>
@@ -573,7 +581,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                         />
                       ) : (
                         <>
-                          <div className="input-description markdown-content">
+                          <div className="input-description markdown-content max-h-100 overflow-y-auto">
                             <ReactMarkdown 
                               remarkPlugins={[remarkGfm]}
                               components={{
