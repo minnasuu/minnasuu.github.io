@@ -581,7 +581,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                         />
                       ) : (
                         <>
-                          <div className="input-description markdown-content max-h-100 overflow-y-auto">
+                          <div className="input-description markdown-content">
                             <ReactMarkdown 
                               remarkPlugins={[remarkGfm]}
                               components={{
