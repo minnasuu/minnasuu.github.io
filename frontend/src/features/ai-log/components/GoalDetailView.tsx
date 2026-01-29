@@ -211,7 +211,7 @@ const GoalDetailView: React.FC<GoalDetailViewProps> = ({ isOpen, goal, onClose, 
         <div className="log-sections">
           <InputSection
             ref={inputSectionRef}
-            goalTitle={goal.title}
+            goalTitle='输入'
             theme={currentTheme}
             initialMyInputs={generatedData?.inputData?.myInputs}
             initialAIInputs={generatedData?.inputData?.aiInputs}
@@ -219,7 +219,7 @@ const GoalDetailView: React.FC<GoalDetailViewProps> = ({ isOpen, goal, onClose, 
           
           <OutputSection
             ref={outputSectionRef}
-            goalTitle={goal.title}
+            goalTitle='输出'
             theme={currentTheme}
             initialMyOutputs={generatedData?.outputData?.myOutputs}
             initialAIOutputs={generatedData?.outputData?.aiOutputs}
