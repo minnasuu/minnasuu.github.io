@@ -1,6 +1,10 @@
-import { Icon, LandButton } from '@suminhan/land-design';
+import { Icon, LandButton, LandSelect } from '@suminhan/land-design';
 import React, { useState, useRef, useEffect } from 'react';
 import type { MyToDoListDataType, AIToDoListDataType } from '../../../shared/types';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface InputSectionProps {
   goalTitle: string;
@@ -313,7 +317,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         />
         
         {/* Prompt 编辑区域 */}
-        <div className="form-row">
+        <div className="form-row flex-col gap-1!">
           <label className="form-label">Prompt（用于AI生成）</label>
           <textarea
             value={formData.prompt || ''}
@@ -330,7 +334,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
             <LandButton
               onClick={handleGenerate}
               disabled={isGenerating}
-              icon={<Icon name={isGenerating ? 'loading' : 'magic'} />}
+              icon={<Icon name='cursor-move-fill' />}
               text={isGenerating ? '生成中...' : '生成内容'}
             />
           </div>
@@ -338,19 +342,18 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
 
         <div className="form-row">
           {formData.difficulty && (
-            <select
-              value={formData.difficulty}
-              onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as AIToDoListDataType['difficulty'] })}
-              className="form-select"
-            >
-              <option value="easy">{texts.easy}</option>
-              <option value="medium">{texts.medium}</option>
-              <option value="hard">{texts.hard}</option>
-            </select>
+            <LandSelect
+            data={[
+              { label: '简单', key: 'easy' },
+              { label: '中等', key: 'medium' },
+              { label: '困难', key: 'hard' },
+            ]}
+            onChange={item => setFormData({ ...formData, difficulty: item.key as AIToDoListDataType['difficulty'] })}
+            />
           )}
         </div>
         <div className="form-actions">
-          <button type="submit" className="btn btn-primary">{texts.save}</button>
+          <LandButton type='background' status='default'>{texts.save}</LandButton>
           <button type="button" onClick={onCancel} className="btn btn-secondary">{texts.cancel}</button>
         </div>
       </form>
@@ -569,7 +572,32 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                         />
                       ) : (
                         <>
-                          <p className="input-description">{input.description}</p>
+                          <div className="input-description markdown-content">
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                code({ node, inline, className, children, ...props }: any) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  return !inline && match ? (
+                                    <SyntaxHighlighter
+                                      style={oneDark}
+                                      language={match[1]}
+                                      PreTag="div"
+                                      {...props}
+                                    >
+                                      {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                  ) : (
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                },
+                              }}
+                            >
+                              {input.description || ''}
+                            </ReactMarkdown>
+                          </div>
                           {input.prompt && (
                             <div className='prompt-section mt-3'>
                               <div className='prompt-label text-xs font-semibold text-gray-500 mb-1'>
