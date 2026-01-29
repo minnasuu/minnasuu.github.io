@@ -211,7 +211,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
                             <h4>{item.title}</h4>
                             {item.description && <p>{item.description}</p>}
                             <div className="item-meta">
-                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
                               {item.difficulty && <span>📊 {item.difficulty}</span>}
                             </div>
                           </div>
@@ -229,7 +228,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
                             <h4>{item.title}</h4>
                             {item.description && <p>{item.description}</p>}
                             <div className="item-meta">
-                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
                               {item.difficulty && <span>📊 {item.difficulty}</span>}
                             </div>
                           </div>
@@ -254,7 +252,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
                             <h4>{item.title}</h4>
                             {item.description && <p>{item.description}</p>}
                             <div className="item-meta">
-                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
                               {item.difficulty && <span>📊 {item.difficulty}</span>}
                             </div>
                           </div>
@@ -272,7 +269,6 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
                             <h4>{item.title}</h4>
                             {item.description && <p>{item.description}</p>}
                             <div className="item-meta">
-                              {item.timeSpent && <span>⏱️ {item.timeSpent}分钟</span>}
                               {item.difficulty && <span>📊 {item.difficulty}</span>}
                             </div>
                           </div>

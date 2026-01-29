@@ -31,6 +31,7 @@ export interface InputSectionRef {
 }
 
 const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
+  goalTitle='输入',
   initialMyInputs = [],
   initialAIInputs = [],
   onMyInputsChange,
@@ -57,29 +58,26 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
 
 
   const texts = {
-    title: '输入',
-    subtitle: '记录学习过程中的所有输入和投入',
-    myInput: '我的输入',
-    aiInput: 'AI输入',
+    title: goalTitle,
+    subtitle: goalTitle=== '输入' ?'记录学习过程中的所有输入和投入':'记录学习过程中的所有输出',
+    myInput: `我的${goalTitle}`,
+    aiInput: `AI${goalTitle}`,
     difficulty: '难度',
     easy: '简单',
     medium: '中等',
     hard: '困难',
     minutes: '分钟',
     hours: '小时',
-    totalTime: '总投入时间',
-    inputCount: '输入数量',
-    avgDifficulty: '平均难度',
-    addInput: '添加输入',
+    addInput: `添加${goalTitle}`,
     edit: '编辑',
     delete: '删除',
     save: '保存',
     cancel: '取消',
     title_placeholder: '请输入标题',
     description_placeholder: '请输入描述',
-    empty_my_inputs: '暂无学习输入记录',
+    empty_my_inputs: `暂无${goalTitle}记录`,
     empty_my_inputs_desc: '开始记录你的学习资源、实践练习和研究成果',
-    empty_ai_inputs: '暂无AI输入记录',
+    empty_ai_inputs: `暂无AI${goalTitle}记录`,
     empty_ai_inputs_desc: '记录AI提供的分析、建议和指导内容'
   };
 
@@ -244,10 +242,55 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
 
   const EditAIInputForm: React.FC<{ input: AIToDoListDataType; onSave: (input: Partial<AIToDoListDataType>) => void; onCancel: () => void }> = ({ input, onSave, onCancel }) => {
     const [formData, setFormData] = useState(input);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       onSave(formData);
+    };
+
+    // 调用后端生成AI结果
+    const handleGenerate = async () => {
+      if (!formData.prompt) {
+        alert('请先输入 prompt');
+        return;
+      }
+
+      setIsGenerating(true);
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: formData.prompt,
+            conversation_id: null, // 可以传入会话ID保持上下文
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('生成失败');
+        }
+
+        const data = await response.json();
+        
+        // 将生成的结果更新到 description
+        const updatedFormData = {
+          ...formData,
+          description: data.answer,
+        };
+        setFormData(updatedFormData);
+        
+        // 自动保存更新后的数据
+        onSave(updatedFormData);
+        
+      } catch (error) {
+        console.error('生成失败:', error);
+        alert('生成失败，请稍后重试');
+      } finally {
+        setIsGenerating(false);
+      }
     };
 
     return (
@@ -268,6 +311,31 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
           placeholder={texts.description_placeholder}
           className="form-textarea"
         />
+        
+        {/* Prompt 编辑区域 */}
+        <div className="form-row">
+          <label className="form-label">Prompt（用于AI生成）</label>
+          <textarea
+            value={formData.prompt || ''}
+            onChange={(e) => setFormData({ ...formData, prompt: e.target.value })}
+            placeholder="输入生成指令..."
+            className="form-textarea"
+            rows={3}
+          />
+        </div>
+
+        {/* 生成按钮 */}
+        {formData.prompt && (
+          <div className="form-row generate-button-row">
+            <LandButton
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              icon={<Icon name={isGenerating ? 'loading' : 'magic'} />}
+              text={isGenerating ? '生成中...' : '生成内容'}
+            />
+          </div>
+        )}
+
         <div className="form-row">
           {formData.difficulty && (
             <select
@@ -502,6 +570,16 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                       ) : (
                         <>
                           <p className="input-description">{input.description}</p>
+                          {input.prompt && (
+                            <div className='prompt-section mt-3'>
+                              <div className='prompt-label text-xs font-semibold text-gray-500 mb-1'>
+                                生成指令:
+                              </div>
+                              <div className='prompt-content p-2 bg-gray-50 rounded max-h-32 overflow-auto'>
+                                <p className="text-xs text-gray-600 whitespace-pre-wrap">{input.prompt}</p>
+                              </div>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>

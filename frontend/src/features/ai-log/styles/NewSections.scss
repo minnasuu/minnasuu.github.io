@@ -185,6 +185,54 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     line-height: 1.5;
   }
   
+  .prompt-section {
+    margin-top: 1rem;
+    
+    .prompt-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $color-text-light;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .prompt-content {
+      padding: 0.75rem;
+      background: lighten($color-bg-section, 2%);
+      border-radius: 6px;
+      border: 1px solid $color-border-light;
+      max-height: 8rem;
+      overflow-y: auto;
+      
+      p {
+        font-size: 0.8125rem;
+        color: $color-text-sub;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+      }
+      
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+        
+        &:hover {
+          background: rgba(0, 0, 0, 0.3);
+        }
+      }
+    }
+  }
+  
   .output-content {
     color: $color-text-sub;
     font-size: 0.9rem;
@@ -1352,6 +1400,27 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     display: flex;
     gap: 1rem;
     
+    &.generate-button-row {
+      margin-top: 0.5rem;
+      justify-content: flex-start;
+      
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        
+        &:hover:not(:disabled) {
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+          transform: translateY(-1px);
+        }
+        
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+      }
+    }
+    
     @media (max-width: 768px) {
       flex-direction: column;
       gap: 0.75rem;
@@ -1379,6 +1448,14 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     &::placeholder {
       color: $color-text-light;
     }
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $color-text-sub;
+    margin-bottom: 0.5rem;
   }
 
   .form-textarea {

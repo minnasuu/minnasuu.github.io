@@ -194,9 +194,9 @@ export interface MyToDoListDataType {
   id: string;
   title: string;
   description?: string;
-  timeSpent?: number; // 分钟
   difficulty: 'easy' | 'medium' | 'hard';
   is_system?: boolean;
+  prompt?: string;
   completed?: boolean; // 是否完成
 }
 
@@ -204,8 +204,8 @@ export interface AIToDoListDataType {
   id: string;
   title: string;
   description?: string;
-  timeSpent?: number; // 分钟
   difficulty?: 'easy' | 'medium' | 'hard';
   is_system?: boolean;
+  prompt?: string;
   completed?: boolean; // 是否完成
 }
