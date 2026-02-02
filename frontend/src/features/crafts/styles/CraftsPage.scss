@@ -445,6 +445,16 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     transition: transform 0.5s ease;
   }
   
+  // iframe 样式（作为 coverImage 的兜底方案）
+  iframe, .node-inner-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 24px;
+    object-fit: cover;
+    pointer-events: none; // 防止在节点上拖拽时触发 iframe 交互
+  }
+  
   .craft-node:hover {
     transform: scale(1.05);
   }
@@ -637,6 +647,14 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     img {
       width: 100%;
       height: 100%;
+      object-fit: cover;
+    }
+
+    // iframe 样式（作为 coverImage 的兜底方案）
+    iframe, .panel-image-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
       object-fit: cover;
     }
 
@@ -1408,7 +1426,18 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       transition: transform 0.5s ease;
     }
     
-    &:hover img {
+    // iframe 样式（作为 coverImage 的兜底方案）
+    iframe, .grid-card-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      object-fit: cover;
+      pointer-events: none; // 防止在卡片上拖拽时触发 iframe 交互
+      transition: transform 0.5s ease;
+    }
+    
+    &:hover img,
+    &:hover iframe {
       transform: scale(1.05);
     }
     

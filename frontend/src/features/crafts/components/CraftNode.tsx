@@ -122,9 +122,15 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
       onMouseLeave={onMouseLeave}
     >
       <div className="node-inner">
-        {craft.coverImage && (
+        {craft.coverImage ? (
           <img src={craft.coverImage} alt={craft.name} />
-        )}
+        ) : craft.demoUrl ? (
+          <iframe 
+            src={craft.demoUrl} 
+            title={craft.name}
+            className="node-inner-iframe"
+          />
+        ) : null}
         <div className="node-overlay">
           <span className="node-category">
             {categoryLabels[craft.category][language]}

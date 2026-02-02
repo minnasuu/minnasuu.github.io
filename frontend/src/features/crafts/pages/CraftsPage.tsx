@@ -1239,9 +1239,15 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   onClick={() => handleNodeClick(craft.id)}
                 >
                   <div className="grid-card-image">
-                    {craft.coverImage && (
+                    {craft.coverImage ? (
                       <img src={craft.coverImage} alt={craft.name} />
-                    )}
+                    ) : craft.demoUrl ? (
+                      <iframe 
+                        src={craft.demoUrl} 
+                        title={craft.name}
+                        className="grid-card-iframe"
+                      />
+                    ) : null}
                     {craft.featured && (
                       <div className="featured-badge">
                         {language === "zh" ? "精选" : "Featured"}
@@ -1508,9 +1514,15 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             /* 查看模式：只读详情 */
             <>
               <div className="panel-image">
-                {activeCraft.coverImage && (
+                {activeCraft.coverImage ? (
                   <img src={activeCraft.coverImage} alt={activeCraft.name} />
-                )}
+                ) : activeCraft.demoUrl ? (
+                  <iframe 
+                    src={activeCraft.demoUrl} 
+                    title={activeCraft.name}
+                    className="panel-image-iframe"
+                  />
+                ) : null}
                 {activeCraft.featured && (
                   <span className="featured-badge">
                     <Icon name="star" size={14} />
@@ -1647,9 +1659,15 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             <div className="source-node-wrapper">
               <div className={`source-node weight-${Math.min(5, Math.max(1, Math.ceil((addNodeState.sourceCraft.weight || 1) * 1.5)))}`}>
                 <div className="node-inner">
-                  {addNodeState.sourceCraft.coverImage && (
+                  {addNodeState.sourceCraft.coverImage ? (
                     <img src={addNodeState.sourceCraft.coverImage} alt={addNodeState.sourceCraft.name} />
-                  )}
+                  ) : addNodeState.sourceCraft.demoUrl ? (
+                    <iframe 
+                      src={addNodeState.sourceCraft.demoUrl} 
+                      title={addNodeState.sourceCraft.name}
+                      className="node-inner-iframe"
+                    />
+                  ) : null}
                   <div className="node-overlay">
                     <span className="node-category">
                       {categoryLabels[addNodeState.sourceCraft.category][language]}

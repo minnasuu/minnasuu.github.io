@@ -10,9 +10,9 @@ import {
 } from "../features/articles";
 import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
-import { DotsOverlay } from '../features/crafts/nodes/DotsOverlay';
 import { AILogPage } from '../features/ai-log';
 import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
+import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
 
 // 滚动重置组件
 const ScrollToTop: React.FC = () => {
@@ -52,7 +52,7 @@ const AppRouter: React.FC = () => {
             <Route path="/ai-log" element={<AILogPage />} />
             
             {/* CRAFTS DEMO */}
-            <Route path="/crafts/demo/dots-overlay" element={<DotsOverlay/>}/>
+            <Route path="/crafts/demo/dots-overlay" element={<DotsOverlayDemo/>}/>
 
             {/* ARTICLES DEMO */}
             <Route path='/articles/demo/AgentScrollLayout/:type' element={<AgentScrollLayout/>}/>
