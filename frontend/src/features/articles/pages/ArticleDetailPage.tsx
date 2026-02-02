@@ -293,8 +293,8 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
             right: "40px",
             borderRadius: "50%",
             zIndex: 1000,
-            opacity: showBackToTop && !isSliderView ? 1 : 0,
-            pointerEvents: showBackToTop && !isSliderView ? "auto" : "none",
+            opacity: (showBackToTop && !isSliderView) ? 1 : 0,
+            pointerEvents: (showBackToTop && !isSliderView) ? "auto" : "none",
             transition: "all 0.3s ease",
           }}
         icon={<Icon name='arrow-line' style={{transform: 'rotate(180deg)'}}/>}
