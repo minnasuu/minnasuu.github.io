@@ -1042,10 +1042,10 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
         try {
           if (change.id && change.data) {
             const updatedCraft = await updateCraft(change.id, {
-              name: change.data.name,
-              description: change.data.description,
-              category: change.data.category,
-              technologies: change.data.technologies,
+              name: change.data.name!,
+              description: change.data.description!,
+              category: change.data.category!,
+              technologies: change.data.technologies!,
               featured: change.data.featured,
               weight: change.data.weight,
               coverImage: change.data.coverImage,
@@ -1340,8 +1340,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             type="background" 
             status="primary"
             icon={<Icon name="file" />}
-            text={isSaving ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? "保存" : "Save")}
-            title={language === "zh" ? `保存所有变更 (${pendingChanges.length} 项)` : `Save all changes (${pendingChanges.length} items)`}
+            text={isSaving ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? `保存 (${pendingChanges.length})` : `Save (${pendingChanges.length})`)}
             onClick={handleSaveAllChanges}
             disabled={isSaving || pendingChanges.length === 0}
           />
@@ -1350,7 +1349,6 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               type="fill"
               status="default"
               text={language === "zh" ? "撤销" : "Discard"}
-              title={language === "zh" ? `撤销所有变更 (${pendingChanges.length} 项)` : `Discard all changes (${pendingChanges.length} items)`}
               onClick={handleDiscardChanges}
               disabled={isSaving}
             />
