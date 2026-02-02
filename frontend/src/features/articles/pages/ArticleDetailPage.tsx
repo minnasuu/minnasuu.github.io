@@ -8,6 +8,7 @@ import "../styles/ArticleDetailPage.scss";
 import LineAnchor from "../components/LineAnchor/LineAnchor";
 import ArticleSliders from "../components/ArticleSliders/ArticleSliders";
 import BackButton from "../../../shared/components/BackButton";
+import { Icon, LandButton } from '@suminhan/land-design';
 
 interface ArticleDetailPageProps {
   article?: Article; // 可选的 props，如果没有传入则从 API 获取
@@ -71,10 +72,34 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
     window.scrollTo(0, 0);
   }, [id]);
 
+  // 监听滚动，显示/隐藏返回顶部按钮
+  useEffect(() => {
+    const pageContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
+    if (!pageContainer) return;
+
+    const handleScroll = () => {
+      const scrollTop = pageContainer.scrollTop;
+      const viewportHeight = window.innerHeight;
+      setShowBackToTop(scrollTop > viewportHeight);
+    };
+
+    pageContainer.addEventListener('scroll', handleScroll);
+    return () => pageContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 返回顶部函数
+  const scrollToTop = () => {
+    const pageContainer = document.querySelector('.article-detail-page') as HTMLDivElement;
+    if (pageContainer) {
+      pageContainer.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const [articleAnchors, setArticleAnchors] = useState<
     { key: string; title: string }[]
   >([]);
   const [isSliderView, setIsSliderView] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
   // 提取标题生成目录
@@ -257,6 +282,23 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 返回顶部按钮 */}
+      {showBackToTop && !isSliderView && (
+        <LandButton
+        type='outline'
+        style={{
+            position: "fixed",
+            bottom: "40px",
+            right: "40px",
+            borderRadius: "50%",
+            zIndex: 1000,
+            transition: "all 0.3s ease",
+          }}
+        icon={<Icon name='arrow-line' style={{transform: 'rotate(180deg)'}}/>}
+        onClick={scrollToTop}
+        />
       )}
     </div>
   );
