@@ -868,6 +868,58 @@
         background: rgba(0, 0, 0, 0.8);
       }
     }
+
+    // 待删除状态
+    &.pending-delete {
+      background: rgba(220, 38, 38, 0.05);
+      border: 2px dashed rgba(220, 38, 38, 0.3);
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .pending-delete-overlay {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        color: #dc2626;
+        
+        svg {
+          opacity: 0.4;
+        }
+
+        span {
+          font-size: 0.9rem;
+          font-weight: 500;
+        }
+      }
+
+      .cover-restore-btn {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+
+        svg {
+          opacity: 1;
+        }
+
+        &:hover {
+          background: #b91c1c;
+        }
+      }
+    }
   }
 }
 
@@ -1080,5 +1132,33 @@
     .delete-icon {
       background: rgba(220, 38, 38, 0.2);
     }
+  }
+}
+
+// 未保存变更提示标记
+.unsaved-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  color: #d97706;
+  margin-top: 12px;
+  animation: pulse 2s ease-in-out infinite;
+
+  .land-icon {
+    color: #d97706;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }

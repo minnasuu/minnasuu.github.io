@@ -19,6 +19,13 @@ interface AddNodeState {
 // 独立新建节点模式（无源节点）
 type CreateNodeMode = 'standalone' | null;
 
+// 临时变更类型
+interface PendingChange {
+  type: 'create' | 'update' | 'delete';
+  id?: string; // 对于 update 和 delete，需要 id；create 时为临时 id
+  data?: Partial<Craft>; // 对于 create 和 update，包含数据
+}
+
 // 关系类型标签
 const relationLabels: Record<string, { zh: string; en: string; color: string }> = {
   extends: { zh: "扩展自", en: "Extends", color: "#8ca9ff" },    // Bright Indigo
@@ -244,6 +251,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     demoUrl: '',
     useCase: '',
   });
+  // 临时变更队列（仅编辑模式）
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
@@ -598,31 +608,65 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     
     setIsCreating(true);
     try {
-      // 创建新节点
-      const newCraft = await createCraft({
-        name: newNodeForm.name,
-        description: newNodeForm.description,
-        category: newNodeForm.category,
-        technologies: newNodeForm.technologies,
-        featured: newNodeForm.featured,
-        weight: newNodeForm.weight,
-        coverImage: newNodeForm.coverImage || undefined,
-        demoUrl: newNodeForm.demoUrl || undefined,
-        useCase: newNodeForm.useCase || undefined,
-        // 基于节点模式时添加关系，独立模式时无关系
-        relations: addNodeState ? [{
-          targetId: addNodeState.sourceId,
-          type: 'relatedTo'
-        }] : []
-      });
-      
-      // 更新本地状态
-      setCrafts(prev => [...prev, newCraft]);
-      
-      alert(language === 'zh' 
-        ? `节点 "${newNodeForm.name}" 已创建成功！`
-        : `Node "${newNodeForm.name}" created successfully!`
-      );
+      if (editorMode) {
+        // 编辑模式：添加到临时变更队列
+        const tempId = `temp-${Date.now()}`;
+        const newCraftData: Partial<Craft> = {
+          id: tempId,
+          name: newNodeForm.name,
+          description: newNodeForm.description,
+          category: newNodeForm.category,
+          technologies: newNodeForm.technologies,
+          featured: newNodeForm.featured,
+          weight: newNodeForm.weight,
+          coverImage: newNodeForm.coverImage || undefined,
+          demoUrl: newNodeForm.demoUrl || undefined,
+          useCase: newNodeForm.useCase || undefined,
+          relations: addNodeState ? [{
+            targetId: addNodeState.sourceId,
+            type: 'relatedTo'
+          }] : []
+        };
+        
+        // 添加到临时变更队列
+        setPendingChanges(prev => [...prev, {
+          type: 'create',
+          id: tempId,
+          data: newCraftData
+        }]);
+        
+        // 临时添加到界面
+        setCrafts(prev => [...prev, newCraftData as Craft]);
+        
+        alert(language === 'zh' 
+          ? `节点 "${newNodeForm.name}" 已临时创建，请点击保存按钮同步到数据库`
+          : `Node "${newNodeForm.name}" created temporarily, click Save to sync to database`
+        );
+      } else {
+        // 非编辑模式：直接创建
+        const newCraft = await createCraft({
+          name: newNodeForm.name,
+          description: newNodeForm.description,
+          category: newNodeForm.category,
+          technologies: newNodeForm.technologies,
+          featured: newNodeForm.featured,
+          weight: newNodeForm.weight,
+          coverImage: newNodeForm.coverImage || undefined,
+          demoUrl: newNodeForm.demoUrl || undefined,
+          useCase: newNodeForm.useCase || undefined,
+          relations: addNodeState ? [{
+            targetId: addNodeState.sourceId,
+            type: 'relatedTo'
+          }] : []
+        });
+        
+        setCrafts(prev => [...prev, newCraft]);
+        
+        alert(language === 'zh' 
+          ? `节点 "${newNodeForm.name}" 已创建成功！`
+          : `Node "${newNodeForm.name}" created successfully!`
+        );
+      }
       
       handleCancelAddNode();
     } catch (error) {
@@ -652,20 +696,42 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     
     setIsDeleting(true);
     try {
-      await deleteCraft(deleteConfirm.id);
-      
-      // 更新本地状态
-      setCrafts(prev => prev.filter(c => c.id !== deleteConfirm.id));
-      
-      // 如果删除的是当前选中的节点，清除选中状态
-      if (activeId === deleteConfirm.id) {
-        setActiveId(null);
+      if (editorMode) {
+        // 编辑模式：添加到临时变更队列
+        setPendingChanges(prev => [...prev, {
+          type: 'delete',
+          id: deleteConfirm.id
+        }]);
+        
+        // 临时从界面移除
+        setCrafts(prev => prev.filter(c => c.id !== deleteConfirm.id));
+        
+        // 如果删除的是当前选中的节点，清除选中状态
+        if (activeId === deleteConfirm.id) {
+          setActiveId(null);
+        }
+        
+        alert(language === 'zh' 
+          ? `节点 "${deleteConfirm.name}" 已标记为删除，请点击保存按钮同步到数据库`
+          : `Node "${deleteConfirm.name}" marked for deletion, click Save to sync to database`
+        );
+      } else {
+        // 非编辑模式：直接删除
+        await deleteCraft(deleteConfirm.id);
+        
+        // 更新本地状态
+        setCrafts(prev => prev.filter(c => c.id !== deleteConfirm.id));
+        
+        // 如果删除的是当前选中的节点，清除选中状态
+        if (activeId === deleteConfirm.id) {
+          setActiveId(null);
+        }
+        
+        alert(language === 'zh' 
+          ? `节点 "${deleteConfirm.name}" 已删除`
+          : `Node "${deleteConfirm.name}" deleted`
+        );
       }
-      
-      alert(language === 'zh' 
-        ? `节点 "${deleteConfirm.name}" 已删除`
-        : `Node "${deleteConfirm.name}" deleted`
-      );
       
       setDeleteConfirm(null);
     } catch (error) {
@@ -810,9 +876,15 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     }
   };
 
-  // 编辑模式：移除封面图片
+  // 编辑模式：移除封面图片（标记为待删除）
   const handleEditRemoveCover = () => {
-    setEditNodeForm(prev => prev ? ({ ...prev, coverImage: '' }) : null);
+    if (!editNodeForm) return;
+    
+    // 在编辑模式下，标记封面图片为待删除（使用特殊标记）
+    setEditNodeForm(prev => prev ? ({ 
+      ...prev, 
+      coverImage: '__PENDING_DELETE__' 
+    }) : null);
   };
 
   // 编辑模式：保存更新
@@ -825,25 +897,82 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
     setIsUpdating(true);
     try {
-      const updatedCraft = await updateCraft(activeId, {
-        name: editNodeForm.name,
-        description: editNodeForm.description,
-        category: editNodeForm.category,
-        technologies: editNodeForm.technologies,
-        featured: editNodeForm.featured,
-        weight: editNodeForm.weight,
-        coverImage: editNodeForm.coverImage || undefined,
-        demoUrl: editNodeForm.demoUrl || undefined,
-        useCase: editNodeForm.useCase || undefined,
-      });
+      if (editorMode) {
+        // 编辑模式：添加到临时变更队列
+        // 处理封面图片删除标记
+        const coverImage = editNodeForm.coverImage === '__PENDING_DELETE__' 
+          ? undefined 
+          : editNodeForm.coverImage || undefined;
+        
+        const updateData = {
+          name: editNodeForm.name,
+          description: editNodeForm.description,
+          category: editNodeForm.category,
+          technologies: editNodeForm.technologies,
+          featured: editNodeForm.featured,
+          weight: editNodeForm.weight,
+          coverImage,
+          demoUrl: editNodeForm.demoUrl || undefined,
+          useCase: editNodeForm.useCase || undefined,
+        };
+        
+        // 检查是否已在临时变更队列中
+        const existingIndex = pendingChanges.findIndex(
+          change => change.type === 'update' && change.id === activeId
+        );
+        
+        if (existingIndex >= 0) {
+          // 更新现有的变更
+          setPendingChanges(prev => {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              data: { ...updated[existingIndex].data, ...updateData }
+            };
+            return updated;
+          });
+        } else {
+          // 添加新的变更
+          setPendingChanges(prev => [...prev, {
+            type: 'update',
+            id: activeId,
+            data: updateData
+          }]);
+        }
 
-      // 更新本地状态
-      setCrafts(prev => prev.map(c => c.id === activeId ? updatedCraft : c));
+        // 临时更新界面
+        setCrafts(prev => prev.map(c => c.id === activeId ? { ...c, ...updateData } : c));
 
-      alert(language === 'zh' 
-        ? `节点 "${editNodeForm.name}" 已更新成功！`
-        : `Node "${editNodeForm.name}" updated successfully!`
-      );
+        alert(language === 'zh' 
+          ? `节点 "${editNodeForm.name}" 修改已临时生效，请点击保存按钮同步到数据库`
+          : `Node "${editNodeForm.name}" updated temporarily, click Save to sync to database`
+        );
+      } else {
+        // 非编辑模式：直接更新
+        const coverImage = editNodeForm.coverImage === '__PENDING_DELETE__' 
+          ? undefined 
+          : editNodeForm.coverImage || undefined;
+        
+        const updatedCraft = await updateCraft(activeId, {
+          name: editNodeForm.name,
+          description: editNodeForm.description,
+          category: editNodeForm.category,
+          technologies: editNodeForm.technologies,
+          featured: editNodeForm.featured,
+          weight: editNodeForm.weight,
+          coverImage,
+          demoUrl: editNodeForm.demoUrl || undefined,
+          useCase: editNodeForm.useCase || undefined,
+        });
+
+        // 更新本地状态
+        setCrafts(prev => prev.map(c => c.id === activeId ? updatedCraft : c));
+
+        alert(language === 'zh' 
+          ? `节点 "${editNodeForm.name}" 已更新成功！`
+          : `Node "${editNodeForm.name}" updated successfully!`
+        );
+      }
     } catch (error) {
       console.error('Failed to update craft:', error);
       alert(language === 'zh' ? '更新失败，请稍后重试' : 'Failed to update, please try again');
@@ -858,6 +987,143 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       const craft = crafts.find(c => c.id === activeId);
       if (craft) {
         initEditForm(craft);
+      }
+    }
+  };
+
+  // 编辑模式：保存所有变更到数据库
+  const handleSaveAllChanges = async () => {
+    if (pendingChanges.length === 0) {
+      alert(language === 'zh' ? '没有需要保存的变更' : 'No changes to save');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // 按类型分组处理：先创建、再更新、最后删除
+      const creates = pendingChanges.filter(c => c.type === 'create');
+      const updates = pendingChanges.filter(c => c.type === 'update');
+      const deletes = pendingChanges.filter(c => c.type === 'delete');
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // 1. 处理创建
+      for (const change of creates) {
+        try {
+          if (change.data) {
+            const newCraft = await createCraft({
+              name: change.data.name!,
+              description: change.data.description || '',
+              category: change.data.category!,
+              technologies: change.data.technologies || [],
+              featured: change.data.featured ?? false,
+              weight: change.data.weight || 1,
+              coverImage: change.data.coverImage,
+              demoUrl: change.data.demoUrl,
+              useCase: change.data.useCase,
+              relations: change.data.relations || []
+            });
+            
+            // 替换临时 ID 为真实 ID
+            setCrafts(prev => prev.map(c => 
+              c.id === change.id ? newCraft : c
+            ));
+            successCount++;
+          }
+        } catch (error) {
+          console.error('Failed to create craft:', error);
+          errorCount++;
+        }
+      }
+
+      // 2. 处理更新
+      for (const change of updates) {
+        try {
+          if (change.id && change.data) {
+            const updatedCraft = await updateCraft(change.id, {
+              name: change.data.name,
+              description: change.data.description,
+              category: change.data.category,
+              technologies: change.data.technologies,
+              featured: change.data.featured,
+              weight: change.data.weight,
+              coverImage: change.data.coverImage,
+              demoUrl: change.data.demoUrl,
+              useCase: change.data.useCase,
+            });
+            
+            setCrafts(prev => prev.map(c => 
+              c.id === change.id ? updatedCraft : c
+            ));
+            successCount++;
+          }
+        } catch (error) {
+          console.error('Failed to update craft:', error);
+          errorCount++;
+        }
+      }
+
+      // 3. 处理删除
+      for (const change of deletes) {
+        try {
+          if (change.id) {
+            await deleteCraft(change.id);
+            successCount++;
+          }
+        } catch (error) {
+          console.error('Failed to delete craft:', error);
+          errorCount++;
+        }
+      }
+
+      // 清空临时变更队列
+      setPendingChanges([]);
+
+      // 显示结果
+      if (errorCount === 0) {
+        alert(language === 'zh' 
+          ? `所有变更已保存成功！(${successCount} 项)`
+          : `All changes saved successfully! (${successCount} items)`
+        );
+      } else {
+        alert(language === 'zh' 
+          ? `保存完成：成功 ${successCount} 项，失败 ${errorCount} 项`
+          : `Save completed: ${successCount} succeeded, ${errorCount} failed`
+        );
+      }
+
+      // 重新加载数据以确保同步
+      const data = await fetchCrafts();
+      setCrafts(data);
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      alert(language === 'zh' ? '保存失败，请稍后重试' : 'Failed to save, please try again');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 编辑模式：撤销所有变更
+  const handleDiscardChanges = async () => {
+    if (pendingChanges.length === 0) return;
+
+    const confirmed = window.confirm(
+      language === 'zh' 
+        ? `确定要放弃所有未保存的变更吗？(${pendingChanges.length} 项)`
+        : `Discard all unsaved changes? (${pendingChanges.length} items)`
+    );
+
+    if (confirmed) {
+      setPendingChanges([]);
+      // 重新加载数据
+      try {
+        const data = await fetchCrafts();
+        setCrafts(data);
+        setActiveId(null);
+        alert(language === 'zh' ? '已放弃所有变更' : 'All changes discarded');
+      } catch (error) {
+        console.error('Failed to reload crafts:', error);
       }
     }
   };
@@ -1068,16 +1334,28 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       {/* 编辑器工具栏 */}
       {editorMode && layoutMode === "canvas" && (
         <div className="editor-toolbar">
-          <LandButton type="background" icon={ <Icon name="add" strokeWidth={4} />} onClick={handleCreateStandaloneNode}/>
+          <LandButton type="background" icon={<Icon name="add" strokeWidth={4} />} onClick={handleCreateStandaloneNode}/>
           <div className="toolbar-divider" />
-          <button 
-            className="toolbar-btn" 
-            title={language === "zh" ? "保存" : "Save"}
-            onClick={() => alert(language === "zh" ? "保存功能开发中..." : "Save feature in development...")}
-          >
-            <Icon name="file" />
-          </button>
-          <button 
+          <LandButton 
+            type="background" 
+            status="primary"
+            icon={<Icon name="file" />}
+            text={isSaving ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? "保存" : "Save")}
+            title={language === "zh" ? `保存所有变更 (${pendingChanges.length} 项)` : `Save all changes (${pendingChanges.length} items)`}
+            onClick={handleSaveAllChanges}
+            disabled={isSaving || pendingChanges.length === 0}
+          />
+          {pendingChanges.length > 0 && (
+            <LandButton 
+              type="fill"
+              status="default"
+              text={language === "zh" ? "撤销" : "Discard"}
+              title={language === "zh" ? `撤销所有变更 (${pendingChanges.length} 项)` : `Discard all changes (${pendingChanges.length} items)`}
+              onClick={handleDiscardChanges}
+              disabled={isSaving}
+            />
+          )}
+          {/* <button 
             className="toolbar-btn" 
             title={language === "zh" ? "导入" : "Import"}
             onClick={() => alert(language === "zh" ? "导入功能开发中..." : "Import feature in development...")}
@@ -1090,7 +1368,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             onClick={() => alert(language === "zh" ? "导出功能开发中..." : "Export feature in development...")}
           >
             <Icon name="download" />
-          </button>
+          </button> */}
         </div>
       )}
 
@@ -1112,7 +1390,14 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 {crafts.length} {language === "zh" ? "个作品" : "crafts"}
               </>
             )}
-          </div></>}
+          </div>
+          {editorMode && pendingChanges.length > 0 && (
+            <div className="unsaved-badge">
+              <Icon name="warning" size={14} />
+              {language === "zh" ? `${pendingChanges.length} 项未保存` : `${pendingChanges.length} unsaved`}
+            </div>
+          )}
+          </>}
         </div>
       )}
 
@@ -1447,11 +1732,28 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                     onChange={handleEditCoverUpload}
                     style={{ display: 'none' }}
                   />
-                  {editNodeForm.coverImage ? (
+                  {editNodeForm.coverImage && editNodeForm.coverImage !== '__PENDING_DELETE__' ? (
                     <div className="cover-preview">
                       <img src={editNodeForm.coverImage} alt="Cover preview" />
                       <button className="cover-remove-btn" onClick={handleEditRemoveCover}>
                         <Icon name="close" size={14} />
+                      </button>
+                    </div>
+                  ) : editNodeForm.coverImage === '__PENDING_DELETE__' ? (
+                    <div className="cover-preview pending-delete">
+                      <div className="pending-delete-overlay">
+                        <Icon name="delete" size={32} />
+                        <span>{language === "zh" ? "待删除" : "Pending Delete"}</span>
+                      </div>
+                      <button className="cover-restore-btn" onClick={() => {
+                        // 恢复封面图片（从原始数据中恢复）
+                        const originalCraft = crafts.find(c => c.id === activeId);
+                        if (originalCraft?.coverImage) {
+                          setEditNodeForm(prev => prev ? ({ ...prev, coverImage: originalCraft.coverImage || '' }) : null);
+                        }
+                      }}>
+                        <Icon name="refresh" size={14} />
+                        {language === "zh" ? "撤销删除" : "Undo"}
                       </button>
                     </div>
                   ) : (
