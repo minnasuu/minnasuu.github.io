@@ -1577,15 +1577,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 <div className="panel-actions">
                   {activeCraft.demoUrl && (
                     <a href={activeCraft.demoUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
-                      <Icon name="video-pause" size={16} />
                       {language === "zh" ? "在线体验" : "Live Demo"}
+                      <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
                     </a>
                   )}
                   <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
                     {language === "zh" ? "查看详情" : "View Details"}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
+                    <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
                   </Link>
                 </div>
               </div>

@@ -191,7 +191,8 @@
   border-spacing: 0;
   border-collapse: collapse;
   margin: 24px 0;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   overflow: auto;
   display: block;
   border-radius: 8px;
