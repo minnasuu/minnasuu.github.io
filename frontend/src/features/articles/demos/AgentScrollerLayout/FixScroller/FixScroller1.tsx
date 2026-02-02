@@ -59,9 +59,9 @@ fix
         
     }
   return fix?
-  <div ref={scrollRef} className="flex-1 flex items-center gap-5 py-6 bg-gray-100 dark:bg-gray-800 overflow-auto h-[240px] flex-col-reverse">
+  <div className="flex-1 flex items-center gap-5 py-6 bg-gray-100 dark:bg-gray-800 overflow-auto h-[240px] flex-col-reverse">
     <div className="w-1/2 bg-gray-200 dark:bg-gray-700 shrink-0 h-[200px]"></div>
-    <details className="relative w-1/2 overflow-hidden shrink-0" style={{height: open ? `${height+24}px`:'24px'}}>
+    <details open={open} onClick={handleClick} className="relative w-1/2 overflow-hidden shrink-0">
         <summary className="flex items-center cursor-pointer">
             <p className="flex-1 truncate">已深度思考（用时4秒）</p>
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" className={`${open?'':'rotate-180'} transition`}>
