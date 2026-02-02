@@ -16,30 +16,30 @@ fix
         const scrollPosition = scroller?.scrollTop || 0;
        if(open){
         if(fix){
-             setTimeout(() => {
-                setOpen(false);
-                requestAnimationFrame(() => {
-                    scroller.scrollTop = scrollPosition+height;
+        //      setTimeout(() => {
+        //         setOpen(false);
+        //         requestAnimationFrame(() => {
+        //             scroller.scrollTop = scrollPosition+height;
                     
-                    // 检查思考节点是否在视区内
-                    setTimeout(() => {
-                        const thinkingElement = contentRef.current?.parentElement;
-                        if (thinkingElement) {
-                            const rect = thinkingElement.getBoundingClientRect();
-                            const scrollerRect = scroller.getBoundingClientRect();
+        //             // 检查思考节点是否在视区内
+        //             setTimeout(() => {
+        //                 const thinkingElement = contentRef.current?.parentElement;
+        //                 if (thinkingElement) {
+        //                     const rect = thinkingElement.getBoundingClientRect();
+        //                     const scrollerRect = scroller.getBoundingClientRect();
                             
-                            // 如果思考节点不完全在视区内（顶部在视区上方或底部在视区下方）
-                            if (rect.top < scrollerRect.top || rect.bottom > scrollerRect.bottom) {
-                                // 将思考节点滚动到视区中间位置
-                                thinkingElement.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center'
-                                });
-                            }
-                        }
-                    }, 100); // 给DOM更新一些时间
-                });
-        }, 50);
+        //                     // 如果思考节点不完全在视区内（顶部在视区上方或底部在视区下方）
+        //                     if (rect.top < scrollerRect.top || rect.bottom > scrollerRect.bottom) {
+        //                         // 将思考节点滚动到视区中间位置
+        //                         thinkingElement.scrollIntoView({
+        //                             behavior: 'smooth',
+        //                             block: 'center'
+        //                         });
+        //                     }
+        //                 }
+        //             }, 100); // 给DOM更新一些时间
+        //         });
+        // }, 50);
         }else{
             setOpen(false);
         }
@@ -58,7 +58,20 @@ fix
        }
         
     }
-  return <div ref={scrollRef} className="flex-1 flex items-center gap-5 py-6 bg-gray-100 dark:bg-gray-800 overflow-auto h-[240px] flex-col-reverse">
+  return fix?
+  <div ref={scrollRef} className="flex-1 flex items-center gap-5 py-6 bg-gray-100 dark:bg-gray-800 overflow-auto h-[240px] flex-col-reverse">
+    <div className="w-1/2 bg-gray-200 dark:bg-gray-700 shrink-0 h-[200px]"></div>
+    <details className="relative w-1/2 overflow-hidden shrink-0" style={{height: open ? `${height+24}px`:'24px'}}>
+        <summary className="flex items-center cursor-pointer">
+            <p className="flex-1 truncate">已深度思考（用时4秒）</p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12" fill="none" className={`${open?'':'rotate-180'} transition`}>
+                <path d="M6.00004 4.5L8.75 7.25L3.25 7.25L6.00004 4.5Z" fill="#33373D" fillOpacity="0.58" />
+            </svg>
+        </summary>
+        <div>深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容...深度思考的内容</div>
+    </details>
+    <div className="w-1/2 bg-gray-200 dark:bg-gray-700 shrink-0 h-[200px]"></div>
+  </div>:<div ref={scrollRef} className="flex-1 flex items-center gap-5 py-6 bg-gray-100 dark:bg-gray-800 overflow-auto h-[240px] flex-col-reverse">
     <div className="w-1/2 bg-gray-200 dark:bg-gray-700 shrink-0 h-[200px]"></div>
     <div className="relative w-1/2 overflow-hidden shrink-0" style={{height: open ? `${height+24}px`:'24px'}}>
         <div onClick={handleClick} className="flex items-center cursor-pointer">
