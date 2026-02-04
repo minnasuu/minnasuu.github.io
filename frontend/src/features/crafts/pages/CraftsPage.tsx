@@ -1054,6 +1054,8 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             const coverImageForDB = change.data.coverImage === '__PENDING_DELETE__' 
               ? undefined 
               : change.data.coverImage;
+            console.log('coverImageForDB:', coverImageForDB);
+            
             
             const updatedCraft = await updateCraft(change.id, {
               name: change.data.name!,
