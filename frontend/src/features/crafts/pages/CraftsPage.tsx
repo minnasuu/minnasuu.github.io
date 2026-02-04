@@ -234,6 +234,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     featured: boolean;
     weight: number;
     coverImage: string;
+    originalCoverImage: string; // 保存原始封面，用于撤销删除
     demoUrl: string;
     useCase: string;
   } | null>(null);
@@ -810,6 +811,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       featured: craft.featured ?? false,
       weight: craft.weight || 1,
       coverImage: craft.coverImage || '',
+      originalCoverImage: craft.coverImage || '', // 保存原始值
       demoUrl: craft.demoUrl || '',
       useCase: craft.useCase || '',
     });
@@ -899,21 +901,28 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     try {
       if (editorMode) {
         // 编辑模式：添加到临时变更队列
-        // 处理封面图片删除标记
-        const coverImage = editNodeForm.coverImage === '__PENDING_DELETE__' 
+        // 处理封面图片删除标记（用于保存到数据库）
+        const coverImageForDB = editNodeForm.coverImage === '__PENDING_DELETE__' 
           ? undefined 
           : editNodeForm.coverImage || undefined;
         
-        const updateData = {
+        // 用于临时显示的数据（保留 __PENDING_DELETE__ 标记）
+        const displayData = {
           name: editNodeForm.name,
           description: editNodeForm.description,
           category: editNodeForm.category,
           technologies: editNodeForm.technologies,
           featured: editNodeForm.featured,
           weight: editNodeForm.weight,
-          coverImage,
+          coverImage: editNodeForm.coverImage, // 保留 __PENDING_DELETE__ 标记
           demoUrl: editNodeForm.demoUrl || undefined,
           useCase: editNodeForm.useCase || undefined,
+        };
+        
+        // 用于保存到数据库的数据（转换 __PENDING_DELETE__ 为 undefined）
+        const updateData = {
+          ...displayData,
+          coverImage: coverImageForDB,
         };
         
         // 检查是否已在临时变更队列中
@@ -940,8 +949,8 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           }]);
         }
 
-        // 临时更新界面
-        setCrafts(prev => prev.map(c => c.id === activeId ? { ...c, ...updateData } : c));
+        // 临时更新界面（使用带标记的数据，保持"待删除"状态显示）
+        setCrafts(prev => prev.map(c => c.id === activeId ? { ...c, ...displayData } : c));
 
         alert(language === 'zh' 
           ? `节点 "${editNodeForm.name}" 修改已临时生效，请点击保存按钮同步到数据库`
@@ -1522,7 +1531,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   onClick={() => handleNodeClick(craft.id)}
                 >
                   <div className="grid-card-image">
-                    {craft.coverImage ? (
+                    {craft.coverImage && craft.coverImage !== '__PENDING_DELETE__' ? (
                       <img src={craft.coverImage} alt={craft.name} />
                     ) : craft.demoUrl ? (
                       <iframe 
@@ -1703,20 +1712,21 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
                 <div className="form-row">
                   <div className="form-group form-group-half">
-                    <label>{language === "zh" ? "特色作品" : "Featured"}</label>
+                    <label className="white-space-nowrap">{language === "zh" ? "特色作品" : "Featured"}</label>
                     <LandSwitch
                       checked={editNodeForm.featured}
                       onChange={(checked) => setEditNodeForm(prev => prev ? ({ ...prev, featured: checked }) : null)}
                     />
                   </div>
-                  <div className="form-group form-group-half">
-                    <label>{language === "zh" ? "权重" : "Weight"}</label>
+                  <div className="form-group form-group-half" style={{width: '1%'}}>
+                    <label className="white-space-nowrap">{language === "zh" ? "权重" : "Weight"}</label>
                     <LandNumberInput
                       value={editNodeForm.weight}
                       onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, weight: val ?? 1 }) : null)}
                       min={1}
                       max={5}
                       step={1}
+                      width='80px'
                     />
                   </div>
                 </div>
@@ -1740,15 +1750,15 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   ) : editNodeForm.coverImage === '__PENDING_DELETE__' ? (
                     <div className="cover-preview pending-delete">
                       <div className="pending-delete-overlay">
-                        <Icon name="delete" size={32} />
+                        <Icon name="delete" size={16} />
                         <span>{language === "zh" ? "待删除" : "Pending Delete"}</span>
                       </div>
                       <button className="cover-restore-btn" onClick={() => {
-                        // 恢复封面图片（从原始数据中恢复）
-                        const originalCraft = crafts.find(c => c.id === activeId);
-                        if (originalCraft?.coverImage) {
-                          setEditNodeForm(prev => prev ? ({ ...prev, coverImage: originalCraft.coverImage || '' }) : null);
-                        }
+                        // 恢复封面图片（从保存的原始数据中恢复）
+                        setEditNodeForm(prev => prev ? ({ 
+                          ...prev, 
+                          coverImage: prev.originalCoverImage 
+                        }) : null);
                       }}>
                         <Icon name="refresh" size={14} />
                         {language === "zh" ? "撤销删除" : "Undo"}
@@ -1814,7 +1824,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             /* 查看模式：只读详情 */
             <>
               <div className="panel-image">
-                {activeCraft.coverImage ? (
+                {activeCraft.coverImage && activeCraft.coverImage !== '__PENDING_DELETE__' ? (
                   <img src={activeCraft.coverImage} alt={activeCraft.name} />
                 ) : activeCraft.demoUrl ? (
                   <iframe 
@@ -1959,7 +1969,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             <div className="source-node-wrapper">
               <div className={`source-node weight-${Math.min(5, Math.max(1, Math.ceil((addNodeState.sourceCraft.weight || 1) * 1.5)))}`}>
                 <div className="node-inner">
-                  {addNodeState.sourceCraft.coverImage ? (
+                  {addNodeState.sourceCraft.coverImage && addNodeState.sourceCraft.coverImage !== '__PENDING_DELETE__' ? (
                     <img src={addNodeState.sourceCraft.coverImage} alt={addNodeState.sourceCraft.name} />
                   ) : addNodeState.sourceCraft.demoUrl ? (
                     <iframe 

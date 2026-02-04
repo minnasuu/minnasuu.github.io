@@ -868,9 +868,10 @@
         background: rgba(0, 0, 0, 0.8);
       }
     }
-
-    // 待删除状态
-    &.pending-delete {
+  }
+}
+   // 待删除状态
+    .pending-delete {
       background: rgba(220, 38, 38, 0.05);
       border: 2px dashed rgba(220, 38, 38, 0.3);
       min-height: 160px;
@@ -920,8 +921,6 @@
         }
       }
     }
-  }
-}
 
 @keyframes spin {
   to {

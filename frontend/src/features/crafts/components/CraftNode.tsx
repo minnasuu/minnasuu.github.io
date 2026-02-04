@@ -122,7 +122,7 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
       onMouseLeave={onMouseLeave}
     >
       <div className="node-inner">
-        {craft.coverImage ? (
+        {craft.coverImage && craft.coverImage !== '__PENDING_DELETE__' ? (
           <img src={craft.coverImage} alt={craft.name} />
         ) : craft.demoUrl ? (
           <iframe 
