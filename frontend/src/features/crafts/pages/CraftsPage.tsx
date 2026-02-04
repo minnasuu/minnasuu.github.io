@@ -1050,6 +1050,11 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       for (const change of updates) {
         try {
           if (change.id && change.data) {
+            // 处理封面删除标记：__PENDING_DELETE__ 应该转换为 undefined
+            const coverImageForDB = change.data.coverImage === '__PENDING_DELETE__' 
+              ? undefined 
+              : change.data.coverImage;
+            
             const updatedCraft = await updateCraft(change.id, {
               name: change.data.name!,
               description: change.data.description!,
@@ -1057,7 +1062,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               technologies: change.data.technologies!,
               featured: change.data.featured,
               weight: change.data.weight,
-              coverImage: change.data.coverImage,
+              coverImage: coverImageForDB,
               demoUrl: change.data.demoUrl,
               useCase: change.data.useCase,
             });
@@ -1972,11 +1977,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   {addNodeState.sourceCraft.coverImage && addNodeState.sourceCraft.coverImage !== '__PENDING_DELETE__' ? (
                     <img src={addNodeState.sourceCraft.coverImage} alt={addNodeState.sourceCraft.name} />
                   ) : addNodeState.sourceCraft.demoUrl ? (
-                    <iframe 
+                    <div className="w-full h-full overflow-hidden">
+                      <iframe 
                       src={addNodeState.sourceCraft.demoUrl} 
                       title={addNodeState.sourceCraft.name}
                       className="node-inner-iframe"
                     />
+                    </div>
                   ) : null}
                   <div className="node-overlay">
                     <span className="node-category">

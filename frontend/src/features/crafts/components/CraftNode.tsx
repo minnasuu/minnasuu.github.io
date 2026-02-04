@@ -125,11 +125,12 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
         {craft.coverImage && craft.coverImage !== '__PENDING_DELETE__' ? (
           <img src={craft.coverImage} alt={craft.name} />
         ) : craft.demoUrl ? (
-          <iframe 
+          <div className="w-full h-full overflow-hidden">
+            <iframe 
             src={craft.demoUrl} 
             title={craft.name}
             className="node-inner-iframe"
-          />
+          /></div>
         ) : null}
         <div className="node-overlay">
           <span className="node-category">
