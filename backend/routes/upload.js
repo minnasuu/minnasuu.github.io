@@ -19,22 +19,30 @@ const storage = multer.diskStorage({
     // 生成唯一文件名：时间戳 + 随机数 + 原始扩展名
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    // 根据请求类型决定文件名前缀
-    const prefix = req.body?.type === 'cover' ? 'cover-' : 'img-';
+    // 根据文件类型决定前缀
+    let prefix = 'file-';
+    if (file.fieldname === 'image') {
+      prefix = 'img-';
+    } else if (file.fieldname === 'video') {
+      prefix = 'video-';
+    }
     cb(null, prefix + uniqueSuffix + ext);
   }
 });
 
-// 文件过滤器 - 只允许图片
+// 文件过滤器 - 允许图片和视频
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+  const allowedVideoTypes = /mp4|webm|ogg|mov|avi|mkv/;
+  const extname = path.extname(file.originalname).toLowerCase();
+  
+  const isImage = allowedImageTypes.test(extname) && file.mimetype.startsWith('image/');
+  const isVideo = allowedVideoTypes.test(extname) && file.mimetype.startsWith('video/');
 
-  if (mimetype && extname) {
+  if (isImage || isVideo) {
     return cb(null, true);
   } else {
-    cb(new Error('只允许上传图片文件 (jpeg, jpg, png, gif, webp)'));
+    cb(new Error('只允许上传图片 (jpeg, jpg, png, gif, webp) 或视频 (mp4, webm, ogg, mov, avi, mkv) 文件'));
   }
 };
 
@@ -43,13 +51,37 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 限制 5MB
+    fileSize: 50 * 1024 * 1024 // 限制 50MB (视频需要更大空间)
   }
 });
 
-// POST 上传图片
-router.post('/', upload.single('image'), async (req, res) => {
+// POST 上传图片或视频
+router.post('/', (req, res) => {
+  // 使用动态字段名处理
+  const uploadSingle = upload.single('image') || upload.single('video');
+  
+  // 先尝试作为 image 上传
+  upload.single('image')(req, res, (err) => {
+    if (!req.file && !err) {
+      // 如果不是 image，尝试作为 video 上传
+      upload.single('video')(req, res, (videoErr) => {
+        handleUploadResponse(req, res, videoErr);
+      });
+    } else {
+      handleUploadResponse(req, res, err);
+    }
+  });
+});
+
+// 处理上传响应的辅助函数
+function handleUploadResponse(req, res, err) {
   console.log('API Request: POST /api/upload - Start');
+  
+  if (err) {
+    console.error('API Error: Upload error:', err);
+    return res.status(400).json({ error: err.message });
+  }
+  
   try {
     if (!req.file) {
       return res.status(400).json({ error: '没有上传文件' });
@@ -68,9 +100,9 @@ router.post('/', upload.single('image'), async (req, res) => {
     console.error('API Error: Error uploading file:', error);
     res.status(500).json({ error: '文件上传失败' });
   }
-});
+}
 
-// DELETE 删除图片（可选）
+// DELETE 删除文件（图片或视频）
 router.delete('/:filename', async (req, res) => {
   console.log(`API Request: DELETE /api/upload/${req.params.filename} - Start`);
   try {

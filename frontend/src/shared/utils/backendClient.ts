@@ -243,6 +243,12 @@ export interface UploadImageResponse {
   filename: string;
 }
 
+export interface UploadVideoResponse {
+  success: boolean;
+  url: string;
+  filename: string;
+}
+
 export const uploadImage = async (file: File): Promise<UploadImageResponse> => {
   // Mock 模式下的图片上传模拟
   if (USE_MOCK_DATA) {
@@ -292,6 +298,59 @@ export const uploadImage = async (file: File): Promise<UploadImageResponse> => {
     return data;
   } catch (error) {
     console.error('Error uploading image:', error);
+    throw error;
+  }
+};
+
+export const uploadVideo = async (file: File): Promise<UploadVideoResponse> => {
+  // Mock 模式下的视频上传模拟
+  if (USE_MOCK_DATA) {
+    console.log('📦 Using mock data for video upload');
+    await new Promise(resolve => setTimeout(resolve, 1000)); // 模拟上传延迟（视频更长）
+    
+    // 使用 FileReader 将视频转换为 Data URL（Base64）
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        resolve({
+          success: true,
+          url: dataUrl, // 返回 Base64 格式的视频
+          filename: `mock-${Date.now()}-${file.name}`
+        });
+      };
+      reader.onerror = () => reject(new Error('Failed to read video file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/upload`;
+
+  const formData = new FormData();
+  formData.append('video', file);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(errorData.error || `Failed to upload video: ${response.status}`);
+    }
+
+    const data: UploadVideoResponse = await response.json();
+    
+    // 将相对路径转换为完整 URL
+    if (data.url && !data.url.startsWith('http')) {
+      data.url = `${backendUrl}${data.url}`;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error uploading video:', error);
     throw error;
   }
 };

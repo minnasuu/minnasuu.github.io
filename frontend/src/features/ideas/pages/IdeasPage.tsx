@@ -7,7 +7,7 @@ import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Idea } from "../components/IdeaNode";
 import "../styles/IdeasPage.scss";
 import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput } from "@suminhan/land-design";
-import { uploadImage, fetchIdeas, createIdea, deleteIdea, updateIdea } from "../../../shared/utils/backendClient";
+import { uploadImage, uploadVideo, fetchIdeas, createIdea, deleteIdea, updateIdea } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
 interface AddNodeState {
@@ -255,6 +255,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // 画布尺寸（2倍视口）
   const canvasWidth = dimensions.width * 2;
@@ -768,6 +769,68 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   // 移除图片
   const handleRemoveImage = () => {
     setNewNodeForm(prev => ({ ...prev, image: '' }));
+  };
+
+  // 处理视频上传
+  const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      alert(language === 'zh' ? '请选择视频文件' : 'Please select a video file');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await uploadVideo(file);
+      setNewNodeForm(prev => ({ ...prev, video: result.url }));
+    } catch (error) {
+      console.error('Failed to upload video:', error);
+      alert(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
+    } finally {
+      setIsUploadingCover(false);
+      // 清空 input 以便重复上传同一文件
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 移除视频
+  const handleRemoveVideo = () => {
+    setNewNodeForm(prev => ({ ...prev, video: '' }));
+  };
+
+  // 编辑模式：处理视频上传
+  const handleEditVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      alert(language === 'zh' ? '请选择视频文件' : 'Please select a video file');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await uploadVideo(file);
+      setEditNodeForm(prev => prev ? ({ ...prev, video: result.url }) : null);
+    } catch (error) {
+      console.error('Failed to upload video:', error);
+      alert(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
+    } finally {
+      setIsUploadingCover(false);
+      // 清空 input 以便重复上传同一文件
+      if (videoInputRef.current) {
+        videoInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 编辑模式：移除视频
+  const handleEditRemoveVideo = () => {
+    setEditNodeForm(prev => prev ? ({ ...prev, video: '' }) : null);
   };
 
   // 编辑模式：初始化编辑表单
@@ -1392,7 +1455,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               type="background"
               text={language === "zh" ? "新建灵感" : "Create Craft"}
               icon={<Icon name="add" strokeWidth={4} />}
-              onClick={() => navigate('/crafts-editor')}
+              onClick={() => navigate('/ideas-editor')}
             />
           )}
         </div>
@@ -1689,10 +1752,29 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
                 <div className="form-group">
                   <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
-                  <LandInput
-                    value={editNodeForm.video}
-                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, video: val }) : null)}
-                    placeholder={language === "zh" ? "输入视频URL" : "Enter video URL"}
+                  {editNodeForm.video ? (
+                    <div className="cover-preview">
+                      <video src={editNodeForm.video} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
+                      <button 
+                        className="remove-cover-btn"
+                        onClick={handleEditRemoveVideo}
+                        type="button"
+                      >
+                        <Icon name="delete" size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="upload-placeholder" onClick={() => videoInputRef.current?.click()}>
+                      <Icon name="upload" size={24} />
+                      <span>{language === "zh" ? "点击上传视频" : "Click to upload video"}</span>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={videoInputRef}
+                    onChange={handleEditVideoUpload}
+                    accept="video/*"
+                    style={{ display: 'none' }}
                   />
                 </div>
 
@@ -1990,10 +2072,29 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
               <div className="form-group">
                 <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
-                <LandInput
-                  value={newNodeForm.video}
-                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, video: val }))}
-                  placeholder={language === "zh" ? "输入视频URL" : "Enter video URL"}
+                {newNodeForm.video ? (
+                  <div className="cover-preview">
+                    <video src={newNodeForm.video} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
+                    <button 
+                      className="remove-cover-btn"
+                      onClick={handleRemoveVideo}
+                      type="button"
+                    >
+                      <Icon name="delete" size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="upload-placeholder" onClick={() => videoInputRef.current?.click()}>
+                    <Icon name="upload" size={24} />
+                    <span>{language === "zh" ? "点击上传视频" : "Click to upload video"}</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  ref={videoInputRef}
+                  onChange={handleVideoUpload}
+                  accept="video/*"
+                  style={{ display: 'none' }}
                 />
               </div>
 
@@ -2128,10 +2229,29 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
               <div className="form-group">
                 <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
-                <LandInput
-                  value={newNodeForm.video}
-                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, video: val }))}
-                  placeholder={language === "zh" ? "输入视频URL" : "Enter video URL"}
+                {newNodeForm.video ? (
+                  <div className="cover-preview">
+                    <video src={newNodeForm.video} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
+                    <button 
+                      className="remove-cover-btn"
+                      onClick={handleRemoveVideo}
+                      type="button"
+                    >
+                      <Icon name="delete" size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="upload-placeholder" onClick={() => videoInputRef.current?.click()}>
+                    <Icon name="upload" size={24} />
+                    <span>{language === "zh" ? "点击上传视频" : "Click to upload video"}</span>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  ref={videoInputRef}
+                  onChange={handleVideoUpload}
+                  accept="video/*"
+                  style={{ display: 'none' }}
                 />
               </div>
 
