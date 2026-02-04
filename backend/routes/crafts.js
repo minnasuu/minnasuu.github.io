@@ -118,7 +118,7 @@ router.put('/:id', async (req, res) => {
         technologies: technologies || [],
         featured: featured || false,
         weight: parseInt(weight) || 1,
-        coverImage,
+        coverImage: coverImage === undefined ? null : coverImage,
         demoUrl,
         useCase,
         githubUrl,
