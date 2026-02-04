@@ -1,5 +1,6 @@
 import type { Article } from '../types';
 import type { Craft } from '../../features/crafts/components/CraftNode';
+import type { Idea } from '../../features/ideas/components/IdeaNode';
 import { mockArticlesAPI } from './mockData';
 
 export interface ChatRequest {
@@ -583,6 +584,168 @@ export const removeCraftRelation = async (craftId: string, targetId: string): Pr
       throw new Error(`Failed to remove relation: ${response.status}`);
     }
     const data: Craft = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error removing relation:', error);
+    throw error;
+  }
+};
+
+// ==================== Ideas API ====================
+
+export interface CreateIdeaRequest {
+  name: string;
+  description: string;
+  category: string;
+  weight?: number;
+  image?: string;
+  video?: string;
+  useCase?: string;
+  linkUrl?: string;
+  relations?: { targetId: string; type: string }[];
+}
+
+export const fetchIdeas = async (): Promise<Idea[]> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ideas: ${response.status}`);
+    }
+    const data: Idea[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching ideas:', error);
+    return [];
+  }
+};
+
+export const fetchIdeaById = async (id: string): Promise<Idea> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas/${id}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch idea ${id}: ${response.status}`);
+    }
+    const data: Idea = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error fetching idea ${id}:`, error);
+    throw error;
+  }
+};
+
+export const createIdea = async (idea: CreateIdeaRequest): Promise<Idea> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(idea),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create idea: ${response.status}`);
+    }
+    const data: Idea = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error creating idea:', error);
+    throw error;
+  }
+};
+
+export const updateIdea = async (id: string, idea: Partial<CreateIdeaRequest>): Promise<Idea> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(idea),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update idea: ${response.status}`);
+    }
+    const data: Idea = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating idea:', error);
+    throw error;
+  }
+};
+
+export const deleteIdea = async (id: string): Promise<void> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete idea: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting idea:', error);
+    throw error;
+  }
+};
+
+export const addIdeaRelation = async (
+  ideaId: string, 
+  targetId: string, 
+  type: string
+): Promise<Idea> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas/${ideaId}/relations`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ targetId, type }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to add relation: ${response.status}`);
+    }
+    const data: Idea = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error adding relation:', error);
+    throw error;
+  }
+};
+
+export const removeIdeaRelation = async (ideaId: string, targetId: string): Promise<Idea> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/ideas/${ideaId}/relations/${targetId}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to remove relation: ${response.status}`);
+    }
+    const data: Idea = await response.json();
     return data;
   } catch (error) {
     console.error('Error removing relation:', error);

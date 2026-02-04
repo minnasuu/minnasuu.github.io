@@ -13,6 +13,8 @@ import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/c
 import { AILogPage } from '../features/ai-log';
 import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
 import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
+import { IdeasPage } from '../features/ideas';
+import IdeasEditorPage from '../features/ideas/pages/IdeasEditorPage';
 
 // 滚动重置组件
 const ScrollToTop: React.FC = () => {
@@ -47,6 +49,9 @@ const AppRouter: React.FC = () => {
             <Route path='/crafts' element={<CraftsPage/>}/>
             <Route path='/crafts-editor' element={<CraftEditorPage/>}/>
             <Route path="/crafts/:id" element={<CraftsPageDetailPage />} />
+
+            <Route path='/ideas' element={<IdeasPage/>}/>
+            <Route path='/ideas-editor' element={<IdeasEditorPage/>}/>
             
             {/* AI LOG */}
             <Route path="/ai-log" element={<AILogPage />} />

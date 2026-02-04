@@ -1,0 +1,2216 @@
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useLanguage } from "../../../shared/contexts/LanguageContext";
+import BackButton from "../../../shared/components/BackButton";
+import { IdeaNode, categoryLabels } from "../components/IdeaNode";
+import { DotMatrixTitle } from "../components/DotMatrixTitle";
+import type { Idea } from "../components/IdeaNode";
+import "../styles/IdeasPage.scss";
+import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput } from "@suminhan/land-design";
+import { uploadImage, fetchIdeas, createIdea, deleteIdea, updateIdea } from "../../../shared/utils/backendClient";
+
+// 添加节点模式的状态类型
+interface AddNodeState {
+  sourceId: string;
+  direction: 'top' | 'right' | 'bottom' | 'left';
+  sourceCraft: Idea;
+}
+
+// 独立新建节点模式（无源节点）
+type CreateNodeMode = 'standalone' | null;
+
+// 临时变更类型
+interface PendingChange {
+  type: 'create' | 'update' | 'delete';
+  id?: string; // 对于 update 和 delete，需要 id；create 时为临时 id
+  data?: Partial<Idea>; // 对于 create 和 update，包含数据
+}
+
+// 关系类型标签
+const relationLabels: Record<string, { zh: string; en: string; color: string }> = {
+  extends: { zh: "扩展自", en: "Extends", color: "#8ca9ff" },    // Bright Indigo
+  inspiredBy: { zh: "灵感源于", en: "Inspired by", color: "#f875aa" }, // Bright Pink
+  variant: { zh: "同源变体", en: "Variant of", color: "#8ce4ff" },     // Bright Teal
+  uses: { zh: "使用", en: "Uses", color: "#73af6f" },         // Bright Amber
+  relatedTo: { zh: "相关概念", en: "Related to", color: "#ccc" },   // Soft Lavender
+};
+
+
+// 计算每个节点的分支数（出度 + 入度）
+const calculateBranchCounts = (crafts: Idea[]): Map<string, number> => {
+  const counts = new Map<string, number>();
+  
+  // 初始化所有节点的分支数为0
+  crafts.forEach(craft => counts.set(craft.id, 0));
+  
+  // 计算分支数
+  crafts.forEach(craft => {
+    const outDegree = craft.relations?.length || 0;
+    counts.set(craft.id, (counts.get(craft.id) || 0) + outDegree);
+    
+    // 计算入度（被引用次数）
+    craft.relations?.forEach(rel => {
+      counts.set(rel.targetId, (counts.get(rel.targetId) || 0) + 1);
+    });
+  });
+  
+  return counts;
+};
+
+// 计算实际权重 = weight * (分支数 + 1)
+const calculateEffectiveWeights = (crafts: Idea[]): Map<string, number> => {
+  const branchCounts = calculateBranchCounts(crafts);
+  const weights = new Map<string, number>();
+  
+  crafts.forEach(craft => {
+    const baseWeight = craft.weight || 1;
+    const branchCount = branchCounts.get(craft.id) || 0;
+    // 实际权重 = 人工权重 * (分支数 + 1)，+1 确保无分支节点也有权重
+    weights.set(craft.id, baseWeight * (branchCount + 1));
+  });
+  
+  return weights;
+};
+
+// 计算节点位置 - 使用随机分布 + 力导向优化保持均匀间距
+const calculateNodePositions = (
+  crafts: Idea[],
+  containerWidth: number,
+  containerHeight: number
+) => {
+  const positions: Map<string, { x: number; y: number; ring: number }> = new Map();
+  const padding = 100; // 边界留白
+  
+  // 第一步：随机初始化位置
+  crafts.forEach((craft) => {
+    positions.set(craft.id, {
+      x: padding + Math.random() * (containerWidth - padding * 2),
+      y: padding + Math.random() * (containerHeight - padding * 2),
+      ring: 0,
+    });
+  });
+
+  // 第二步：力导向调整，保持均匀间距
+  const iterations = 80; // 增加迭代次数以达到更稳定的布局
+  const idealDistance = 800; // 理想节点间距
+  const minDistance = 800; // 最小间距（防止重叠）
+  const maxDistance = 1200; // 最大间距（防止过于分散）
+  
+  for (let iter = 0; iter < iterations; iter++) {
+    const forces = new Map<string, { x: number; y: number }>();
+    
+    // 初始化力
+    crafts.forEach((craft) => {
+      forces.set(craft.id, { x: 0, y: 0 });
+    });
+    
+    // 对所有节点对计算力
+    for (let i = 0; i < crafts.length; i++) {
+      for (let j = i + 1; j < crafts.length; j++) {
+        const craft1 = crafts[i];
+        const craft2 = crafts[j];
+        const pos1 = positions.get(craft1.id)!;
+        const pos2 = positions.get(craft2.id)!;
+        
+        const dx = pos2.x - pos1.x;
+        const dy = pos2.y - pos1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > 0) {
+          let force = 0;
+          
+          // 距离小于最小值：强排斥
+          if (dist < minDistance) {
+            force = -((minDistance - dist) / minDistance) * 3;
+          }
+          // 距离在最小和理想之间：轻微排斥
+          else if (dist < idealDistance) {
+            force = -((idealDistance - dist) / idealDistance) * 0.8;
+          }
+          // 距离在理想和最大之间：轻微吸引
+          else if (dist < maxDistance) {
+            force = ((dist - idealDistance) / (maxDistance - idealDistance)) * 0.5;
+          }
+          // 距离大于最大值：强吸引
+          else {
+            force = ((dist - maxDistance) / maxDistance) * 1.5;
+          }
+          
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          
+          const f1 = forces.get(craft1.id)!;
+          const f2 = forces.get(craft2.id)!;
+          f1.x += fx;
+          f1.y += fy;
+          f2.x -= fx;
+          f2.y -= fy;
+        }
+      }
+    }
+    
+    // 对有关系的节点施加额外的轻微吸引力
+    crafts.forEach((craft) => {
+      if (!craft.relations) return;
+      
+      const pos1 = positions.get(craft.id)!;
+      craft.relations.forEach((rel) => {
+        const pos2 = positions.get(rel.targetId);
+        if (!pos2) return;
+        
+        const dx = pos2.x - pos1.x;
+        const dy = pos2.y - pos1.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        
+        if (dist > idealDistance) {
+          // 轻微吸引，让相关节点更接近理想距离
+          const force = ((dist - idealDistance) / dist) * 0.3;
+          const fx = dx * force;
+          const fy = dy * force;
+          
+          const f1 = forces.get(craft.id)!;
+          f1.x += fx;
+          f1.y += fy;
+        }
+      });
+    });
+    
+    // 应用力并更新位置（使用阻尼减少震荡）
+    const damping = 0.5; // 阻尼系数，随迭代次数递减
+    const dampingFactor = damping * (1 - iter / iterations);
+    
+    crafts.forEach((craft) => {
+      const pos = positions.get(craft.id)!;
+      const force = forces.get(craft.id)!;
+      
+      // 应用阻尼后更新位置
+      pos.x += force.x * (0.5 + dampingFactor);
+      pos.y += force.y * (0.5 + dampingFactor);
+      
+      // 限制在边界内
+      pos.x = Math.max(padding, Math.min(containerWidth - padding, pos.x));
+      pos.y = Math.max(padding, Math.min(containerHeight - padding, pos.y));
+    });
+  }
+
+  return positions;
+};
+
+type LayoutMode = "canvas" | "grid";
+
+interface IdeasPageProps {
+  editorMode?: boolean;
+}
+
+export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
+  const { language } = useLanguage();
+  const navigate = useNavigate();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [viewOffset, setViewOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isMinimapDragging, setIsMinimapDragging] = useState(false);
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>("canvas");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  // 添加节点模式状态
+  const [addNodeState, setAddNodeState] = useState<AddNodeState | null>(null);
+  // 独立新建节点模式
+  const [createNodeMode, setCreateNodeMode] = useState<CreateNodeMode>(null);
+  // 删除确认状态
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  // 封面图片上传状态
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  // 编辑节点表单数据（用于编辑模式下的详情面板）
+  const [editNodeForm, setEditNodeForm] = useState<{
+    name: string;
+    description: string;
+    category: Idea['category'];
+    weight: number;
+    image: string;
+    originalImage: string; // 保存原始图片，用于撤销删除
+    video: string;
+    useCase: string;
+    linkUrl: string;
+  } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  // 新节点表单数据
+  const [newNodeForm, setNewNodeForm] = useState({
+    name: '',
+    description: '',
+    category: 'component' as Idea['category'],
+    weight: 1,
+    image: '',
+    video: '',
+    useCase: '',
+    linkUrl: '',
+  });
+  // 临时变更队列（仅编辑模式）
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const minimapRef = useRef<HTMLDivElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
+  // 画布尺寸（2倍视口）
+  const canvasWidth = dimensions.width * 2;
+  const canvasHeight = dimensions.height * 2;
+
+  // 限制画布偏移量，确保不能完全移出边界
+  const clampViewOffset = useCallback((offset: { x: number; y: number }) => {
+    if (dimensions.width === 0 || dimensions.height === 0) return offset;
+    
+    // 边界：画布至少有 20% 在视口内
+    const minVisibleRatio = 0.2;
+    const minX = -(canvasWidth - dimensions.width * minVisibleRatio);
+    const maxX = dimensions.width * (1 - minVisibleRatio);
+    const minY = -(canvasHeight - dimensions.height * minVisibleRatio);
+    const maxY = dimensions.height * (1 - minVisibleRatio);
+    
+    return {
+      x: Math.max(minX, Math.min(maxX, offset.x)),
+      y: Math.max(minY, Math.min(maxY, offset.y)),
+    };
+  }, [dimensions, canvasWidth, canvasHeight]);
+
+  // 加载 crafts 数据
+  const [crafts, setCrafts] = useState<Idea[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCrafts = async () => {
+      try {
+        const data = await fetchIdeas();
+        setCrafts(data);
+      } catch (error) {
+        console.error('Failed to load ideas:', error);
+        setCrafts([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadCrafts();
+  }, []);
+
+  // 搜索过滤
+  const filteredCrafts = useMemo(() => {
+    if (!searchQuery.trim()) return crafts;
+    
+    const query = searchQuery.toLowerCase();
+    return crafts.filter(craft => 
+      craft.name.toLowerCase().includes(query) ||
+      craft.description.toLowerCase().includes(query) ||
+      categoryLabels[craft.category].zh.toLowerCase().includes(query) ||
+      categoryLabels[craft.category].en.toLowerCase().includes(query)
+    );
+  }, [crafts, searchQuery]);
+
+  // 搜索结果 ID 集合（用于高亮）
+  const searchResultIds = useMemo(() => {
+    return new Set(filteredCrafts.map(c => c.id));
+  }, [filteredCrafts]);
+
+  // 计算实际权重
+  const effectiveWeights = useMemo(() => calculateEffectiveWeights(crafts), [crafts]);
+  
+  // 计算最大权重（用于归一化）
+  const maxWeight = useMemo(() => {
+    let max = 0;
+    effectiveWeights.forEach(w => { if (w > max) max = w; });
+    return max;
+  }, [effectiveWeights]);
+
+  // 计算节点位置
+  const nodePositions = useMemo(() => {
+    if (dimensions.width === 0) return new Map();
+    return calculateNodePositions(crafts, canvasWidth, canvasHeight);
+  }, [crafts, canvasWidth, canvasHeight]);
+
+  // 获取与当前节点相关的所有连线
+  const getRelatedConnections = useCallback(
+    (craftId: string | null) => {
+      if (!craftId) return new Set<string>();
+      const related = new Set<string>();
+      related.add(craftId);
+
+      crafts.forEach((craft) => {
+        if (craft.id === craftId) {
+          craft.relations?.forEach((r) => related.add(r.targetId));
+        }
+        if (craft.relations?.some((r) => r.targetId === craftId)) {
+          related.add(craft.id);
+        }
+      });
+
+      return related;
+    },
+    [crafts]
+  );
+
+  const relatedNodes = useMemo(
+    () => getRelatedConnections(hoveredId || activeId),
+    [hoveredId, activeId, getRelatedConnections]
+  );
+
+  // 更新尺寸并初始化居中
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.clientWidth;
+        const height = containerRef.current.clientHeight;
+        setDimensions({ width, height });
+        
+        // 首次加载时居中画布
+        if (!isInitialized && width > 0 && height > 0) {
+          // 画布大小是 dimensions * 2，所以需要偏移 -width/2 和 -height/2 来居中
+          setViewOffset({
+            x: -width / 2,
+            y: -height / 2,
+          });
+          setIsInitialized(true);
+        }
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, [isInitialized]);
+
+  // 拖拽处理 - 只在画布模式下启用
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (layoutMode !== "canvas") return;
+    if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains("canvas-bg")) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - viewOffset.x, y: e.clientY - viewOffset.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (layoutMode !== "canvas" || !isDragging) return;
+    const newOffset = {
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    };
+    setViewOffset(clampViewOffset(newOffset));
+  };
+
+  const handleMouseUp = () => {
+    if (layoutMode !== "canvas") return;
+    setIsDragging(false);
+  };
+
+  // 滚轮/触控板处理 - 只在画布模式下移动画布
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (layoutMode !== "canvas") return;
+    // 如果事件发生在编辑面板内，不拦截滚动
+    const target = e.target as HTMLElement;
+    if (target.closest('.add-node-panel') || target.closest('.detail-panel')) return;
+    e.preventDefault();
+    setViewOffset(prev => clampViewOffset({
+      x: prev.x - e.deltaX,
+      y: prev.y - e.deltaY,
+    }));
+  }, [clampViewOffset, layoutMode]);
+
+  // 迷你地图拖拽处理
+  const handleMinimapMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMinimapDragging(true);
+    updateViewFromMinimap(e);
+  };
+
+  const handleMinimapMouseMove = (e: React.MouseEvent) => {
+    if (isMinimapDragging) {
+      updateViewFromMinimap(e);
+    }
+  };
+
+  const handleMinimapMouseUp = () => {
+    setIsMinimapDragging(false);
+  };
+
+  const updateViewFromMinimap = (e: React.MouseEvent) => {
+    if (!minimapRef.current || dimensions.width === 0) return;
+    
+    const rect = minimapRef.current.getBoundingClientRect();
+    const relativeX = (e.clientX - rect.left) / rect.width;
+    const relativeY = (e.clientY - rect.top) / rect.height;
+    
+    // 将迷你地图位置转换为画布偏移
+    // 点击位置应该成为视口中心
+    const newOffset = {
+      x: -(relativeX * canvasWidth) + dimensions.width / 2,
+      y: -(relativeY * canvasHeight) + dimensions.height / 2,
+    };
+    setViewOffset(clampViewOffset(newOffset));
+  };
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("wheel", handleWheel, { passive: false });
+    }
+    return () => {
+      if (container) {
+        container.removeEventListener("wheel", handleWheel);
+      }
+    };
+  }, [handleWheel]);
+
+  // 点击节点
+  const handleNodeClick = (craftId: string) => {
+    setActiveId((prev) => (prev === craftId ? null : craftId));
+  };
+
+  // 居中到某个节点
+  const centerToNode = (craftId: string) => {
+    const pos = nodePositions.get(craftId);
+    if (pos && dimensions.width > 0) {
+      const newOffset = {
+        x: dimensions.width / 2 - pos.x,
+        y: dimensions.height / 2 - pos.y,
+      };
+      setViewOffset(clampViewOffset(newOffset));
+    }
+  };
+
+  // 居中到搜索结果
+  const centerToSearchResults = useCallback(() => {
+    if (filteredCrafts.length === 0 || dimensions.width === 0) return;
+    
+    // 计算所有搜索结果的中心点
+    let sumX = 0;
+    let sumY = 0;
+    let count = 0;
+    
+    filteredCrafts.forEach(craft => {
+      const pos = nodePositions.get(craft.id);
+      if (pos) {
+        sumX += pos.x;
+        sumY += pos.y;
+        count++;
+      }
+    });
+    
+    if (count > 0) {
+      const centerX = sumX / count;
+      const centerY = sumY / count;
+      
+      const newOffset = {
+        x: dimensions.width / 2 - centerX,
+        y: dimensions.height / 2 - centerY,
+      };
+      
+      setViewOffset(clampViewOffset(newOffset));
+    }
+  }, [filteredCrafts, nodePositions, dimensions, clampViewOffset]);
+
+  // 当搜索结果变化时，自动居中到结果
+  useEffect(() => {
+    if (layoutMode === "canvas" && searchQuery.trim() && filteredCrafts.length > 0) {
+      // 延迟一小段时间以确保布局已完成
+      const timer = setTimeout(() => {
+        centerToSearchResults();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [searchQuery, filteredCrafts.length, layoutMode, centerToSearchResults]);
+
+  // 重置视图
+  const resetView = () => {
+    setViewOffset(clampViewOffset({ 
+      x: -dimensions.width / 2, 
+      y: -dimensions.height / 2 
+    }));
+    setActiveId(null);
+  };
+
+  // 编辑模式：处理添加节点（基于源节点）
+  const handleAddNode = (sourceId: string, direction: 'top' | 'right' | 'bottom' | 'left') => {
+    const sourceCraft = crafts.find(c => c.id === sourceId);
+    if (!sourceCraft) return;
+    
+    // 设置添加节点状态
+    setAddNodeState({ sourceId, direction, sourceCraft });
+    setCreateNodeMode(null); // 确保独立模式关闭
+    // 重置表单
+    setNewNodeForm({
+      name: '',
+      description: '',
+      category: 'component',
+      weight: 1,
+      image: '',
+      video: '',
+      useCase: '',
+      linkUrl: '',
+    });
+    // 关闭详情面板
+    setActiveId(null);
+  };
+
+  // 开启独立新建节点模式
+  const handleCreateStandaloneNode = () => {
+    setCreateNodeMode('standalone');
+    setAddNodeState(null); // 确保基于节点的模式关闭
+    // 重置表单
+    setNewNodeForm({
+      name: '',
+      description: '',
+      category: 'component',
+      weight: 1,
+      image: '',
+      video: '',
+      useCase: '',
+      linkUrl: '',
+    });
+    // 关闭详情面板
+    setActiveId(null);
+  };
+
+  // 取消添加节点（同时处理两种模式）
+  const handleCancelAddNode = () => {
+    setAddNodeState(null);
+    setCreateNodeMode(null);
+    setNewNodeForm({
+      name: '',
+      description: '',
+      category: 'component',
+      weight: 1,
+      image: '',
+      video: '',
+      useCase: '',
+      linkUrl: '',
+    });
+  };
+
+  // 确认添加节点（支持基于节点和独立模式）
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const handleConfirmAddNode = async () => {
+    if (!newNodeForm.name.trim() || isCreating) return;
+    // 必须是基于节点模式或独立模式之一
+    if (!addNodeState && !createNodeMode) return;
+    
+    setIsCreating(true);
+    try {
+      if (editorMode) {
+        // 编辑模式：添加到临时变更队列
+        const tempId = `temp-${Date.now()}`;
+        const newCraftData: Partial<Idea> = {
+          id: tempId,
+          name: newNodeForm.name,
+          description: newNodeForm.description,
+          category: newNodeForm.category,
+          weight: newNodeForm.weight,
+          image: newNodeForm.image || undefined,
+          video: newNodeForm.video || undefined,
+          useCase: newNodeForm.useCase || undefined,
+          linkUrl: newNodeForm.linkUrl || undefined,
+          relations: addNodeState ? [{
+            targetId: addNodeState.sourceId,
+            type: 'relatedTo'
+          }] : []
+        };
+        
+        // 添加到临时变更队列
+        setPendingChanges(prev => [...prev, {
+          type: 'create',
+          id: tempId,
+          data: newCraftData
+        }]);
+        
+        // 临时添加到界面
+        setCrafts(prev => [...prev, newCraftData as Idea]);
+        
+        alert(language === 'zh' 
+          ? `节点 "${newNodeForm.name}" 已临时创建，请点击保存按钮同步到数据库`
+          : `Node "${newNodeForm.name}" created temporarily, click Save to sync to database`
+        );
+      } else {
+        // 非编辑模式：直接创建
+        const newCraft = await createIdea({
+          name: newNodeForm.name,
+          description: newNodeForm.description,
+          category: newNodeForm.category,
+          weight: newNodeForm.weight,
+          image: newNodeForm.image || undefined,
+          video: newNodeForm.video || undefined,
+          useCase: newNodeForm.useCase || undefined,
+          linkUrl: newNodeForm.linkUrl || undefined,
+          relations: addNodeState ? [{
+            targetId: addNodeState.sourceId,
+            type: 'relatedTo'
+          }] : []
+        });
+        
+        setCrafts(prev => [...prev, newCraft]);
+        
+        alert(language === 'zh' 
+          ? `节点 "${newNodeForm.name}" 已创建成功！`
+          : `Node "${newNodeForm.name}" created successfully!`
+        );
+      }
+      
+      handleCancelAddNode();
+    } catch (error) {
+      console.error('Failed to create craft:', error);
+      alert(language === 'zh' ? '创建失败，请稍后重试' : 'Failed to create, please try again');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // 请求删除节点（显示确认对话框）
+  const handleRequestDelete = (craftId: string) => {
+    const craft = crafts.find(c => c.id === craftId);
+    if (craft) {
+      setDeleteConfirm({ id: craftId, name: craft.name });
+    }
+  };
+
+  // 取消删除
+  const handleCancelDelete = () => {
+    setDeleteConfirm(null);
+  };
+
+  // 确认删除节点
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirm || isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      if (editorMode) {
+        // 编辑模式：添加到临时变更队列
+        setPendingChanges(prev => [...prev, {
+          type: 'delete',
+          id: deleteConfirm.id
+        }]);
+        
+        // 临时从界面移除
+        setCrafts(prev => prev.filter(c => c.id !== deleteConfirm.id));
+        
+        // 如果删除的是当前选中的节点，清除选中状态
+        if (activeId === deleteConfirm.id) {
+          setActiveId(null);
+        }
+        
+        alert(language === 'zh' 
+          ? `节点 "${deleteConfirm.name}" 已标记为删除，请点击保存按钮同步到数据库`
+          : `Node "${deleteConfirm.name}" marked for deletion, click Save to sync to database`
+        );
+      } else {
+        // 非编辑模式：直接删除
+        await deleteIdea(deleteConfirm.id);
+        
+        // 更新本地状态
+        setCrafts(prev => prev.filter(c => c.id !== deleteConfirm.id));
+        
+        // 如果删除的是当前选中的节点，清除选中状态
+        if (activeId === deleteConfirm.id) {
+          setActiveId(null);
+        }
+        
+        alert(language === 'zh' 
+          ? `节点 "${deleteConfirm.name}" 已删除`
+          : `Node "${deleteConfirm.name}" deleted`
+        );
+      }
+      
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error('Failed to delete craft:', error);
+      alert(language === 'zh' ? '删除失败，请稍后重试' : 'Failed to delete, please try again');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+
+
+  // 处理图片上传
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 检查文件类型
+    if (!file.type.startsWith('image/')) {
+      alert(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
+      return;
+    }
+
+    // 检查文件大小（5MB）
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await uploadImage(file);
+      setNewNodeForm(prev => ({ ...prev, image: result.url }));
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
+    } finally {
+      setIsUploadingCover(false);
+      // 清空 input 以便重复上传同一文件
+      if (coverInputRef.current) {
+        coverInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 移除图片
+  const handleRemoveImage = () => {
+    setNewNodeForm(prev => ({ ...prev, image: '' }));
+  };
+
+  // 编辑模式：初始化编辑表单
+  const initEditForm = useCallback((craft: Idea) => {
+    setEditNodeForm({
+      name: craft.name,
+      description: craft.description,
+      category: craft.category,
+      weight: craft.weight || 1,
+      image: craft.image || '',
+      originalImage: craft.image || '', // 保存原始值
+      video: craft.video || '',
+      useCase: craft.useCase || '',
+      linkUrl: craft.linkUrl || '',
+    });
+  }, []);
+
+  // 当选中节点变化时，在编辑模式下初始化编辑表单
+  useEffect(() => {
+    if (editorMode && activeId) {
+      const craft = crafts.find(c => c.id === activeId);
+      if (craft) {
+        initEditForm(craft);
+      }
+    } else {
+      setEditNodeForm(null);
+    }
+  }, [editorMode, activeId, crafts, initEditForm]);
+
+
+
+  // 编辑模式：处理图片上传
+  const handleEditImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
+      return;
+    }
+
+    setIsUploadingCover(true);
+    try {
+      const result = await uploadImage(file);
+      setEditNodeForm(prev => prev ? ({ ...prev, image: result.url }) : null);
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
+    } finally {
+      setIsUploadingCover(false);
+      if (coverInputRef.current) {
+        coverInputRef.current.value = '';
+      }
+    }
+  };
+
+  // 编辑模式：移除图片（标记为待删除）
+  const handleEditRemoveImage = () => {
+    if (!editNodeForm) return;
+    
+    // 在编辑模式下，标记图片为待删除（使用特殊标记）
+    setEditNodeForm(prev => prev ? ({ 
+      ...prev, 
+      image: '__PENDING_DELETE__' 
+    }) : null);
+  };
+
+  // 编辑模式：保存更新
+  const handleUpdateCraft = async () => {
+    if (!editNodeForm || !activeId || isUpdating) return;
+    if (!editNodeForm.name.trim()) {
+      alert(language === 'zh' ? '名称不能为空' : 'Name is required');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      if (editorMode) {
+        // 编辑模式：添加到临时变更队列
+        // 处理图片删除标记（用于保存到数据库）
+        const imageForDB = editNodeForm.image === '__PENDING_DELETE__' 
+          ? undefined 
+          : editNodeForm.image || undefined;
+        
+        // 用于临时显示的数据（保留 __PENDING_DELETE__ 标记）
+        const displayData = {
+          name: editNodeForm.name,
+          description: editNodeForm.description,
+          category: editNodeForm.category,
+          weight: editNodeForm.weight,
+          image: editNodeForm.image, // 保留 __PENDING_DELETE__ 标记
+          video: editNodeForm.video || undefined,
+          useCase: editNodeForm.useCase || undefined,
+          linkUrl: editNodeForm.linkUrl || undefined,
+        };
+        
+        // 用于保存到数据库的数据（转换 __PENDING_DELETE__ 为 undefined）
+        const updateData = {
+          ...displayData,
+          image: imageForDB,
+        };
+        
+        // 检查是否已在临时变更队列中
+        const existingIndex = pendingChanges.findIndex(
+          change => change.type === 'update' && change.id === activeId
+        );
+        
+        if (existingIndex >= 0) {
+          // 更新现有的变更
+          setPendingChanges(prev => {
+            const updated = [...prev];
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              data: { ...updated[existingIndex].data, ...updateData }
+            };
+            return updated;
+          });
+        } else {
+          // 添加新的变更
+          setPendingChanges(prev => [...prev, {
+            type: 'update',
+            id: activeId,
+            data: updateData
+          }]);
+        }
+
+        // 临时更新界面（使用带标记的数据，保持"待删除"状态显示）
+        setCrafts(prev => prev.map(c => c.id === activeId ? { ...c, ...displayData } : c));
+
+        alert(language === 'zh' 
+          ? `节点 "${editNodeForm.name}" 修改已临时生效，请点击保存按钮同步到数据库`
+          : `Node "${editNodeForm.name}" updated temporarily, click Save to sync to database`
+        );
+      } else {
+        // 非编辑模式：直接更新
+        const image = editNodeForm.image === '__PENDING_DELETE__' 
+          ? undefined 
+          : editNodeForm.image || undefined;
+        
+        const updatedCraft = await updateIdea(activeId, {
+          name: editNodeForm.name,
+          description: editNodeForm.description,
+          category: editNodeForm.category,
+          weight: editNodeForm.weight,
+          image,
+          video: editNodeForm.video || undefined,
+          useCase: editNodeForm.useCase || undefined,
+          linkUrl: editNodeForm.linkUrl || undefined,
+        });
+
+        // 更新本地状态
+        setCrafts(prev => prev.map(c => c.id === activeId ? updatedCraft : c));
+
+        alert(language === 'zh' 
+          ? `节点 "${editNodeForm.name}" 已更新成功！`
+          : `Node "${editNodeForm.name}" updated successfully!`
+        );
+      }
+    } catch (error) {
+      console.error('Failed to update craft:', error);
+      alert(language === 'zh' ? '更新失败，请稍后重试' : 'Failed to update, please try again');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // 编辑模式：重置编辑表单
+  const handleResetEditForm = () => {
+    if (activeId) {
+      const craft = crafts.find(c => c.id === activeId);
+      if (craft) {
+        initEditForm(craft);
+      }
+    }
+  };
+
+  // 编辑模式：保存所有变更到数据库
+  const handleSaveAllChanges = async () => {
+    if (pendingChanges.length === 0) {
+      alert(language === 'zh' ? '没有需要保存的变更' : 'No changes to save');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // 按类型分组处理：先创建、再更新、最后删除
+      const creates = pendingChanges.filter(c => c.type === 'create');
+      const updates = pendingChanges.filter(c => c.type === 'update');
+      const deletes = pendingChanges.filter(c => c.type === 'delete');
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      // 1. 处理创建
+      for (const change of creates) {
+        try {
+          if (change.data) {
+            const newCraft = await createIdea({
+              name: change.data.name!,
+              description: change.data.description || '',
+              category: change.data.category!,
+              weight: change.data.weight || 1,
+              image: change.data.image,
+              video: change.data.video,
+              useCase: change.data.useCase,
+              linkUrl: change.data.linkUrl,
+              relations: change.data.relations || []
+            });
+            
+            // 替换临时 ID 为真实 ID
+            setCrafts(prev => prev.map(c => 
+              c.id === change.id ? newCraft : c
+            ));
+            successCount++;
+          }
+        } catch (error) {
+          console.error('Failed to create craft:', error);
+          errorCount++;
+        }
+      }
+
+      // 2. 处理更新
+      for (const change of updates) {
+        try {
+          if (change.id && change.data) {
+            // 处理图片删除标记：__PENDING_DELETE__ 应该转换为 undefined
+            const imageForDB = change.data.image === '__PENDING_DELETE__' 
+              ? undefined 
+              : change.data.image;
+            console.log('imageForDB:', imageForDB);
+            
+            
+            const updatedCraft = await updateIdea(change.id, {
+              name: change.data.name!,
+              description: change.data.description!,
+              category: change.data.category!,
+              weight: change.data.weight,
+              image: imageForDB,
+              video: change.data.video,
+              useCase: change.data.useCase,
+              linkUrl: change.data.linkUrl,
+            });
+            
+            setCrafts(prev => prev.map(c => 
+              c.id === change.id ? updatedCraft : c
+            ));
+            successCount++;
+          }
+        } catch (error) {
+          console.error('Failed to update craft:', error);
+          errorCount++;
+        }
+      }
+
+      // 3. 处理删除
+      for (const change of deletes) {
+        try {
+          if (change.id) {
+            await deleteIdea(change.id);
+            successCount++;
+          }
+        } catch (error) {
+          console.error('Failed to delete craft:', error);
+          errorCount++;
+        }
+      }
+
+      // 清空临时变更队列
+      setPendingChanges([]);
+
+      // 显示结果
+      if (errorCount === 0) {
+        alert(language === 'zh' 
+          ? `所有变更已保存成功！(${successCount} 项)`
+          : `All changes saved successfully! (${successCount} items)`
+        );
+      } else {
+        alert(language === 'zh' 
+          ? `保存完成：成功 ${successCount} 项，失败 ${errorCount} 项`
+          : `Save completed: ${successCount} succeeded, ${errorCount} failed`
+        );
+      }
+
+      // 重新加载数据以确保同步
+      const data = await fetchIdeas();
+      setCrafts(data);
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      alert(language === 'zh' ? '保存失败，请稍后重试' : 'Failed to save, please try again');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // 编辑模式：撤销所有变更
+  const handleDiscardChanges = async () => {
+    if (pendingChanges.length === 0) return;
+
+    const confirmed = window.confirm(
+      language === 'zh' 
+        ? `确定要放弃所有未保存的变更吗？(${pendingChanges.length} 项)`
+        : `Discard all unsaved changes? (${pendingChanges.length} items)`
+    );
+
+    if (confirmed) {
+      setPendingChanges([]);
+      // 重新加载数据
+      try {
+        const data = await fetchIdeas();
+        setCrafts(data);
+        setActiveId(null);
+        alert(language === 'zh' ? '已放弃所有变更' : 'All changes discarded');
+      } catch (error) {
+        console.error('Failed to reload crafts:', error);
+      }
+    }
+  };
+
+  const activeCraft = crafts.find((c) => c.id === activeId);
+
+  // 渲染连线
+  const renderConnections = () => {
+    const lines: React.ReactElement[] = [];
+
+    crafts.forEach((craft) => {
+      const fromPos = nodePositions.get(craft.id);
+      if (!fromPos || !craft.relations) return;
+
+      craft.relations.forEach((relation, idx) => {
+        const toPos = nodePositions.get(relation.targetId);
+        if (!toPos) return;
+
+        // 只有 hover 时才显示相关线条
+        const isVisible =
+          hoveredId === craft.id || hoveredId === relation.targetId;
+        
+        if (!isVisible) return;
+
+        const relationStyle = relationLabels[relation.type];
+
+        // 计算贝塞尔曲线控制点
+        const midX = (fromPos.x + toPos.x) / 2;
+        const midY = (fromPos.y + toPos.y) / 2;
+        const dx = toPos.x - fromPos.x;
+        const dy = toPos.y - fromPos.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const curvature = Math.min(dist * 0.2, 50);
+        const perpX = -dy / dist * curvature;
+        const perpY = dx / dist * curvature;
+
+        // 所有类型都使用贝塞尔曲线
+        const pathD = `M ${fromPos.x} ${fromPos.y} Q ${midX + perpX} ${midY + perpY} ${toPos.x} ${toPos.y}`;
+
+        // 根据关系类型设置线条样式
+        let strokeWidth: number;
+        let strokeDasharray: string;
+        let hasArrow: boolean;
+
+        switch (relation.type) {
+          case "extends":
+            strokeWidth = 2.5; // 粗实线
+            strokeDasharray = "none";
+            hasArrow = true;
+            break;
+          case "variant":
+            strokeWidth = 1.5; // 波浪线
+            strokeDasharray = "none";
+            hasArrow = false;
+            break;
+          case "inspiredBy":
+            strokeWidth = 1.5; // 虚线
+            strokeDasharray = "6 3";
+            hasArrow = true;
+            break;
+          case "uses":
+            strokeWidth = 1.5; // 实线
+            strokeDasharray = "none";
+            hasArrow = true;
+            break;
+          case "relatedTo":
+            strokeWidth = 1.5; // 点线
+            strokeDasharray = "2 4";
+            hasArrow = false;
+            break;
+          default:
+            strokeWidth = 1.5;
+            strokeDasharray = "none";
+            hasArrow = true;
+        }
+
+        lines.push(
+          <g key={`${craft.id}-${relation.targetId}-${idx}`} className="connection-group">
+            {/* variant 类型使用双实线 */}
+            {relation.type === "variant" ? (
+              <>
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={relationStyle.color}
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="connection-line"
+                  style={{ transform: 'translateY(-2px)' }}
+                />
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={relationStyle.color}
+                  strokeWidth={1}
+                  strokeOpacity={0.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="connection-line"
+                  style={{ transform: 'translateY(2px)' }}
+                />
+              </>
+            ) : (
+              <>
+                {/* 连线 */}
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={relationStyle.color}
+                  strokeWidth={strokeWidth}
+                  strokeOpacity={0.6}
+                  strokeDasharray={strokeDasharray}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="connection-line"
+                />
+                {/* 流动箭头（仅在需要时显示） */}
+                {hasArrow && (
+                  <path
+                    d="M-6,-3 L0,0 L-6,3"
+                    fill="none"
+                    stroke={relationStyle.color}
+                    strokeWidth={1.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="connection-arrow"
+                  >
+                    <animateMotion
+                      dur="2s"
+                      repeatCount="indefinite"
+                      path={pathD}
+                      rotate="auto"
+                    />
+                  </path>
+                )}
+              </>
+            )}
+          </g>
+        );
+      });
+    });
+
+    return lines;
+  };
+
+  return (
+    <div
+      className={`crafts-page ${editorMode ? 'editor-mode' : ''} ${addNodeState || createNodeMode ? 'add-node-mode' : ''}`}
+      ref={containerRef}
+      onMouseDown={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseDown : undefined}
+      onMouseMove={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseMove : undefined}
+      onMouseUp={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseUp : undefined}
+      onMouseLeave={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseUp : undefined}
+    >
+      {/* 背景 */}
+      <div className="crafts-bg">
+        <div className="bg-gradient"></div>
+        <div className="bg-grid"></div>
+      </div>
+
+      {/* 顶部导航 */}
+      <header className="crafts-header">
+        <BackButton to={editorMode ? "/crafts" : "/"} />
+        
+        {/* 搜索框 */}
+        <div className="search-container">
+          <Icon name="search" className="search-icon" />
+          <input
+            type="text"
+            className="search-input"
+            placeholder={language === "zh" ? "搜索灵感、技术、分类..." : "Search crafts, tech, category..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button 
+              className="search-clear"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear search"
+            >
+              <Icon name="close" />
+            </button>
+          )}
+        </div>
+
+        <div className="header-controls">
+            {layoutMode === "canvas" && (
+              <LandButton 
+                type="fill" 
+                status="default" 
+                icon={<Icon name="refresh"/>} 
+                className="control-btn" 
+                onClick={resetView}
+              />
+            )}
+            <LandButton 
+              type="fill" 
+              status="default" 
+              icon={<Icon name={layoutMode === "canvas" ? "application" : "zoom-in"}/>} 
+              className="control-btn" 
+              onClick={() => setLayoutMode(layoutMode === "canvas" ? "grid" : "canvas")}
+            />
+        </div>
+      </header>
+
+      {/* 编辑器工具栏 */}
+      {editorMode && layoutMode === "canvas" && (
+        <div className="editor-toolbar">
+          <LandButton type="background" icon={<Icon name="add" strokeWidth={4} />} onClick={handleCreateStandaloneNode}/>
+          <div className="toolbar-divider" />
+          <LandButton 
+            type="background" 
+            status="primary"
+            icon={<Icon name="file" />}
+            text={isSaving ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? `保存 (${pendingChanges.length})` : `Save (${pendingChanges.length})`)}
+            onClick={handleSaveAllChanges}
+            disabled={isSaving || pendingChanges.length === 0}
+          />
+          {pendingChanges.length > 0 && (
+            <LandButton 
+              type="fill"
+              status="default"
+              text={language === "zh" ? "撤销" : "Discard"}
+              onClick={handleDiscardChanges}
+              disabled={isSaving}
+            />
+          )}
+          {/* <button 
+            className="toolbar-btn" 
+            title={language === "zh" ? "导入" : "Import"}
+            onClick={() => alert(language === "zh" ? "导入功能开发中..." : "Import feature in development...")}
+          >
+            <Icon name="upload" />
+          </button>
+          <button 
+            className="toolbar-btn" 
+            title={language === "zh" ? "导出" : "Export"}
+            onClick={() => alert(language === "zh" ? "导出功能开发中..." : "Export feature in development...")}
+          >
+            <Icon name="download" />
+          </button> */}
+        </div>
+      )}
+
+      {/* 中心标题 */}
+      {layoutMode === "canvas" && (
+        <div className="center-title">
+          <DotMatrixTitle />
+          {!(crafts.length === 0) && <>
+          <p className="subtitle">
+            {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
+          </p>
+          <div className="craft-count">
+            {searchQuery ? (
+              <>
+                {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
+              </>
+            ) : (
+              <>
+                {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
+              </>
+            )}
+          </div>
+          {editorMode && pendingChanges.length > 0 && (
+            <div className="unsaved-badge">
+              <Icon name="warning" size={14} />
+              {language === "zh" ? `${pendingChanges.length} 项未保存` : `${pendingChanges.length} unsaved`}
+            </div>
+          )}
+          </>}
+        </div>
+      )}
+
+      {/* 加载状态 */}
+      {isLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <span>{language === "zh" ? "加载中..." : "Loading..."}</span>
+        </div>
+      )}
+
+      {/* 空状态 - 无节点时显示 */}
+      {!isLoading && crafts.length === 0 && !createNodeMode && (
+        <div className="empty-state">
+          <DotMatrixTitle />
+          <p className="empty-text">
+            {language === "zh" ? "还没有任何灵感" : "No crafts yet"}
+          </p>
+          <p className="empty-hint">
+            {language === "zh" ? "开始创建你的第一个灵感吧" : "Start creating your first craft"}
+          </p>
+          {editorMode ? (
+            <LandButton
+              type="background"
+              text={language === "zh" ? "新建灵感" : "Create Craft"}
+              icon={<Icon name="add" strokeWidth={4} />}
+              onClick={handleCreateStandaloneNode}
+            />
+          ) : (
+            <LandButton
+              type="background"
+              text={language === "zh" ? "新建灵感" : "Create Craft"}
+              icon={<Icon name="add" strokeWidth={4} />}
+              onClick={() => navigate('/crafts-editor')}
+            />
+          )}
+        </div>
+      )}
+
+      {/* 画布 */}
+      {!isLoading && crafts.length > 0 && layoutMode === "canvas" ? (
+        <div
+          className="canvas-container"
+          ref={canvasRef}
+          style={{
+            transform: `translate(${viewOffset.x}px, ${viewOffset.y}px)`,
+            cursor: isDragging ? "grabbing" : "grab",
+          }}
+        >
+          <div className="canvas-bg" />
+
+          {/* SVG 连线层 */}
+          <svg className="connections-layer" style={{ width: canvasWidth, height: canvasHeight }}>
+            <defs>
+              {Object.entries(relationLabels).map(([type, style]) => (
+                <linearGradient key={type} id={`gradient-${type}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor={style.color} stopOpacity="0.3" />
+                  <stop offset="50%" stopColor={style.color} stopOpacity="0.8" />
+                  <stop offset="100%" stopColor={style.color} stopOpacity="0.3" />
+                </linearGradient>
+              ))}
+            </defs>
+            {renderConnections()}
+          </svg>
+
+          {/* 节点层 */}
+          <div className="nodes-layer">
+            {crafts.map((craft) => {
+              const pos = nodePositions.get(craft.id);
+              if (!pos) return null;
+
+              const isActive = activeId === craft.id;
+              const isRelated = relatedNodes.has(craft.id);
+              const isHovered = hoveredId === craft.id;
+              const isSearchResult = searchResultIds.has(craft.id);
+              const isDimmed = (relatedNodes.size > 0 && !isRelated) || (searchQuery.trim() !== "" && !isSearchResult);
+              const craftEffectiveWeight = effectiveWeights.get(craft.id) || 1;
+
+              return (
+                <IdeaNode
+                  key={craft.id}
+                  idea={craft}
+                  position={pos}
+                  effectiveWeight={craftEffectiveWeight}
+                  maxWeight={maxWeight}
+                  isActive={isActive}
+                  isRelated={isRelated}
+                  isHovered={isHovered}
+                  isDimmed={isDimmed}
+                  language={language}
+                  editorMode={editorMode}
+                  onAddNode={editorMode ? handleAddNode : undefined}
+                  onDelete={editorMode ? handleRequestDelete : undefined}
+                  onClick={() => handleNodeClick(craft.id)}
+                  onMouseEnter={() => setHoveredId(craft.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      ) : !isLoading && crafts.length > 0 ? (
+        <div className="grid-container">
+            <div className="grid center-title">
+          <DotMatrixTitle />
+          <div className="craft-count">
+            {searchQuery ? (
+              <>
+                {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
+              </>
+            ) : (
+              <>
+                {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
+              </>
+            )}
+          </div>
+        </div>
+          <div className="grid-layout">
+            {filteredCrafts.length > 0 ? (
+              filteredCrafts.map((craft) => (
+                <div
+                  key={craft.id}
+                  className={`grid-card ${activeId === craft.id ? "active" : ""}`}
+                  onClick={() => handleNodeClick(craft.id)}
+                >
+                  <div className="grid-card-image">
+                    {craft.image && craft.image !== '__PENDING_DELETE__' ? (
+                      <img src={craft.image} alt={craft.name} />
+                    ) : craft.linkUrl ? (
+                      <iframe 
+                        src={craft.linkUrl} 
+                        title={craft.name}
+                        className="grid-card-iframe"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="grid-card-content">
+                    <span className="grid-card-category">
+                      {categoryLabels[craft.category][language]}
+                    </span>
+                    <h3 className="grid-card-name">{craft.name}</h3>
+                    <p className="grid-card-description">{craft.description}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="no-results">
+                <Icon name="search" className="no-results-icon" />
+                <p className="no-results-text">
+                  {language === "zh" ? "未找到匹配的灵感" : "No crafts found"}
+                </p>
+                <p className="no-results-hint">
+                  {language === "zh" ? "尝试使用其他关键词" : "Try different keywords"}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {/* 关系图例 */}
+      {layoutMode === "canvas" && (
+        <div className="legend">
+          <div className="legend-title">{language === "zh" ? "关系类型" : "Relations"}</div>
+          {Object.entries(relationLabels).map(([type, style]) => {
+            // 根据类型设置不同的线条样式和箭头
+            let lineStyle: React.CSSProperties = {};
+            let showArrow = true;
+            
+            switch (type) {
+              case "extends":
+                lineStyle = {
+                  background: style.color,
+                  height: "2px",
+                };
+                break;
+              case "variant":
+                // 双实线效果
+                lineStyle = {
+                  background: `linear-gradient(${style.color} 0, ${style.color} 1px, transparent 1px, transparent 3px, ${style.color} 3px, ${style.color} 4px)`,
+                  height: "4px",
+                  backgroundSize: "100% 4px",
+                };
+                showArrow = false;
+                break;
+              case "inspiredBy":
+                lineStyle = {
+                  background: `repeating-linear-gradient(90deg, ${style.color} 0, ${style.color} 6px, transparent 6px, transparent 9px)`,
+                };
+                break;
+              case "uses":
+                lineStyle = {
+                  background: style.color,
+                };
+                break;
+              case "relatedTo":
+                lineStyle = {
+                  background: `repeating-linear-gradient(90deg, ${style.color} 0, ${style.color} 2px, transparent 2px, transparent 6px)`,
+                };
+                showArrow = false;
+                break;
+              default:
+                lineStyle = { background: style.color };
+            }
+            
+            return (
+              <div key={type} className="legend-item">
+                <span className="legend-line" style={lineStyle}></span>
+                {showArrow && (
+                  <span className="legend-arrow" style={{ color: style.color,fontWeight: type === 'extends' ? 'bold':'normal'}}>→</span>
+                )}
+                <span className="legend-label">{style[language]}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 详情面板 */}
+      {activeCraft && (
+        <div className={`detail-panel ${editorMode ? 'editor-mode' : ''}`}>
+           <LandButton type="background" status="default" icon={<Icon name="close"/>} className="panel-close" onClick={() => setActiveId(null)}/>
+
+          {/* 编辑模式：可编辑表单 */}
+          {editorMode && editNodeForm ? (
+            <div className="panel-edit-content">
+              <div className="panel-header">
+                <h3>{language === "zh" ? "编辑节点" : "Edit Node"}</h3>
+              </div>
+              
+              <div className="panel-body">
+                <div className="form-group">
+                  <label>{language === "zh" ? "名称" : "Name"} <span className="required">*</span></label>
+                  <LandInput
+                    value={editNodeForm.name}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, name: val }) : null)}
+                    placeholder={language === "zh" ? "输入灵感名称" : "Enter craft name"}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "描述" : "Description"}</label>
+                  <textarea
+                    value={editNodeForm.description}
+                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
+                    placeholder={language === "zh" ? "输入灵感描述" : "Enter craft description"}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "分类" : "Category"}</label>
+                  <LandRadioGroup
+                    data={(Object.keys(categoryLabels) as Idea['category'][]).map(cat => ({
+                      key: cat, 
+                      label: categoryLabels[cat][language]
+                    }))}
+                    checked={editNodeForm.category}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, category: val as Idea['category'] }) : null)}
+                  />
+                </div>
+
+                <div className="form-group" style={{width: '100%'}}>
+                  <label className="white-space-nowrap">{language === "zh" ? "权重" : "Weight"}</label>
+                  <LandNumberInput
+                    value={editNodeForm.weight}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, weight: val ?? 1 }) : null)}
+                    min={1}
+                    max={5}
+                    step={1}
+                    width='80px'
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "预览图片" : "Preview Image"}</label>
+                  <input
+                    ref={coverInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleEditImageUpload}
+                    style={{ display: 'none' }}
+                  />
+                  {editNodeForm.image && editNodeForm.image !== '__PENDING_DELETE__' ? (
+                    <div className="cover-preview">
+                      <img src={editNodeForm.image} alt="Image preview" />
+                      <button className="cover-remove-btn" onClick={handleEditRemoveImage}>
+                        <Icon name="close" size={14} />
+                      </button>
+                    </div>
+                  ) : editNodeForm.image === '__PENDING_DELETE__' ? (
+                    <div className="cover-preview pending-delete">
+                      <div className="pending-delete-overlay">
+                        <Icon name="delete" size={16} />
+                        <span>{language === "zh" ? "待删除" : "Pending Delete"}</span>
+                      </div>
+                      <button className="cover-restore-btn" onClick={() => {
+                        // 恢复图片（从保存的原始数据中恢复）
+                        setEditNodeForm(prev => prev ? ({ 
+                          ...prev, 
+                          image: prev.originalImage 
+                        }) : null);
+                      }}>
+                        <Icon name="refresh" size={14} />
+                        {language === "zh" ? "撤销删除" : "Undo"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
+                      onClick={() => coverInputRef.current?.click()}
+                    >
+                      {isUploadingCover ? (
+                        <>
+                          <div className="upload-spinner"></div>
+                          <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="upload" size={24} />
+                          <span>{language === "zh" ? "点击上传预览图片" : "Click to upload preview image"}</span>
+                          <span className="upload-hint">{language === "zh" ? "支持 JPG、PNG，最大 5MB" : "JPG, PNG supported, max 5MB"}</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
+                  <LandInput
+                    value={editNodeForm.video}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, video: val }) : null)}
+                    placeholder={language === "zh" ? "输入视频URL" : "Enter video URL"}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "来源链接" : "Link URL"}</label>
+                  <LandInput
+                    value={editNodeForm.linkUrl}
+                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, linkUrl: val }) : null)}
+                    placeholder={language === "zh" ? "输入来源链接" : "Enter link URL"}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "适用场景" : "Use Case"}</label>
+                  <textarea
+                    value={editNodeForm.useCase}
+                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, useCase: e.target.value }) : null)}
+                    placeholder={language === "zh" ? "描述适用场景" : "Describe use case"}
+                    rows={2}
+                  />
+                </div>
+              </div>
+
+              <div className="panel-footer">
+                <LandButton 
+                  type="background" 
+                  text={language === "zh" ? "重置" : "Reset"}
+                  onClick={handleResetEditForm}
+                />
+                <LandButton 
+                  type="background" 
+                  status="primary"
+                  text={isUpdating ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? "保存" : "Save")}
+                  onClick={handleUpdateCraft}
+                  disabled={isUpdating || !editNodeForm.name.trim()}
+                />
+              </div>
+            </div>
+          ) : (
+            /* 查看模式：只读详情 */
+            <>
+              <div className="panel-image">
+                {activeCraft.image && activeCraft.image !== '__PENDING_DELETE__' ? (
+                  <img src={activeCraft.image} alt={activeCraft.name} />
+                ) : activeCraft.linkUrl ? (
+                  <iframe 
+                    src={activeCraft.linkUrl} 
+                    title={activeCraft.name}
+                    className="panel-image-iframe"
+                  />
+                ) : null}
+              </div>
+
+              <div className="panel-content">
+                <div className="panel-header-row">
+                  <span className="panel-category">
+                    {categoryLabels[activeCraft.category][language]}
+                  </span>
+                  {activeCraft.createdAt && (
+                    <span className="panel-date">
+                      {new Date(activeCraft.createdAt).toLocaleDateString(language === "zh" ? "zh-CN" : "en-US")}
+                    </span>
+                  )}
+                </div>
+                <h2 className="panel-name">{activeCraft.name}</h2>
+                <p className="panel-description">{activeCraft.description}</p>
+
+                {activeCraft.useCase && (
+                  <div className="panel-usecase">
+                    <h4>{language === "zh" ? "适用场景" : "Use Case"}</h4>
+                    <p>{activeCraft.useCase}</p>
+                  </div>
+                )}
+
+                {activeCraft.relations && activeCraft.relations.length > 0 && (
+                  <div className="panel-relations">
+                    <h4>{language === "zh" ? "关联灵感" : "Related Crafts"}</h4>
+                    {activeCraft.relations.map((rel, idx) => {
+                      const targetCraft = crafts.find((c) => c.id === rel.targetId);
+                      if (!targetCraft) return null;
+                      return (
+                        <button
+                          key={idx}
+                          className="relation-link"
+                          onClick={() => {
+                            setActiveId(rel.targetId);
+                            centerToNode(rel.targetId);
+                          }}
+                        >
+                          <span
+                            className="relation-type"
+                            style={{ color: relationLabels[rel.type].color }}
+                          >
+                            {relationLabels[rel.type][language]}
+                          </span>
+                          <span className="relation-name">{targetCraft.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="panel-actions">
+                  {activeCraft.linkUrl && (
+                    <a href={activeCraft.linkUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
+                      {language === "zh" ? "在线体验" : "Live Demo"}
+                      <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
+                    </a>
+                  )}
+                  <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
+                    {language === "zh" ? "查看详情" : "View Details"}
+                    <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* 迷你地图 */}
+      {layoutMode === "canvas" && (
+        <div 
+          className="minimap"
+          ref={minimapRef}
+          onMouseDown={handleMinimapMouseDown}
+          onMouseMove={handleMinimapMouseMove}
+          onMouseUp={handleMinimapMouseUp}
+          onMouseLeave={handleMinimapMouseUp}
+        >
+          <div className="minimap-content">
+            {crafts.map((craft) => {
+              const pos = nodePositions.get(craft.id);
+              if (!pos) return null;
+              return (
+                <div
+                  key={craft.id}
+                  className={`minimap-dot ${activeId === craft.id ? "active" : ""}`}
+                  style={{
+                    left: `${(pos.x / canvasWidth) * 100}%`,
+                    top: `${(pos.y / canvasHeight) * 100}%`,
+                  }}
+                />
+              );
+            })}
+            <div
+              className="minimap-viewport"
+              style={{
+                left: `${(-viewOffset.x / canvasWidth) * 100}%`,
+                top: `${(-viewOffset.y / canvasHeight) * 100}%`,
+                width: `${(dimensions.width / canvasWidth) * 100}%`,
+                height: `${(dimensions.height / canvasHeight) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 操作提示 */}
+      {layoutMode === "canvas" && !addNodeState && !createNodeMode && (
+        <div className="hints">
+          <span>{language === "zh" ? "拖拽移动" : "Drag to pan"}</span>
+          <span>{language === "zh" ? "滑动浏览" : "Scroll to browse"}</span>
+          <span>{language === "zh" ? "点击查看" : "Click to select"}</span>
+        </div>
+      )}
+
+      {/* 添加节点面板 */}
+      {addNodeState && (
+        <div className={`add-node-overlay direction-${addNodeState.direction}`}>
+          {/* 源节点显示 */}
+          <div className="add-node-source">
+            <div className="source-node-wrapper">
+              <div className={`source-node weight-${Math.min(5, Math.max(1, Math.ceil((addNodeState.sourceCraft.weight || 1) * 1.5)))}`}>
+                <div className="node-inner">
+                  {addNodeState.sourceCraft.image && addNodeState.sourceCraft.image !== '__PENDING_DELETE__' ? (
+                    <img src={addNodeState.sourceCraft.image} alt={addNodeState.sourceCraft.name} />
+                  ) : addNodeState.sourceCraft.linkUrl ? (
+                    <div className="w-full h-full overflow-hidden">
+                      <iframe 
+                      src={addNodeState.sourceCraft.linkUrl} 
+                      title={addNodeState.sourceCraft.name}
+                      className="node-inner-iframe"
+                    />
+                    </div>
+                  ) : null}
+                  <div className="node-overlay">
+                    <span className="node-category">
+                      {categoryLabels[addNodeState.sourceCraft.category][language]}
+                    </span>
+                  </div>
+                </div>
+                <div className="node-label">{addNodeState.sourceCraft.name}</div>
+              </div>
+              <button className="cancel-add-btn" onClick={handleCancelAddNode}>
+                <Icon name="close" strokeWidth={4} />
+              </button>
+            </div>
+          </div>
+
+          {/* 添加节点编辑面板 */}
+          <div className="add-node-panel">
+            <div className="panel-header">
+              <h3>
+                {language === "zh" 
+                  ? `在 "${addNodeState.sourceCraft.name}" ${
+                      addNodeState.direction === 'top' ? '上方' :
+                      addNodeState.direction === 'right' ? '右侧' :
+                      addNodeState.direction === 'bottom' ? '下方' : '左侧'
+                    } 添加节点`
+                  : `Add node ${addNodeState.direction} of "${addNodeState.sourceCraft.name}"`
+                }
+              </h3>
+            </div>
+            
+            <div className="panel-body">
+              <div className="form-group">
+                <label>{language === "zh" ? "名称" : "Name"} <span className="text-red-500">*</span></label>
+                <LandInput
+                  value={newNodeForm.name}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, name: val }))}
+                  placeholder={language === "zh" ? "输入灵感名称" : "Enter craft name"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "描述" : "Description"}</label>
+                <textarea
+                  value={newNodeForm.description}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder={language === "zh" ? "输入灵感描述" : "Enter craft description"}
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "分类" : "Category"}</label>
+                <LandRadioGroup
+                  data={(Object.keys(categoryLabels) as Idea['category'][]).map(cat => ({
+                    key: cat, 
+                    label: categoryLabels[cat][language]
+                  }))}
+                  checked={newNodeForm.category}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, category: val as Idea['category'] }))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "权重" : "Weight"}</label>
+                <LandNumberInput
+                  value={newNodeForm.weight}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, weight: val ?? 1 }))}
+                  min={1}
+                  max={5}
+                  step={1}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "预览图片" : "Preview Image"}</label>
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+                {newNodeForm.image ? (
+                  <div className="cover-preview">
+                    <img src={newNodeForm.image} alt="Image preview" />
+                    <button className="cover-remove-btn" onClick={handleRemoveImage}>
+                      <Icon name="close" size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
+                    onClick={() => coverInputRef.current?.click()}
+                  >
+                    {isUploadingCover ? (
+                      <>
+                        <div className="upload-spinner"></div>
+                        <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="upload" size={24} />
+                        <span>{language === "zh" ? "点击上传预览图片" : "Click to upload preview image"}</span>
+                        <span className="upload-hint">{language === "zh" ? "支持 JPG、PNG，最大 5MB" : "JPG, PNG supported, max 5MB"}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
+                <LandInput
+                  value={newNodeForm.video}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, video: val }))}
+                  placeholder={language === "zh" ? "输入视频URL" : "Enter video URL"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "来源链接" : "Link URL"}</label>
+                <LandInput
+                  value={newNodeForm.linkUrl}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, linkUrl: val }))}
+                  placeholder={language === "zh" ? "输入来源链接" : "Enter link URL"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "适用场景" : "Use Case"}</label>
+                <textarea
+                  value={newNodeForm.useCase}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, useCase: e.target.value }))}
+                  placeholder={language === "zh" ? "描述适用场景" : "Describe use cases"}
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            <div className="panel-footer">
+              <LandButton
+                type="fill"
+                status="default"
+                text={language === "zh" ? "取消" : "Cancel"}
+                onClick={handleCancelAddNode}
+              />
+              <LandButton
+                type="background"
+                text={language === "zh" ? "添加节点" : "Add Node"}
+                onClick={handleConfirmAddNode}
+                disabled={!newNodeForm.name.trim() || isCreating}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 独立新建节点面板 */}
+      {createNodeMode && (
+        <div className="standalone-node-overlay">
+          <div className="add-node-panel standalone-panel">
+            <div className="panel-header">
+              <h3>{language === "zh" ? "新建独立节点" : "Create New Node"}</h3>
+              <button className="panel-close-btn" onClick={handleCancelAddNode}>
+                <Icon name="close" strokeWidth={3} />
+              </button>
+            </div>
+            
+            <div className="panel-body">
+              <div className="form-group">
+                <label>{language === "zh" ? "名称" : "Name"} <span className="text-red-500">*</span></label>
+                <LandInput
+                  value={newNodeForm.name}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, name: val }))}
+                  placeholder={language === "zh" ? "输入灵感名称" : "Enter craft name"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "描述" : "Description"}</label>
+                <textarea
+                  value={newNodeForm.description}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder={language === "zh" ? "输入灵感描述" : "Enter craft description"}
+                  rows={3}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "分类" : "Category"}</label>
+                <LandRadioGroup
+                  data={(Object.keys(categoryLabels) as Idea['category'][]).map(cat => ({
+                    key: cat, 
+                    label: categoryLabels[cat][language]
+                  }))}
+                  checked={newNodeForm.category}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, category: val as Idea['category'] }))}
+                />
+              </div>
+
+              <div className="form-group form-group-half">
+                <label>{language === "zh" ? "权重" : "Weight"}</label>
+                <LandNumberInput
+                  value={newNodeForm.weight}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, weight: val ?? 1 }))}
+                  min={1}
+                  max={5}
+                  step={1}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "预览图片" : "Preview Image"}</label>
+                <input
+                  ref={coverInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  style={{ display: 'none' }}
+                />
+                {newNodeForm.image ? (
+                  <div className="cover-preview">
+                    <img src={newNodeForm.image} alt="Image preview" />
+                    <button className="cover-remove-btn" onClick={handleRemoveImage}>
+                      <Icon name="close" size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
+                    onClick={() => coverInputRef.current?.click()}
+                  >
+                    {isUploadingCover ? (
+                      <>
+                        <div className="upload-spinner"></div>
+                        <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="upload" size={24} />
+                        <span>{language === "zh" ? "点击上传预览图片" : "Click to upload preview image"}</span>
+                        <span className="upload-hint">{language === "zh" ? "支持 JPG、PNG，最大 5MB" : "JPG, PNG supported, max 5MB"}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
+                <LandInput
+                  value={newNodeForm.video}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, video: val }))}
+                  placeholder={language === "zh" ? "输入视频URL" : "Enter video URL"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "来源链接" : "Link URL"}</label>
+                <LandInput
+                  value={newNodeForm.linkUrl}
+                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, linkUrl: val }))}
+                  placeholder={language === "zh" ? "输入来源链接" : "Enter link URL"}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "适用场景" : "Use Case"}</label>
+                <textarea
+                  value={newNodeForm.useCase}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, useCase: e.target.value }))}
+                  placeholder={language === "zh" ? "描述适用场景" : "Describe use cases"}
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            <div className="panel-footer">
+              <LandButton
+                type="fill"
+                status="default"
+                text={language === "zh" ? "取消" : "Cancel"}
+                onClick={handleCancelAddNode}
+              />
+              <LandButton
+                type="background"
+                text={language === "zh" ? "创建节点" : "Create Node"}
+                onClick={handleConfirmAddNode}
+                disabled={!newNodeForm.name.trim() || isCreating}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 删除确认对话框 */}
+      {deleteConfirm && (
+        <div className="delete-confirm-overlay">
+          <div className="delete-confirm-dialog">
+            <div className="delete-icon">
+              <Icon name="delete" size={32} />
+            </div>
+            <h3>{language === "zh" ? "确认删除" : "Confirm Delete"}</h3>
+            <p>
+              {language === "zh" 
+                ? `确定要删除节点 "${deleteConfirm.name}" 吗？此操作无法撤销。`
+                : `Are you sure you want to delete "${deleteConfirm.name}"? This action cannot be undone.`
+              }
+            </p>
+            <div className="delete-actions">
+              <LandButton
+                type="fill"
+                status="default"
+                text={language === "zh" ? "取消" : "Cancel"}
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+              />
+              <LandButton
+                type="background"
+                status="danger"
+                text={isDeleting 
+                  ? (language === "zh" ? "删除中..." : "Deleting...") 
+                  : (language === "zh" ? "确认删除" : "Delete")
+                }
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default IdeasPage;
