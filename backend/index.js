@@ -58,7 +58,9 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+// 增加请求体大小限制以支持大文件上传
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // 静态文件服务 - 提供上传的图片访问
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

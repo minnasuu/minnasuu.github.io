@@ -55,7 +55,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 50 * 1024 * 1024 // 限制 50MB (视频需要更大空间)
+    fileSize: 20 * 1024 * 1024 // 限制 100MB (视频需要更大空间)
   }
 });
 
