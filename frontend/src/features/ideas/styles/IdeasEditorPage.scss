@@ -1,6 +1,6 @@
 // 编辑模式下的额外样式
-.crafts-page.editor-mode {
-  .craft-node {
+.idea-page.editor-mode {
+  .idea-node {
     &:hover {
       .node-add-buttons {
         opacity: 1;
@@ -181,7 +181,7 @@
 }
 
 // 添加节点模式 - 全屏覆盖
-.crafts-page.add-node-mode {
+.idea-page.add-node-mode {
   // 隐藏其他元素
   .canvas-container,
   .center-title,

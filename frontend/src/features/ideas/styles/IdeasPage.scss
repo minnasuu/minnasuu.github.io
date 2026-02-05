@@ -17,7 +17,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 // 导入编辑器样式
 @import './IdeasEditorPage.scss';
 
-.ideas-page {
+.idea-page {
   position: fixed;
   inset: 0;
   background-color: $color-bg;
@@ -90,7 +90,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
 
 // 背景
-.ideas-bg {
+.idea-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -115,7 +115,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // 顶部导航
-.ideas-header {
+.idea-header {
   position: absolute;
   top: 0;
   left: 0;
@@ -1235,7 +1235,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 768px) {
-  .ideas-header {
+  .idea-header {
     padding: 0 20px;
     flex-wrap: wrap;
     height: auto;

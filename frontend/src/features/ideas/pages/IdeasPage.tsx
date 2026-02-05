@@ -1301,7 +1301,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
   return (
     <div
-      className={`ideas-page ${editorMode ? 'editor-mode' : ''} ${addNodeState || createNodeMode ? 'add-node-mode' : ''}`}
+      className={`idea-page ${editorMode ? 'editor-mode' : ''} ${addNodeState || createNodeMode ? 'add-node-mode' : ''}`}
       ref={containerRef}
       onMouseDown={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseDown : undefined}
       onMouseMove={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseMove : undefined}
@@ -1309,13 +1309,13 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       onMouseLeave={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseUp : undefined}
     >
       {/* 背景 */}
-      <div className="ideas-bg">
+      <div className="idea-bg">
         <div className="bg-gradient"></div>
         <div className="bg-grid"></div>
       </div>
 
       {/* 顶部导航 */}
-      <header className="ideas-header">
+      <header className="idea-header">
         <BackButton to={editorMode ? "/crafts" : "/"} />
         
         {/* 搜索框 */}
@@ -1457,7 +1457,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               type="background"
               text={language === "zh" ? "新建灵感" : "Create Craft"}
               icon={<Icon name="add" strokeWidth={4} />}
-              onClick={() => navigate('/ideas-editor')}
+              onClick={() => navigate('/idea-editor')}
             />
           )}
         </div>
