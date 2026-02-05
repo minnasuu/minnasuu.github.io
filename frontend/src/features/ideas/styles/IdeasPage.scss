@@ -1126,8 +1126,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 // 缩放控制器和迷你地图容器
 .minimap-container {
   position: absolute;
-  bottom: 40px;
-  right: 40px;
+  bottom: 50px;
   display: flex;
   flex-direction: column;
   gap: 12px;

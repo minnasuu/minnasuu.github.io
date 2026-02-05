@@ -2041,7 +2041,6 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         <div className="minimap-container">
           {/* 缩放滑块 */}
           <div className="zoom-control">
-            <Icon name="zoom-out" size={16} />
             <input
               type="range"
               min="0.5"
@@ -2051,7 +2050,6 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               onChange={(e) => setCanvasScale(parseFloat(e.target.value))}
               className="zoom-slider"
             />
-            <Icon name="zoom-in" size={16} />
             <span className="zoom-label">{Math.round(canvasScale * 100)}%</span>
           </div>
 
