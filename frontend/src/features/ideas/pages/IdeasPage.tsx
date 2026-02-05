@@ -263,11 +263,11 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const canvasWidth = dimensions.width * 2;
   const canvasHeight = dimensions.height * 2;
 
-  // 计算迷你地图尺寸，保持与画布相同的宽高比
+  // 计算迷你地图尺寸，保持与视口相同的宽高比
   const minimapBaseWidth = 180;
-  const minimapAspectRatio = canvasWidth / canvasHeight || 1;
+  const viewportAspectRatio = dimensions.width / dimensions.height || 1;
   const minimapWidth = minimapBaseWidth;
-  const minimapHeight = minimapBaseWidth / minimapAspectRatio;
+  const minimapHeight = minimapBaseWidth / viewportAspectRatio;
 
   // 限制画布偏移量，确保不能完全移出边界
   const clampViewOffset = useCallback((offset: { x: number; y: number }) => {
