@@ -224,6 +224,8 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   // 封面图片上传状态
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  // 视频上传状态
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   // 编辑节点表单数据（用于编辑模式下的详情面板）
   const [editNodeForm, setEditNodeForm] = useState<{
     name: string;
@@ -781,7 +783,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       return;
     }
 
-    setIsUploadingCover(true);
+    setIsUploadingVideo(true);
     try {
       const result = await uploadVideo(file);
       setNewNodeForm(prev => ({ ...prev, video: result.url }));
@@ -789,7 +791,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       console.error('Failed to upload video:', error);
       alert(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
     } finally {
-      setIsUploadingCover(false);
+      setIsUploadingVideo(false);
       // 清空 input 以便重复上传同一文件
       if (videoInputRef.current) {
         videoInputRef.current.value = '';
@@ -812,7 +814,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       return;
     }
 
-    setIsUploadingCover(true);
+    setIsUploadingVideo(true);
     try {
       const result = await uploadVideo(file);
       setEditNodeForm(prev => prev ? ({ ...prev, video: result.url }) : null);
@@ -820,7 +822,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       console.error('Failed to upload video:', error);
       alert(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
     } finally {
-      setIsUploadingCover(false);
+      setIsUploadingVideo(false);
       // 清空 input 以便重复上传同一文件
       if (videoInputRef.current) {
         videoInputRef.current.value = '';
@@ -1752,30 +1754,39 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
                 <div className="form-group">
                   <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/*"
+                    onChange={handleEditVideoUpload}
+                    style={{ display: 'none' }}
+                  />
                   {editNodeForm.video ? (
                     <div className="cover-preview">
                       <video src={editNodeForm.video} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
-                      <button 
-                        className="remove-cover-btn"
-                        onClick={handleEditRemoveVideo}
-                        type="button"
-                      >
-                        <Icon name="delete" size={16} />
+                      <button className="cover-remove-btn" onClick={handleEditRemoveVideo}>
+                        <Icon name="close" size={14} />
                       </button>
                     </div>
                   ) : (
-                    <div className="upload-placeholder" onClick={() => videoInputRef.current?.click()}>
-                      <Icon name="upload" size={24} />
-                      <span>{language === "zh" ? "点击上传视频" : "Click to upload video"}</span>
+                    <div 
+                      className={`cover-upload-area ${isUploadingVideo ? 'uploading' : ''}`}
+                      onClick={() => videoInputRef.current?.click()}
+                    >
+                      {isUploadingVideo ? (
+                        <>
+                          <div className="upload-spinner"></div>
+                          <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="upload" size={24} />
+                          <span>{language === "zh" ? "点击上传预览视频" : "Click to upload preview video"}</span>
+                          <span className="upload-hint">{language === "zh" ? "支持 MP4、WebM，最大 50MB" : "MP4, WebM supported, max 50MB"}</span>
+                        </>
+                      )}
                     </div>
                   )}
-                  <input
-                    type="file"
-                    ref={videoInputRef}
-                    onChange={handleEditVideoUpload}
-                    accept="video/*"
-                    style={{ display: 'none' }}
-                  />
                 </div>
 
                 <div className="form-group">
@@ -2072,30 +2083,39 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
               <div className="form-group">
                 <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  style={{ display: 'none' }}
+                />
                 {newNodeForm.video ? (
                   <div className="cover-preview">
                     <video src={newNodeForm.video} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
-                    <button 
-                      className="remove-cover-btn"
-                      onClick={handleRemoveVideo}
-                      type="button"
-                    >
-                      <Icon name="delete" size={16} />
+                    <button className="cover-remove-btn" onClick={handleRemoveVideo}>
+                      <Icon name="close" size={14} />
                     </button>
                   </div>
                 ) : (
-                  <div className="upload-placeholder" onClick={() => videoInputRef.current?.click()}>
-                    <Icon name="upload" size={24} />
-                    <span>{language === "zh" ? "点击上传视频" : "Click to upload video"}</span>
+                  <div 
+                    className={`cover-upload-area ${isUploadingVideo ? 'uploading' : ''}`}
+                    onClick={() => videoInputRef.current?.click()}
+                  >
+                    {isUploadingVideo ? (
+                      <>
+                        <div className="upload-spinner"></div>
+                        <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="upload" size={24} />
+                        <span>{language === "zh" ? "点击上传预览视频" : "Click to upload preview video"}</span>
+                        <span className="upload-hint">{language === "zh" ? "支持 MP4、WebM，最大 50MB" : "MP4, WebM supported, max 50MB"}</span>
+                      </>
+                    )}
                   </div>
                 )}
-                <input
-                  type="file"
-                  ref={videoInputRef}
-                  onChange={handleVideoUpload}
-                  accept="video/*"
-                  style={{ display: 'none' }}
-                />
               </div>
 
               <div className="form-group">
@@ -2229,30 +2249,39 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
               <div className="form-group">
                 <label>{language === "zh" ? "预览视频" : "Preview Video"}</label>
+                <input
+                  ref={videoInputRef}
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  style={{ display: 'none' }}
+                />
                 {newNodeForm.video ? (
                   <div className="cover-preview">
                     <video src={newNodeForm.video} controls style={{ maxWidth: '100%', maxHeight: '200px' }} />
-                    <button 
-                      className="remove-cover-btn"
-                      onClick={handleRemoveVideo}
-                      type="button"
-                    >
-                      <Icon name="delete" size={16} />
+                    <button className="cover-remove-btn" onClick={handleRemoveVideo}>
+                      <Icon name="close" size={14} />
                     </button>
                   </div>
                 ) : (
-                  <div className="upload-placeholder" onClick={() => videoInputRef.current?.click()}>
-                    <Icon name="upload" size={24} />
-                    <span>{language === "zh" ? "点击上传视频" : "Click to upload video"}</span>
+                  <div 
+                    className={`cover-upload-area ${isUploadingVideo ? 'uploading' : ''}`}
+                    onClick={() => videoInputRef.current?.click()}
+                  >
+                    {isUploadingVideo ? (
+                      <>
+                        <div className="upload-spinner"></div>
+                        <span>{language === "zh" ? "上传中..." : "Uploading..."}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="upload" size={24} />
+                        <span>{language === "zh" ? "点击上传预览视频" : "Click to upload preview video"}</span>
+                        <span className="upload-hint">{language === "zh" ? "支持 MP4、WebM，最大 50MB" : "MP4, WebM supported, max 50MB"}</span>
+                      </>
+                    )}
                   </div>
                 )}
-                <input
-                  type="file"
-                  ref={videoInputRef}
-                  onChange={handleVideoUpload}
-                  accept="video/*"
-                  style={{ display: 'none' }}
-                />
               </div>
 
               <div className="form-group">
