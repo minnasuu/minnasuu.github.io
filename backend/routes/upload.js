@@ -32,17 +32,21 @@ const storage = multer.diskStorage({
 
 // 文件过滤器 - 允许图片和视频
 const fileFilter = (req, file, cb) => {
+  console.log(`File filter - Field: ${file.fieldname}, Mimetype: ${file.mimetype}, Original name: ${file.originalname}`);
+  
   const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
   const allowedVideoTypes = /mp4|webm|ogg|mov|avi|mkv/;
-  const extname = path.extname(file.originalname).toLowerCase();
+  const extname = path.extname(file.originalname).toLowerCase().replace('.', '');
   
   const isImage = allowedImageTypes.test(extname) && file.mimetype.startsWith('image/');
   const isVideo = allowedVideoTypes.test(extname) && file.mimetype.startsWith('video/');
 
+  console.log(`File validation - Extension: ${extname}, isImage: ${isImage}, isVideo: ${isVideo}`);
+
   if (isImage || isVideo) {
     return cb(null, true);
   } else {
-    cb(new Error('只允许上传图片 (jpeg, jpg, png, gif, webp) 或视频 (mp4, webm, ogg, mov, avi, mkv) 文件'));
+    cb(new Error(`不支持的文件类型。文件: ${file.originalname}, MIME: ${file.mimetype}。只允许上传图片 (jpeg, jpg, png, gif, webp) 或视频 (mp4, webm, ogg, mov, avi, mkv) 文件`));
   }
 };
 
@@ -57,50 +61,53 @@ const upload = multer({
 
 // POST 上传图片或视频
 router.post('/', (req, res) => {
-  // 使用动态字段名处理
-  const uploadSingle = upload.single('image') || upload.single('video');
+  console.log('API Request: POST /api/upload - Start');
+  console.log('Content-Type:', req.headers['content-type']);
   
-  // 先尝试作为 image 上传
-  upload.single('image')(req, res, (err) => {
-    if (!req.file && !err) {
-      // 如果不是 image，尝试作为 video 上传
-      upload.single('video')(req, res, (videoErr) => {
-        handleUploadResponse(req, res, videoErr);
+  // 创建一个动态的multer上传器，根据请求自动识别字段名
+  const uploadMiddleware = upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'video', maxCount: 1 }
+  ]);
+  
+  uploadMiddleware(req, res, (err) => {
+    if (err) {
+      console.error('API Error: Upload error:', err);
+      return res.status(400).json({ error: err.message });
+    }
+    
+    try {
+      // 检查是上传了图片还是视频
+      let file = null;
+      if (req.files) {
+        if (req.files['image'] && req.files['image'][0]) {
+          file = req.files['image'][0];
+        } else if (req.files['video'] && req.files['video'][0]) {
+          file = req.files['video'][0];
+        }
+      }
+      
+      if (!file) {
+        console.error('API Error: No file uploaded');
+        return res.status(400).json({ error: '没有上传文件' });
+      }
+
+      // 返回文件的访问 URL
+      const fileUrl = `/uploads/${file.filename}`;
+      console.log(`API Request: POST /api/upload - File uploaded: ${fileUrl}`);
+      console.log(`File details: fieldname=${file.fieldname}, size=${file.size}, mimetype=${file.mimetype}`);
+      
+      res.json({
+        success: true,
+        url: fileUrl,
+        filename: file.filename
       });
-    } else {
-      handleUploadResponse(req, res, err);
+    } catch (error) {
+      console.error('API Error: Error uploading file:', error);
+      res.status(500).json({ error: '文件上传失败' });
     }
   });
 });
-
-// 处理上传响应的辅助函数
-function handleUploadResponse(req, res, err) {
-  console.log('API Request: POST /api/upload - Start');
-  
-  if (err) {
-    console.error('API Error: Upload error:', err);
-    return res.status(400).json({ error: err.message });
-  }
-  
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: '没有上传文件' });
-    }
-
-    // 返回文件的访问 URL
-    const fileUrl = `/uploads/${req.file.filename}`;
-    console.log(`API Request: POST /api/upload - File uploaded: ${fileUrl}`);
-    
-    res.json({
-      success: true,
-      url: fileUrl,
-      filename: req.file.filename
-    });
-  } catch (error) {
-    console.error('API Error: Error uploading file:', error);
-    res.status(500).json({ error: '文件上传失败' });
-  }
-}
 
 // DELETE 删除文件（图片或视频）
 router.delete('/:filename', async (req, res) => {
