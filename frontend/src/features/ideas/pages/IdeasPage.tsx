@@ -661,7 +661,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       
       handleCancelAddNode();
     } catch (error) {
-      console.error('Failed to create craft:', error);
+      console.error('Failed to create idea:', error);
       alert(language === 'zh' ? '创建失败，请稍后重试' : 'Failed to create, please try again');
     } finally {
       setIsCreating(false);
@@ -1301,7 +1301,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
   return (
     <div
-      className={`crafts-page ${editorMode ? 'editor-mode' : ''} ${addNodeState || createNodeMode ? 'add-node-mode' : ''}`}
+      className={`ideas-page ${editorMode ? 'editor-mode' : ''} ${addNodeState || createNodeMode ? 'add-node-mode' : ''}`}
       ref={containerRef}
       onMouseDown={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseDown : undefined}
       onMouseMove={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseMove : undefined}
@@ -1309,13 +1309,13 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       onMouseLeave={layoutMode === "canvas" && !addNodeState && !createNodeMode ? handleMouseUp : undefined}
     >
       {/* 背景 */}
-      <div className="crafts-bg">
+      <div className="ideas-bg">
         <div className="bg-gradient"></div>
         <div className="bg-grid"></div>
       </div>
 
       {/* 顶部导航 */}
-      <header className="crafts-header">
+      <header className="ideas-header">
         <BackButton to={editorMode ? "/crafts" : "/"} />
         
         {/* 搜索框 */}
@@ -1406,7 +1406,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           <p className="subtitle">
             {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
           </p>
-          <div className="craft-count">
+          <div className="idea-count">
             {searchQuery ? (
               <>
                 {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
@@ -1529,7 +1529,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         <div className="grid-container">
             <div className="grid center-title">
           <DotMatrixTitle />
-          <div className="craft-count">
+          <div className="idea-count">
             {searchQuery ? (
               <>
                 {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
@@ -1891,14 +1891,10 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
                 <div className="panel-actions">
                   {activeCraft.linkUrl && (
                     <a href={activeCraft.linkUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
-                      {language === "zh" ? "在线体验" : "Live Demo"}
+                      {language === "zh" ? "查看" : "View"}
                       <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
                     </a>
                   )}
-                  <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
-                    {language === "zh" ? "查看详情" : "View Details"}
-                    <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
-                  </Link>
                 </div>
               </div>
             </>

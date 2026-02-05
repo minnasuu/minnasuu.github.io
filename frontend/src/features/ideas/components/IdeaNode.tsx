@@ -108,7 +108,7 @@ export const IdeaNode: React.FC<IdeaNodeProps> = ({
 
   return (
     <div
-      className={`idea-node ${isActive ? "active" : ""} ${isRelated ? "related" : ""} ${isHovered ? "hovered" : ""} weight-${weightLevel}`}
+      className={`crafts-node ${isActive ? "active" : ""} ${isRelated ? "related" : ""} ${isHovered ? "hovered" : ""} weight-${weightLevel}`}
       style={{
         left: position.x,
         top: position.y,

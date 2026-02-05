@@ -17,7 +17,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 // 导入编辑器样式
 @import './IdeasEditorPage.scss';
 
-.crafts-page {
+.ideas-page {
   position: fixed;
   inset: 0;
   background-color: $color-bg;
@@ -90,7 +90,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
 
 // 背景
-.crafts-bg {
+.ideas-bg {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -115,7 +115,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // 顶部导航
-.crafts-header {
+.ideas-header {
   position: absolute;
   top: 0;
   left: 0;
@@ -306,7 +306,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     font-weight: 500;
   }
   
-  .craft-count {
+  .idea-count {
     font-size: 0.75rem;
     color: $color-text-light;
     margin-top: 0.5rem;
@@ -374,7 +374,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // 节点样式
-.craft-node {
+.idea-node {
   position: absolute;
   transform: translate(-50%, -50%);
   cursor: pointer;
@@ -456,7 +456,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     transform: scale(0.5);
   }
   
-  .craft-node:hover {
+  .idea-node:hover {
     transform: scale(1.05);
   }
 }
@@ -472,8 +472,8 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
   transition: opacity 0.3s ease;
   
-  .craft-node:hover &,
-  .craft-node.active & {
+  .idea-node:hover &,
+  .idea-node.active & {
     opacity: 1;
   }
   
@@ -1235,7 +1235,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 768px) {
-  .crafts-header {
+  .ideas-header {
     padding: 0 20px;
     flex-wrap: wrap;
     height: auto;
