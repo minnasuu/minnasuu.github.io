@@ -219,6 +219,8 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const [addNodeState, setAddNodeState] = useState<AddNodeState | null>(null);
   // 独立新建节点模式
   const [createNodeMode, setCreateNodeMode] = useState<CreateNodeMode>(null);
+  // 画布缩放比例（0.5 - 2.0，默认 1.0）
+  const [canvasScale, setCanvasScale] = useState<number>(1.0);
   // 删除确认状态
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -1523,8 +1525,9 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           className="canvas-container"
           ref={canvasRef}
           style={{
-            transform: `translate(${viewOffset.x}px, ${viewOffset.y}px)`,
+            transform: `translate(${viewOffset.x}px, ${viewOffset.y}px) scale(${canvasScale})`,
             cursor: isDragging ? "grabbing" : "grab",
+            transformOrigin: 'center center',
           }}
         >
           <div className="canvas-bg" />
@@ -2033,44 +2036,63 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         </div>
       )}
 
-      {/* 迷你地图 */}
+      {/* 缩放控制器和迷你地图 */}
       {layoutMode === "canvas" && (
-        <div 
-          className="minimap"
-          ref={minimapRef}
-          onMouseDown={handleMinimapMouseDown}
-          onMouseMove={handleMinimapMouseMove}
-          onMouseUp={handleMinimapMouseUp}
-          onMouseLeave={handleMinimapMouseUp}
-          style={{
-            width: `${minimapWidth}px`,
-            height: `${minimapHeight}px`,
-          }}
-        >
-          <div className="minimap-content">
-            {crafts.map((craft) => {
-              const pos = nodePositions.get(craft.id);
-              if (!pos) return null;
-              return (
-                <div
-                  key={craft.id}
-                  className={`minimap-dot ${activeId === craft.id ? "active" : ""}`}
-                  style={{
-                    left: `${(pos.x / canvasWidth) * 100}%`,
-                    top: `${(pos.y / canvasHeight) * 100}%`,
-                  }}
-                />
-              );
-            })}
-            <div
-              className="minimap-viewport"
-              style={{
-                left: `${(-viewOffset.x / canvasWidth) * 100}%`,
-                top: `${(-viewOffset.y / canvasHeight) * 100}%`,
-                width: `${(dimensions.width / canvasWidth) * 100}%`,
-                height: `${(dimensions.height / canvasHeight) * 100}%`,
-              }}
+        <div className="minimap-container">
+          {/* 缩放滑块 */}
+          <div className="zoom-control">
+            <Icon name="zoom-out" size={16} />
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={canvasScale}
+              onChange={(e) => setCanvasScale(parseFloat(e.target.value))}
+              className="zoom-slider"
             />
+            <Icon name="zoom-in" size={16} />
+            <span className="zoom-label">{Math.round(canvasScale * 100)}%</span>
+          </div>
+
+          {/* 迷你地图 */}
+          <div 
+            className="minimap"
+            ref={minimapRef}
+            onMouseDown={handleMinimapMouseDown}
+            onMouseMove={handleMinimapMouseMove}
+            onMouseUp={handleMinimapMouseUp}
+            onMouseLeave={handleMinimapMouseUp}
+            style={{
+              width: `${minimapWidth}px`,
+              height: `${minimapHeight}px`,
+            }}
+          >
+            <div className="minimap-content">
+              {crafts.map((craft) => {
+                const pos = nodePositions.get(craft.id);
+                if (!pos) return null;
+                return (
+                  <div
+                    key={craft.id}
+                    className={`minimap-dot ${activeId === craft.id ? "active" : ""}`}
+                    style={{
+                      left: `${(pos.x / canvasWidth) * 100}%`,
+                      top: `${(pos.y / canvasHeight) * 100}%`,
+                    }}
+                  />
+                );
+              })}
+              <div
+                className="minimap-viewport"
+                style={{
+                  left: `${(-viewOffset.x / canvasWidth) * 100}%`,
+                  top: `${(-viewOffset.y / canvasHeight) * 100}%`,
+                  width: `${(dimensions.width / canvasWidth) * 100}%`,
+                  height: `${(dimensions.height / canvasHeight) * 100}%`,
+                }}
+              />
+            </div>
           </div>
         </div>
       )}

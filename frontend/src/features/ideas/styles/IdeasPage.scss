@@ -1123,11 +1123,114 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-// 迷你地图
-.minimap {
+// 缩放控制器和迷你地图容器
+.minimap-container {
   position: absolute;
   bottom: 40px;
   right: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 50;
+}
+
+// 缩放控制器
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: $color-panel-bg;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: $shadow-sm;
+
+  .land-icon {
+    color: $color-text-sub;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: $color-text-main;
+    }
+  }
+
+  .zoom-slider {
+    width: 100px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: linear-gradient(to right, 
+      rgba(99, 102, 241, 0.2) 0%, 
+      rgba(99, 102, 241, 0.4) 50%, 
+      rgba(99, 102, 241, 0.2) 100%
+    );
+    border-radius: 2px;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: $color-accent;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      }
+
+      &:active {
+        transform: scale(1.05);
+      }
+    }
+
+    &::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: $color-accent;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+      }
+
+      &:active {
+        transform: scale(1.05);
+      }
+    }
+
+    &:hover {
+      background: linear-gradient(to right, 
+        rgba(99, 102, 241, 0.3) 0%, 
+        rgba(99, 102, 241, 0.5) 50%, 
+        rgba(99, 102, 241, 0.3) 100%
+      );
+    }
+  }
+
+  .zoom-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $color-text-main;
+    min-width: 40px;
+    text-align: center;
+  }
+}
+
+// 迷你地图
+.minimap {
   width: 180px; // 稍微加大
   height: 120px;
   background: $color-panel-bg;
@@ -1135,7 +1238,6 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 20px;
   overflow: hidden;
-  z-index: 50;
   cursor: crosshair;
   transition: transform 0.2s ease;
   
@@ -1230,7 +1332,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     padding: 10px 14px; // 平板上进一步缩小
   }
   
-  .minimap {
+  .minimap-container {
     display: none;
   }
 
@@ -1568,6 +1670,52 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
     span {
       color: #a0aec0;
+    }
+  }
+
+  .zoom-control {
+    background: rgba(26, 26, 26, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    .zoom-slider {
+      background: linear-gradient(to right, 
+        rgba(99, 102, 241, 0.3) 0%, 
+        rgba(99, 102, 241, 0.5) 50%, 
+        rgba(99, 102, 241, 0.3) 100%
+      );
+
+      &:hover {
+        background: linear-gradient(to right, 
+          rgba(99, 102, 241, 0.4) 0%, 
+          rgba(99, 102, 241, 0.6) 50%, 
+          rgba(99, 102, 241, 0.4) 100%
+        );
+      }
+    }
+
+    .zoom-label {
+      color: #e2e8f0;
+    }
+
+    .land-icon {
+      color: #a0aec0;
+
+      &:hover {
+        color: #e2e8f0;
+      }
+    }
+  }
+
+  .minimap {
+    background: rgba(26, 26, 26, 0.8);
+    border-color: rgba(255, 255, 255, 0.1);
+
+    .minimap-dot {
+      background: #4a5568;
+
+      &.active {
+        background: $color-accent;
+      }
     }
   }
 }
