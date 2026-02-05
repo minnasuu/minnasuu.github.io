@@ -1161,3 +1161,243 @@
     opacity: 0.7;
   }
 }
+
+// 关系编辑器样式
+.relations-editor {
+  .relations-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    label {
+      margin-bottom: 0;
+    }
+
+    .add-relation-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #4a5568;
+
+      &:hover {
+        background: #f7fafc;
+        border-color: #2e2e2e;
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+
+  .no-relations {
+    padding: 32px 16px;
+    text-align: center;
+    color: #a0aec0;
+    font-size: 0.875rem;
+    background: #f7fafc;
+    border: 1px dashed #cbd5e0;
+    border-radius: 12px;
+  }
+
+  .relations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .relation-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .relation-type-select {
+      flex-shrink: 0;
+      width: 110px;
+
+      select {
+        width: 100%;
+        padding: 6px 8px;
+        border: 2px solid #cbd5e0;
+        border-radius: 8px;
+        background: #ffffff;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: currentColor;
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+      }
+    }
+
+    .relation-target-select {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      select {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        background: #f7fafc;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: rgba(0, 0, 0, 0.2);
+        }
+
+        &:focus {
+          outline: none;
+          background: #ffffff;
+          border-color: #2e2e2e;
+          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+      }
+
+      .target-category {
+        flex-shrink: 0;
+        padding: 3px 8px;
+        background: rgba(99, 102, 241, 0.1);
+        color: #5a67d8;
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+    }
+
+    .remove-relation-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #a0aec0;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(220, 38, 38, 0.1);
+        border-color: rgba(220, 38, 38, 0.2);
+        color: #dc2626;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}
+
+// 深色模式下的关系编辑器
+@media (prefers-color-scheme: dark) {
+  .relations-editor {
+    .relations-header {
+      .add-relation-btn {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+
+        &:hover {
+          background: #4a5568;
+          border-color: #718096;
+        }
+      }
+    }
+
+    .no-relations {
+      background: #2d3748;
+      border-color: #4a5568;
+      color: #718096;
+    }
+
+    .relation-item {
+      background: #2d3748;
+      border-color: #4a5568;
+
+      &:hover {
+        border-color: #718096;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .relation-type-select select {
+        background: #1a202c;
+        border-color: #4a5568;
+        color: currentColor;
+
+        &:focus {
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+      }
+
+      .relation-target-select {
+        select {
+          background: #1a202c;
+          border-color: #4a5568;
+          color: #e2e8f0;
+
+          &:hover {
+            border-color: #718096;
+          }
+
+          &:focus {
+            background: #2d3748;
+            border-color: #718096;
+          }
+        }
+
+        .target-category {
+          background: rgba(99, 102, 241, 0.2);
+          color: #a5b4fc;
+        }
+      }
+
+      .remove-relation-btn {
+        color: #718096;
+
+        &:hover {
+          background: rgba(220, 38, 38, 0.2);
+          border-color: rgba(220, 38, 38, 0.3);
+          color: #f87171;
+        }
+      }
+    }
+  }
+}

@@ -237,6 +237,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     video: string;
     useCase: string;
     linkUrl: string;
+    relations: { targetId: string; type: "extends" | "inspiredBy" | "variant" | "uses" | "relatedTo" }[];
   } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   // 新节点表单数据
@@ -853,6 +854,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       video: craft.video || '',
       useCase: craft.useCase || '',
       linkUrl: craft.linkUrl || '',
+      relations: craft.relations || [],
     });
   }, []);
 
@@ -938,6 +940,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           video: editNodeForm.video || undefined,
           useCase: editNodeForm.useCase || undefined,
           linkUrl: editNodeForm.linkUrl || undefined,
+          relations: editNodeForm.relations.filter(r => r.targetId.trim() !== ''), // 过滤空关系
         };
         
         // 用于保存到数据库的数据（转换 __PENDING_DELETE__ 为 undefined）
@@ -992,6 +995,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           video: editNodeForm.video || undefined,
           useCase: editNodeForm.useCase || undefined,
           linkUrl: editNodeForm.linkUrl || undefined,
+          relations: editNodeForm.relations.filter(r => r.targetId.trim() !== ''),
         });
 
         // 更新本地状态
@@ -1008,6 +1012,50 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  // 编辑模式：添加关系
+  const handleAddRelation = () => {
+    if (!editNodeForm) return;
+    
+    // 添加一个新的空关系
+    const newRelation = {
+      targetId: '',
+      type: 'relatedTo' as const
+    };
+    
+    setEditNodeForm(prev => prev ? ({
+      ...prev,
+      relations: [...prev.relations, newRelation]
+    }) : null);
+  };
+
+  // 编辑模式：删除关系
+  const handleRemoveRelation = (index: number) => {
+    if (!editNodeForm) return;
+    
+    setEditNodeForm(prev => prev ? ({
+      ...prev,
+      relations: prev.relations.filter((_, i) => i !== index)
+    }) : null);
+  };
+
+  // 编辑模式：更新关系
+  const handleUpdateRelation = (index: number, field: 'targetId' | 'type', value: string) => {
+    if (!editNodeForm) return;
+    
+    setEditNodeForm(prev => {
+      if (!prev) return null;
+      const updatedRelations = [...prev.relations];
+      updatedRelations[index] = {
+        ...updatedRelations[index],
+        [field]: value
+      };
+      return {
+        ...prev,
+        relations: updatedRelations
+      };
+    });
   };
 
   // 编辑模式：重置编辑表单
@@ -1812,6 +1860,83 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
                     placeholder={language === "zh" ? "描述适用场景" : "Describe use case"}
                     rows={2}
                   />
+                </div>
+
+                {/* 关系编辑 */}
+                <div className="form-group relations-editor">
+                  <div className="relations-header">
+                    <label>{language === "zh" ? "节点关系" : "Relations"}</label>
+                    <button 
+                      className="add-relation-btn"
+                      onClick={handleAddRelation}
+                      title={language === "zh" ? "添加关系" : "Add relation"}
+                    >
+                      <Icon name="add" size={16} strokeWidth={3} />
+                    </button>
+                  </div>
+                  
+                  {editNodeForm.relations.length === 0 ? (
+                    <div className="no-relations">
+                      {language === "zh" ? "暂无关系" : "No relations yet"}
+                    </div>
+                  ) : (
+                    <div className="relations-list">
+                      {editNodeForm.relations.map((relation, index) => {
+                        const targetCraft = crafts.find(c => c.id === relation.targetId);
+                        return (
+                          <div key={index} className="relation-item">
+                            <div className="relation-type-select">
+                              <select
+                                value={relation.type}
+                                onChange={(e) => handleUpdateRelation(index, 'type', e.target.value)}
+                                style={{ 
+                                  borderColor: relationLabels[relation.type]?.color || '#ccc',
+                                  color: relationLabels[relation.type]?.color || '#666'
+                                }}
+                              >
+                                {Object.entries(relationLabels).map(([type, label]) => (
+                                  <option key={type} value={type}>
+                                    {label[language]}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            
+                            <div className="relation-target-select">
+                              <select
+                                value={relation.targetId}
+                                onChange={(e) => handleUpdateRelation(index, 'targetId', e.target.value)}
+                              >
+                                <option value="">
+                                  {language === "zh" ? "选择目标节点" : "Select target node"}
+                                </option>
+                                {crafts
+                                  .filter(c => c.id !== activeId) // 排除自己
+                                  .map(craft => (
+                                    <option key={craft.id} value={craft.id}>
+                                      {craft.name}
+                                    </option>
+                                  ))}
+                              </select>
+                              {targetCraft && (
+                                <span className="target-category">
+                                  {categoryLabels[targetCraft.category][language]}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <button
+                              className="remove-relation-btn"
+                              onClick={() => handleRemoveRelation(index)}
+                              title={language === "zh" ? "删除关系" : "Remove relation"}
+                            >
+                              <Icon name="delete" size={14} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
