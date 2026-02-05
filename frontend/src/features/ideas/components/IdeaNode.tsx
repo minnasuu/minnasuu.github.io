@@ -10,7 +10,7 @@ export interface Idea {
   /** 描述 */
   description: string;
   /** 分类 */
-  category: "component" | "effect" | "control" | "demo" | "experiment";
+  category: "concept" | "interaction" | "visual" | "animation" | "website"|"tool"|"technology"|"AI";
   /** 创建时间 */
   createdAt: string;
   /** 权重：默认为1 */
@@ -33,11 +33,14 @@ export interface Idea {
 
 // 分类标签
 export const categoryLabels: Record<Idea["category"], { zh: string; en: string }> = {
-  component: { zh: "组件", en: "Component" },
-  effect: { zh: "效果", en: "Effect" },
-  control: { zh: "控件", en: "Control" },
-  demo: { zh: "演示", en: "Demo" },
-  experiment: { zh: "实验", en: "Experiment" },
+  concept: { zh: "概念", en: "Concept" },
+  interaction: { zh: "交互", en: "Interaction" },
+  visual: { zh: "视觉", en: "Visual" },
+  animation: { zh: "动画", en: "Animation" },
+  website: { zh: "网站", en: "Website" },
+  tool: { zh: "工具", en: "Tool" },
+    technology: { zh: "技术", en: "Technology" },
+    AI: { zh: "AI", en: "AI" },
 };
 
 // 根据实际权重计算显示等级 (1-5)

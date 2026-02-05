@@ -243,7 +243,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const [newNodeForm, setNewNodeForm] = useState({
     name: '',
     description: '',
-    category: 'component' as Idea['category'],
+    category: 'concept' as Idea['category'],
     weight: 1,
     image: '',
     video: '',
@@ -545,7 +545,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     setNewNodeForm({
       name: '',
       description: '',
-      category: 'component',
+      category: 'concept',
       weight: 1,
       image: '',
       video: '',
@@ -564,7 +564,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     setNewNodeForm({
       name: '',
       description: '',
-      category: 'component',
+      category: 'concept',
       weight: 1,
       image: '',
       video: '',
@@ -582,7 +582,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     setNewNodeForm({
       name: '',
       description: '',
-      category: 'component',
+      category: 'concept',
       weight: 1,
       image: '',
       video: '',
