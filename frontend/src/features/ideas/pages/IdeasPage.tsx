@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import { useLanguage } from "../../../shared/contexts/LanguageContext";
 import BackButton from "../../../shared/components/BackButton";
 import { IdeaNode, categoryLabels } from "../components/IdeaNode";
