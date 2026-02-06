@@ -50,6 +50,7 @@ router.post('/', async (req, res) => {
       video, 
       linkUrl,
       useCase,
+      group,
       relations 
     } = req.body;
     
@@ -63,6 +64,7 @@ router.post('/', async (req, res) => {
         video: video || null,
         linkUrl: linkUrl || null,
         useCase: useCase || null,
+        group: group || null,
         relations: relations || null
       }
     });
@@ -87,6 +89,7 @@ router.put('/:id', async (req, res) => {
       video, 
       linkUrl,
       useCase,
+      group,
       relations 
     } = req.body;
     
@@ -111,6 +114,7 @@ router.put('/:id', async (req, res) => {
         video: video === undefined ? null : video,
         linkUrl: linkUrl === undefined ? null : linkUrl,
         useCase: useCase === undefined ? null : useCase,
+        group: group === undefined ? null : group,
         relations: relations || null
       }
     });
