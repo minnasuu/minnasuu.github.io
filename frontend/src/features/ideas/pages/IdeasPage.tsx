@@ -35,6 +35,12 @@ const relationLabels: Record<string, { zh: string; en: string; color: string }> 
   relatedTo: { zh: "相关概念", en: "Related to", color: "#ccc" },   // Soft Lavender
 };
 
+// 组别类型
+interface Group {
+  id: string;
+  name: string;
+}
+
 
 // 计算每个节点的分支数（出度 + 入度）
 const calculateBranchCounts = (crafts: Idea[]): Map<string, number> => {
@@ -228,6 +234,10 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   // 视频上传状态
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  // 组别管理
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
+  const [showGroupManager, setShowGroupManager] = useState(false);
   // 编辑节点表单数据（用于编辑模式下的详情面板）
   const [editNodeForm, setEditNodeForm] = useState<{
     name: string;
@@ -239,6 +249,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     video: string;
     useCase: string;
     linkUrl: string;
+    group: string; // 添加组别字段
     relations: { targetId: string; type: "extends" | "inspiredBy" | "variant" | "uses" | "relatedTo" }[];
   } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -252,6 +263,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     video: '',
     useCase: '',
     linkUrl: '',
+    group: '', // 添加组别字段
   });
   // 临时变更队列（仅编辑模式）
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
@@ -308,18 +320,47 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     loadCrafts();
   }, []);
 
+  // 加载组别数据（从 localStorage）
+  useEffect(() => {
+    const savedGroups = localStorage.getItem('idea-groups');
+    if (savedGroups) {
+      try {
+        setGroups(JSON.parse(savedGroups));
+      } catch (error) {
+        console.error('Failed to load groups:', error);
+      }
+    }
+  }, []);
+
+  // 保存组别数据（到 localStorage）
+  useEffect(() => {
+    if (groups.length > 0) {
+      localStorage.setItem('idea-groups', JSON.stringify(groups));
+    }
+  }, [groups]);
+
   // 搜索过滤
   const filteredCrafts = useMemo(() => {
-    if (!searchQuery.trim()) return crafts;
+    let result = crafts;
     
-    const query = searchQuery.toLowerCase();
-    return crafts.filter(craft => 
-      craft.name.toLowerCase().includes(query) ||
-      craft.description.toLowerCase().includes(query) ||
-      categoryLabels[craft.category].zh.toLowerCase().includes(query) ||
-      categoryLabels[craft.category].en.toLowerCase().includes(query)
-    );
-  }, [crafts, searchQuery]);
+    // 先按组别过滤
+    if (selectedGroupId !== "all") {
+      result = result.filter(craft => craft.group === selectedGroupId);
+    }
+    
+    // 再按搜索关键词过滤
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(craft => 
+        craft.name.toLowerCase().includes(query) ||
+        craft.description.toLowerCase().includes(query) ||
+        categoryLabels[craft.category].zh.toLowerCase().includes(query) ||
+        categoryLabels[craft.category].en.toLowerCase().includes(query)
+      );
+    }
+    
+    return result;
+  }, [crafts, searchQuery, selectedGroupId]);
 
   // 搜索结果 ID 集合（用于高亮）
   const searchResultIds = useMemo(() => {
@@ -560,6 +601,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       video: '',
       useCase: '',
       linkUrl: '',
+      group:''
     });
     // 关闭详情面板
     setActiveId(null);
@@ -579,6 +621,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       video: '',
       useCase: '',
       linkUrl: '',
+      group:''
     });
     // 关闭详情面板
     setActiveId(null);
@@ -597,7 +640,64 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       video: '',
       useCase: '',
       linkUrl: '',
+      group: '',
     });
+  };
+
+  // 组别管理函数
+  const handleAddGroup = () => {
+    const name = prompt(language === 'zh' ? '请输入组别名称:' : 'Enter group name:');
+    if (name && name.trim()) {
+      const newGroup: Group = {
+        id: `group-${Date.now()}`,
+        name: name.trim()
+      };
+      setGroups(prev => [...prev, newGroup]);
+    }
+  };
+
+  const handleEditGroup = (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    const newName = prompt(
+      language === 'zh' ? '请输入新的组别名称:' : 'Enter new group name:',
+      group.name
+    );
+    
+    if (newName && newName.trim()) {
+      setGroups(prev => prev.map(g => 
+        g.id === groupId ? { ...g, name: newName.trim() } : g
+      ));
+    }
+  };
+
+  const handleDeleteGroup = (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    
+    const craftsInGroup = crafts.filter(c => c.group === groupId).length;
+    const confirmMsg = craftsInGroup > 0
+      ? (language === 'zh' 
+          ? `确定要删除组别"${group.name}"吗？该组别下有 ${craftsInGroup} 个灵感，删除后这些灵感将不属于任何组别。`
+          : `Delete group "${group.name}"? ${craftsInGroup} craft(s) in this group will become ungrouped.`)
+      : (language === 'zh'
+          ? `确定要删除组别"${group.name}"吗？`
+          : `Delete group "${group.name}"?`);
+    
+    if (window.confirm(confirmMsg)) {
+      setGroups(prev => prev.filter(g => g.id !== groupId));
+      
+      // 如果当前选中的是被删除的组别，切换到"全部"
+      if (selectedGroupId === groupId) {
+        setSelectedGroupId("all");
+      }
+      
+      // 清除该组别下所有节点的组别关联
+      setCrafts(prev => prev.map(c => 
+        c.group === groupId ? { ...c, group: undefined } : c
+      ));
+    }
   };
 
   // 确认添加节点（支持基于节点和独立模式）
@@ -623,6 +723,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           video: newNodeForm.video || undefined,
           useCase: newNodeForm.useCase || undefined,
           linkUrl: newNodeForm.linkUrl || undefined,
+          group: newNodeForm.group || undefined,
           relations: addNodeState ? [{
             targetId: addNodeState.sourceId,
             type: 'relatedTo'
@@ -654,6 +755,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           video: newNodeForm.video || undefined,
           useCase: newNodeForm.useCase || undefined,
           linkUrl: newNodeForm.linkUrl || undefined,
+          group: newNodeForm.group || undefined,
           relations: addNodeState ? [{
             targetId: addNodeState.sourceId,
             type: 'relatedTo'
@@ -856,6 +958,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       video: craft.video || '',
       useCase: craft.useCase || '',
       linkUrl: craft.linkUrl || '',
+      group: craft.group || '',
       relations: craft.relations || [],
     });
   }, []);
@@ -942,6 +1045,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           video: editNodeForm.video || undefined,
           useCase: editNodeForm.useCase || undefined,
           linkUrl: editNodeForm.linkUrl || undefined,
+          group: editNodeForm.group || undefined,
           relations: editNodeForm.relations.filter(r => r.targetId.trim() !== ''), // 过滤空关系
         };
         
@@ -997,6 +1101,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           video: editNodeForm.video || undefined,
           useCase: editNodeForm.useCase || undefined,
           linkUrl: editNodeForm.linkUrl || undefined,
+          group: editNodeForm.group || undefined,
           relations: editNodeForm.relations.filter(r => r.targetId.trim() !== ''),
         });
 
@@ -1135,6 +1240,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               video: change.data.video,
               useCase: change.data.useCase,
               linkUrl: change.data.linkUrl,
+              group: change.data.group,
             });
             
             setCrafts(prev => prev.map(c => 
@@ -1374,6 +1480,31 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       <header className="idea-header">
         <BackButton to={editorMode ? "/crafts" : "/"} />
         
+        {/* 组别选择器 */}
+        <div className="group-selector">
+          <select 
+            value={selectedGroupId} 
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            className="group-select"
+          >
+            <option value="all">
+              {language === 'zh' ? '全部组别' : 'All Groups'}
+            </option>
+            {groups.map(group => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+          <button 
+            className="group-manage-btn"
+            onClick={() => setShowGroupManager(!showGroupManager)}
+            title={language === 'zh' ? '管理组别' : 'Manage Groups'}
+          >
+            <Icon name="setting" />
+          </button>
+        </div>
+        
         {/* 搜索框 */}
         <div className="search-container">
           <Icon name="search" className="search-icon" />
@@ -1451,6 +1582,55 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           >
             <Icon name="download" />
           </button> */}
+        </div>
+      )}
+
+      {/* 组别管理面板 */}
+      {showGroupManager && (
+        <div className="group-manager-panel">
+          <div className="panel-header">
+            <h3>{language === 'zh' ? '管理组别' : 'Manage Groups'}</h3>
+            <button onClick={() => setShowGroupManager(false)} className="close-btn">
+              <Icon name="close" />
+            </button>
+          </div>
+          <div className="panel-content">
+            <LandButton
+              type="fill"
+              status="primary"
+              icon={<Icon name="add" strokeWidth={4} />}
+              text={language === 'zh' ? '新建组别' : 'New Group'}
+              onClick={handleAddGroup}
+              className="add-group-btn"
+            />
+            <div className="group-list">
+              {groups.length === 0 ? (
+                <div className="empty-hint">
+                  {language === 'zh' ? '暂无组别' : 'No groups yet'}
+                </div>
+              ) : (
+                groups.map(group => (
+                  <div key={group.id} className="group-item">
+                    <span className="group-name">{group.name}</span>
+                    <div className="group-actions">
+                      <button 
+                        onClick={() => handleEditGroup(group.id)}
+                        title={language === 'zh' ? '编辑' : 'Edit'}
+                      >
+                        <Icon name="edit" size={16} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteGroup(group.id)}
+                        title={language === 'zh' ? '删除' : 'Delete'}
+                      >
+                        <Icon name="delete" size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1863,6 +2043,24 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
                     placeholder={language === "zh" ? "描述适用场景" : "Describe use case"}
                     rows={2}
                   />
+                </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "所属组别" : "Group"}</label>
+                  <select
+                    value={editNodeForm.group}
+                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, group: e.target.value }) : null)}
+                    className="group-select"
+                  >
+                    <option value="">
+                      {language === "zh" ? "无组别" : "No group"}
+                    </option>
+                    {groups.map(group => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* 关系编辑 */}
@@ -2287,6 +2485,24 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
                   rows={2}
                 />
               </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "所属组别" : "Group"}</label>
+                <select
+                  value={newNodeForm.group}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, group: e.target.value }))}
+                  className="group-select"
+                >
+                  <option value="">
+                    {language === "zh" ? "无组别" : "No group"}
+                  </option>
+                  {groups.map(group => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="panel-footer">
@@ -2452,6 +2668,24 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
                   placeholder={language === "zh" ? "描述适用场景" : "Describe use cases"}
                   rows={2}
                 />
+              </div>
+
+              <div className="form-group">
+                <label>{language === "zh" ? "所属组别" : "Group"}</label>
+                <select
+                  value={newNodeForm.group}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, group: e.target.value }))}
+                  className="group-select"
+                >
+                  <option value="">
+                    {language === "zh" ? "无组别" : "No group"}
+                  </option>
+                  {groups.map(group => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

@@ -661,6 +661,7 @@ export interface CreateIdeaRequest {
   video?: string;
   useCase?: string;
   linkUrl?: string;
+  group?: string;
   relations?: { targetId: string; type: string }[];
 }
 

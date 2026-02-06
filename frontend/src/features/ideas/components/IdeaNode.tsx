@@ -29,6 +29,8 @@ export interface Idea {
   useCase?: string;
   /** 来源链接 */
   linkUrl?: string;
+  /** 所属组别 */
+  group?: string;
 }
 
 // 分类标签
