@@ -2247,7 +2247,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               <div className="panel-image">
                 {activeCraft.image && activeCraft.image !== '__PENDING_DELETE__' ? (
                   <img src={activeCraft.image} alt={activeCraft.name} />
-                ) : activeCraft.linkUrl ? (
+                ) : activeCraft.video ? <video src={activeCraft.video} muted autoPlay loop className="w-full h-full object-cover"/>:activeCraft.linkUrl ? (
                   <iframe 
                     src={activeCraft.linkUrl} 
                     title={activeCraft.name}
