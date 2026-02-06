@@ -123,7 +123,7 @@ export const IdeaNode: React.FC<IdeaNodeProps> = ({
       <div className="node-inner">
         {idea.image && idea.image !== '__PENDING_DELETE__' ? (
           <img src={idea.image} alt={idea.name} />
-        ) : idea.video? <video src={idea.video} muted autoPlay className="w-full h-full object-cover rounded-2xl"/> :idea.linkUrl ? (
+        ) : idea.video? <video src={idea.video} muted autoPlay loop className="w-full h-full object-cover rounded-2xl"/> :idea.linkUrl ? (
           <div className="w-full h-full overflow-hidden rounded-2xl">
             <iframe 
             src={idea.linkUrl} 
