@@ -1241,6 +1241,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               video: change.data.video,
               useCase: change.data.useCase,
               linkUrl: change.data.linkUrl,
+              group: change.data.group,
               relations: change.data.relations || []
             });
             
@@ -1277,6 +1278,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               useCase: change.data.useCase,
               linkUrl: change.data.linkUrl,
               group: change.data.group,
+              relations: change.data.relations || [],
             });
             
             setCrafts(prev => prev.map(c => 
@@ -1359,12 +1361,18 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   // 渲染连线
   const renderConnections = () => {
     const lines: React.ReactElement[] = [];
+    
+    // 创建过滤后的节点 ID 集合，用于快速查找
+    const filteredCraftIds = new Set(filteredCrafts.map(c => c.id));
 
-    crafts.forEach((craft) => {
+    filteredCrafts.forEach((craft) => {
       const fromPos = nodePositions.get(craft.id);
       if (!fromPos || !craft.relations) return;
 
       craft.relations.forEach((relation, idx) => {
+        // 只显示目标节点也在过滤结果中的连线
+        if (!filteredCraftIds.has(relation.targetId)) return;
+        
         const toPos = nodePositions.get(relation.targetId);
         if (!toPos) return;
 
@@ -1681,7 +1689,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
             {language === "zh" ? "拖拽或滑动探索" : "Drag or scroll to explore"}
           </p>
           <div className="idea-count">
-            {searchQuery ? (
+            {searchQuery || selectedGroupId !== "all" ? (
               <>
                 {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
               </>
@@ -1766,7 +1774,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
           {/* 节点层 */}
           <div className="nodes-layer">
-            {crafts.map((craft) => {
+            {filteredCrafts.map((craft) => {
               const pos = nodePositions.get(craft.id);
               if (!pos) return null;
 
@@ -1805,7 +1813,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
             <div className="grid center-title">
           <DotMatrixTitle />
           <div className="idea-count">
-            {searchQuery ? (
+            {searchQuery || selectedGroupId !== "all" ? (
               <>
                 {filteredCrafts.length} / {crafts.length} {language === "zh" ? "个灵感" : "crafts"}
               </>
