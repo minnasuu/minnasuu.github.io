@@ -121,7 +121,7 @@
   // 编辑器工具栏
   .editor-toolbar {
     position: absolute;
-    top: 20px;
+    top: 4px;
     right: 20px;
     z-index: 150;
     display: flex;
@@ -842,7 +842,7 @@
     img {
       width: 100%;
       height: 160px;
-      object-fit: cover;
+      object-fit: contain;
     }
 
     .cover-remove-btn {

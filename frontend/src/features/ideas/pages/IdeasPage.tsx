@@ -6,7 +6,8 @@ import { IdeaNode, categoryLabels } from "../components/IdeaNode";
 import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Idea } from "../components/IdeaNode";
 import "../styles/IdeasPage.scss";
-import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput } from "@suminhan/land-design";
+import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput, LandSelect } from "@suminhan/land-design";
+import type { SelectItemType } from "@suminhan/land-design";
 import { uploadImage, uploadVideo, fetchIdeas, createIdea, deleteIdea, updateIdea } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型
@@ -325,7 +326,9 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     const savedGroups = localStorage.getItem('idea-groups');
     if (savedGroups) {
       try {
-        setGroups(JSON.parse(savedGroups));
+        const loadedGroups = JSON.parse(savedGroups);
+        setGroups(loadedGroups);
+        console.log('[组别加载] 已加载组别:', loadedGroups);
       } catch (error) {
         console.error('Failed to load groups:', error);
       }
@@ -334,9 +337,9 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
   // 保存组别数据（到 localStorage）
   useEffect(() => {
-    if (groups.length > 0) {
-      localStorage.setItem('idea-groups', JSON.stringify(groups));
-    }
+    // 总是保存，包括空数组（用于清空）
+    localStorage.setItem('idea-groups', JSON.stringify(groups));
+    console.log('[组别保存] 已保存组别:', groups);
   }, [groups]);
 
   // 搜索过滤
@@ -346,6 +349,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     // 先按组别过滤
     if (selectedGroupId !== "all") {
       result = result.filter(craft => craft.group === selectedGroupId);
+      console.log(`[组别过滤] 选中组别: ${selectedGroupId}, 过滤前: ${crafts.length}, 过滤后: ${result.length}`);
     }
     
     // 再按搜索关键词过滤
@@ -672,31 +676,63 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     }
   };
 
-  const handleDeleteGroup = (groupId: string) => {
+  const handleDeleteGroup = async (groupId: string) => {
     const group = groups.find(g => g.id === groupId);
     if (!group) return;
     
-    const craftsInGroup = crafts.filter(c => c.group === groupId).length;
-    const confirmMsg = craftsInGroup > 0
+    const craftsInGroup = crafts.filter(c => c.group === groupId);
+    const confirmMsg = craftsInGroup.length > 0
       ? (language === 'zh' 
-          ? `确定要删除组别"${group.name}"吗？该组别下有 ${craftsInGroup} 个灵感，删除后这些灵感将不属于任何组别。`
-          : `Delete group "${group.name}"? ${craftsInGroup} craft(s) in this group will become ungrouped.`)
+          ? `确定要删除组别"${group.name}"吗？该组别下有 ${craftsInGroup.length} 个灵感，删除后这些灵感将不属于任何组别。`
+          : `Delete group "${group.name}"? ${craftsInGroup.length} craft(s) in this group will become ungrouped.`)
       : (language === 'zh'
           ? `确定要删除组别"${group.name}"吗？`
           : `Delete group "${group.name}"?`);
     
     if (window.confirm(confirmMsg)) {
-      setGroups(prev => prev.filter(g => g.id !== groupId));
-      
-      // 如果当前选中的是被删除的组别，切换到"全部"
-      if (selectedGroupId === groupId) {
-        setSelectedGroupId("all");
+      try {
+        // 先从组别列表中移除
+        setGroups(prev => prev.filter(g => g.id !== groupId));
+        
+        // 如果当前选中的是被删除的组别，切换到"全部"
+        if (selectedGroupId === groupId) {
+          setSelectedGroupId("all");
+        }
+        
+        // 如果有节点属于该组别，需要更新数据库
+        if (craftsInGroup.length > 0) {
+          // 批量更新：清除该组别下所有节点的组别关联
+          const updatePromises = craftsInGroup.map(craft => 
+            updateIdea(craft.id, {
+              name: craft.name,
+              description: craft.description,
+              category: craft.category,
+              weight: craft.weight,
+              image: craft.image,
+              video: craft.video,
+              useCase: craft.useCase,
+              linkUrl: craft.linkUrl,
+              group: undefined, // 清除组别
+              relations: craft.relations || [],
+            })
+          );
+          
+          // 等待所有更新完成
+          await Promise.all(updatePromises);
+          
+          // 更新本地状态
+          setCrafts(prev => prev.map(c => 
+            c.group === groupId ? { ...c, group: undefined } : c
+          ));
+          
+          console.log(`已将 ${craftsInGroup.length} 个节点从组别"${group.name}"中移除`);
+        }
+      } catch (error) {
+        console.error('Failed to delete group:', error);
+        alert(language === 'zh' 
+          ? '删除组别失败，请稍后重试' 
+          : 'Failed to delete group, please try again');
       }
-      
-      // 清除该组别下所有节点的组别关联
-      setCrafts(prev => prev.map(c => 
-        c.group === groupId ? { ...c, group: undefined } : c
-      ));
     }
   };
 
@@ -1482,20 +1518,22 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         
         {/* 组别选择器 */}
         <div className="group-selector">
-          <select 
-            value={selectedGroupId} 
-            onChange={(e) => setSelectedGroupId(e.target.value)}
-            className="group-select"
-          >
-            <option value="all">
-              {language === 'zh' ? '全部组别' : 'All Groups'}
-            </option>
-            {groups.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
+          <LandSelect
+            type="background"
+            selected={selectedGroupId}
+            onChange={(item: SelectItemType) => {
+              if (item.key !== undefined) {
+                setSelectedGroupId(String(item.key));
+              }
+            }}
+            data={[
+              { key: 'all', label: language === 'zh' ? '全部组别' : 'All Groups' },
+              ...groups.map(group => ({
+                key: group.id,
+                label: group.name
+              }))
+            ]}
+          />
           <button 
             className="group-manage-btn"
             onClick={() => setShowGroupManager(!showGroupManager)}
@@ -2047,20 +2085,22 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
                 <div className="form-group">
                   <label>{language === "zh" ? "所属组别" : "Group"}</label>
-                  <select
-                    value={editNodeForm.group}
-                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, group: e.target.value }) : null)}
-                    className="group-select"
-                  >
-                    <option value="">
-                      {language === "zh" ? "无组别" : "No group"}
-                    </option>
-                    {groups.map(group => (
-                      <option key={group.id} value={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </select>
+                  <LandSelect
+                    type="background"
+                    selected={editNodeForm.group || ''}
+                    onChange={(item: SelectItemType) => {
+                      if (item.key !== undefined) {
+                        setEditNodeForm(prev => prev ? ({ ...prev, group: String(item.key) }) : null);
+                      }
+                    }}
+                    data={[
+                      { key: '', label: language === "zh" ? "无组别" : "No group" },
+                      ...groups.map(group => ({
+                        key: group.id,
+                        label: group.name
+                      }))
+                    ]}
+                  />
                 </div>
 
                 {/* 关系编辑 */}
@@ -2488,20 +2528,22 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
               <div className="form-group">
                 <label>{language === "zh" ? "所属组别" : "Group"}</label>
-                <select
-                  value={newNodeForm.group}
-                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, group: e.target.value }))}
-                  className="group-select"
-                >
-                  <option value="">
-                    {language === "zh" ? "无组别" : "No group"}
-                  </option>
-                  {groups.map(group => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
+                <LandSelect
+                  type="background"
+                  selected={newNodeForm.group || ''}
+                  onChange={(item: SelectItemType) => {
+                    if (item.key !== undefined) {
+                      setNewNodeForm(prev => ({ ...prev, group: String(item.key) }));
+                    }
+                  }}
+                  data={[
+                    { key: '', label: language === "zh" ? "无组别" : "No group" },
+                    ...groups.map(group => ({
+                      key: group.id,
+                      label: group.name
+                    }))
+                  ]}
+                />
               </div>
             </div>
 
@@ -2672,20 +2714,22 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
               <div className="form-group">
                 <label>{language === "zh" ? "所属组别" : "Group"}</label>
-                <select
-                  value={newNodeForm.group}
-                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, group: e.target.value }))}
-                  className="group-select"
-                >
-                  <option value="">
-                    {language === "zh" ? "无组别" : "No group"}
-                  </option>
-                  {groups.map(group => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
+                <LandSelect
+                  type="background"
+                  selected={newNodeForm.group || ''}
+                  onChange={(item: SelectItemType) => {
+                    if (item.key !== undefined) {
+                      setNewNodeForm(prev => ({ ...prev, group: String(item.key) }));
+                    }
+                  }}
+                  data={[
+                    { key: '', label: language === "zh" ? "无组别" : "No group" },
+                    ...groups.map(group => ({
+                      key: group.id,
+                      label: group.name
+                    }))
+                  ]}
+                />
               </div>
             </div>
 

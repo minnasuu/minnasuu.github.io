@@ -245,6 +245,9 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
 // 组别选择器
 .group-selector {
+  position: fixed;
+  top: 18px;
+  left: 100px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -255,25 +258,20 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: $shadow-sm;
   backdrop-filter: blur(8px);
   
-  .group-select {
-    height: 36px;
-    padding: 0 12px;
-    font-size: 0.9rem;
-    font-family: $font-primary;
-    color: $color-text-main;
-    background: transparent;
-    border: none;
-    border-radius: 10px;
-    outline: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  // LandSelect 组件样式覆盖
+  .land-select-root {
+    min-width: 120px;
     
-    &:hover {
-      background: rgba(0, 0, 0, 0.04);
-    }
-    
-    &:focus {
-      background: rgba(0, 0, 0, 0.06);
+    .land-select-button {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 0.9rem;
+      background: transparent;
+      border: none;
+      
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
     }
   }
   
@@ -671,7 +669,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: flex-end;
   padding: 8px;
-  border-radius: 0 0 24px 24px;
+  border-radius: 0 0 16px 16px;
   opacity: 0;
   transition: opacity 0.3s ease;
   
@@ -1275,7 +1273,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       img {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
       }
 
       .cover-remove-btn {
