@@ -620,11 +620,11 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   // 不同权重的大小
-  &.weight-1 .node-inner { width: 64px; height: 64px; border-radius: 16px; }
-  &.weight-2 .node-inner { width: 88px; height: 88px; border-radius: 16px; }
-  &.weight-3 .node-inner { width: 100px; height: 100px; border-radius: 16px; }
-  &.weight-4 .node-inner { width: 120px; height: 120px; border-radius: 16px; }
-  &.weight-5 .node-inner { width: 132px; height: 132px; border-radius: 16px; }
+  &.weight-1 .node-inner { width: 100px; height: 100px; border-radius: 16px; }
+  &.weight-2 .node-inner { width: 120px; height: 120px; border-radius: 16px; }
+  &.weight-3 .node-inner { width: 150px; height: 150px; border-radius: 16px; }
+  &.weight-4 .node-inner { width: 180px; height: 180px; border-radius: 16px; }
+  &.weight-5 .node-inner { width: 200px; height: 200px; border-radius: 16px; }
 }
 
 .node-inner {

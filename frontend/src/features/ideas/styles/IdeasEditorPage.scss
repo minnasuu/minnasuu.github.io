@@ -634,7 +634,6 @@
     
     .form-group,
     .form-row {
-      opacity: 0;
       transform: translateY(15px);
       
       &:nth-child(1) { animation: formGroupFadeIn 0.4s ease 0.4s forwards; }
@@ -838,6 +837,9 @@
     border-radius: 12px;
     overflow: hidden;
     background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     img {
       width: 100%;
