@@ -6,7 +6,7 @@ import { IdeaNode, categoryLabels } from "../components/IdeaNode";
 import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Idea } from "../components/IdeaNode";
 import "../styles/IdeasPage.scss";
-import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput, LandSelect } from "@suminhan/land-design";
+import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput, LandSelect, message, LandDialog } from "@suminhan/land-design";
 import type { SelectItemType } from "@suminhan/land-design";
 import { uploadImage, uploadVideo, fetchIdeas, createIdea, deleteIdea, updateIdea } from "../../../shared/utils/backendClient";
 
@@ -239,6 +239,12 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
   const [showGroupManager, setShowGroupManager] = useState(false);
+  // 对话框状态
+  const [dialogState, setDialogState] = useState<{
+    visible: boolean;
+    type: 'deleteGroup' | 'discardChanges' | null;
+    data?: any;
+  }>({ visible: false, type: null });
   // 编辑节点表单数据（用于编辑模式下的详情面板）
   const [editNodeForm, setEditNodeForm] = useState<{
     name: string;
@@ -365,6 +371,18 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     
     return result;
   }, [crafts, searchQuery, selectedGroupId]);
+
+  // 监听组别切换，自动重新居中画布
+  useEffect(() => {
+    if (layoutMode === 'canvas' && filteredCrafts.length > 0) {
+      // 切换组别后重新居中（延迟执行以确保DOM已更新）
+      const timer = setTimeout(() => {
+        centerToSearchResults();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroupId, layoutMode]);
 
   // 搜索结果 ID 集合（用于高亮）
   const searchResultIds = useMemo(() => {
@@ -681,58 +699,70 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     if (!group) return;
     
     const craftsInGroup = crafts.filter(c => c.group === groupId);
-    const confirmMsg = craftsInGroup.length > 0
-      ? (language === 'zh' 
-          ? `确定要删除组别"${group.name}"吗？该组别下有 ${craftsInGroup.length} 个灵感，删除后这些灵感将不属于任何组别。`
-          : `Delete group "${group.name}"? ${craftsInGroup.length} craft(s) in this group will become ungrouped.`)
-      : (language === 'zh'
-          ? `确定要删除组别"${group.name}"吗？`
-          : `Delete group "${group.name}"?`);
     
-    if (window.confirm(confirmMsg)) {
-      try {
-        // 先从组别列表中移除
-        setGroups(prev => prev.filter(g => g.id !== groupId));
-        
-        // 如果当前选中的是被删除的组别，切换到"全部"
-        if (selectedGroupId === groupId) {
-          setSelectedGroupId("all");
-        }
-        
-        // 如果有节点属于该组别，需要更新数据库
-        if (craftsInGroup.length > 0) {
-          // 批量更新：清除该组别下所有节点的组别关联
-          const updatePromises = craftsInGroup.map(craft => 
-            updateIdea(craft.id, {
-              name: craft.name,
-              description: craft.description,
-              category: craft.category,
-              weight: craft.weight,
-              image: craft.image,
-              video: craft.video,
-              useCase: craft.useCase,
-              linkUrl: craft.linkUrl,
-              group: undefined, // 清除组别
-              relations: craft.relations || [],
-            })
-          );
-          
-          // 等待所有更新完成
-          await Promise.all(updatePromises);
-          
-          // 更新本地状态
-          setCrafts(prev => prev.map(c => 
-            c.group === groupId ? { ...c, group: undefined } : c
-          ));
-          
-          console.log(`已将 ${craftsInGroup.length} 个节点从组别"${group.name}"中移除`);
-        }
-      } catch (error) {
-        console.error('Failed to delete group:', error);
-        alert(language === 'zh' 
-          ? '删除组别失败，请稍后重试' 
-          : 'Failed to delete group, please try again');
+    // 使用对话框确认
+    setDialogState({
+      visible: true,
+      type: 'deleteGroup',
+      data: { groupId, group, craftsInGroup }
+    });
+  };
+  
+  // 确认删除组别
+  const handleConfirmDeleteGroup = async () => {
+    const { groupId, group, craftsInGroup } = dialogState.data || {};
+    if (!groupId || !group) return;
+    
+    try {
+      // 先从组别列表中移除
+      setGroups(prev => prev.filter(g => g.id !== groupId));
+      
+      // 如果当前选中的是被删除的组别，切换到"全部"
+      if (selectedGroupId === groupId) {
+        setSelectedGroupId("all");
       }
+      
+      // 如果有节点属于该组别，需要更新数据库
+      if (craftsInGroup && craftsInGroup.length > 0) {
+        // 批量更新：清除该组别下所有节点的组别关联
+        const updatePromises = craftsInGroup.map((craft: Idea) => 
+          updateIdea(craft.id, {
+            name: craft.name,
+            description: craft.description,
+            category: craft.category,
+            weight: craft.weight,
+            image: craft.image,
+            video: craft.video,
+            useCase: craft.useCase,
+            linkUrl: craft.linkUrl,
+            group: undefined, // 清除组别
+            relations: craft.relations || [],
+          })
+        );
+        
+        // 等待所有更新完成
+        await Promise.all(updatePromises);
+        
+        // 更新本地状态
+        setCrafts(prev => prev.map(c => 
+          c.group === groupId ? { ...c, group: undefined } : c
+        ));
+        
+        message.success(language === 'zh' 
+          ? `已将 ${craftsInGroup.length} 个节点从组别"${group.name}"中移除` 
+          : `Removed ${craftsInGroup.length} node(s) from group "${group.name}"`);
+      } else {
+        message.success(language === 'zh' 
+          ? `组别"${group.name}"已删除` 
+          : `Group "${group.name}" deleted`);
+      }
+      
+      setDialogState({ visible: false, type: null });
+    } catch (error) {
+      console.error('Failed to delete group:', error);
+      message.error(language === 'zh' 
+        ? '删除组别失败，请稍后重试' 
+        : 'Failed to delete group, please try again');
     }
   };
 
@@ -776,7 +806,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         // 临时添加到界面
         setCrafts(prev => [...prev, newCraftData as Idea]);
         
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `节点 "${newNodeForm.name}" 已临时创建，请点击保存按钮同步到数据库`
           : `Node "${newNodeForm.name}" created temporarily, click Save to sync to database`
         );
@@ -800,7 +830,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         
         setCrafts(prev => [...prev, newCraft]);
         
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `节点 "${newNodeForm.name}" 已创建成功！`
           : `Node "${newNodeForm.name}" created successfully!`
         );
@@ -809,7 +839,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       handleCancelAddNode();
     } catch (error) {
       console.error('Failed to create idea:', error);
-      alert(language === 'zh' ? '创建失败，请稍后重试' : 'Failed to create, please try again');
+      message.error(language === 'zh' ? '创建失败，请稍后重试' : 'Failed to create, please try again');
     } finally {
       setIsCreating(false);
     }
@@ -849,7 +879,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           setActiveId(null);
         }
         
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `节点 "${deleteConfirm.name}" 已标记为删除，请点击保存按钮同步到数据库`
           : `Node "${deleteConfirm.name}" marked for deletion, click Save to sync to database`
         );
@@ -865,7 +895,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           setActiveId(null);
         }
         
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `节点 "${deleteConfirm.name}" 已删除`
           : `Node "${deleteConfirm.name}" deleted`
         );
@@ -874,7 +904,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       setDeleteConfirm(null);
     } catch (error) {
       console.error('Failed to delete craft:', error);
-      alert(language === 'zh' ? '删除失败，请稍后重试' : 'Failed to delete, please try again');
+      message.error(language === 'zh' ? '删除失败，请稍后重试' : 'Failed to delete, please try again');
     } finally {
       setIsDeleting(false);
     }
@@ -889,13 +919,13 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
     // 检查文件类型
     if (!file.type.startsWith('image/')) {
-      alert(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
+      message.warning(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
       return;
     }
 
     // 检查文件大小（5MB）
     if (file.size > 5 * 1024 * 1024) {
-      alert(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
+      message.warning(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
       return;
     }
 
@@ -903,9 +933,10 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     try {
       const result = await uploadImage(file);
       setNewNodeForm(prev => ({ ...prev, image: result.url }));
+      message.success(language === 'zh' ? '图片上传成功' : 'Image uploaded successfully');
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
+      message.error(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
     } finally {
       setIsUploadingCover(false);
       // 清空 input 以便重复上传同一文件
@@ -926,7 +957,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     if (!file) return;
 
     if (!file.type.startsWith('video/')) {
-      alert(language === 'zh' ? '请选择视频文件' : 'Please select a video file');
+      message.warning(language === 'zh' ? '请选择视频文件' : 'Please select a video file');
       return;
     }
 
@@ -934,9 +965,10 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     try {
       const result = await uploadVideo(file);
       setNewNodeForm(prev => ({ ...prev, video: result.url }));
+      message.success(language === 'zh' ? '视频上传成功' : 'Video uploaded successfully');
     } catch (error) {
       console.error('Failed to upload video:', error);
-      alert(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
+      message.error(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
     } finally {
       setIsUploadingVideo(false);
       // 清空 input 以便重复上传同一文件
@@ -957,7 +989,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     if (!file) return;
 
     if (!file.type.startsWith('video/')) {
-      alert(language === 'zh' ? '请选择视频文件' : 'Please select a video file');
+      message.warning(language === 'zh' ? '请选择视频文件' : 'Please select a video file');
       return;
     }
 
@@ -965,9 +997,10 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     try {
       const result = await uploadVideo(file);
       setEditNodeForm(prev => prev ? ({ ...prev, video: result.url }) : null);
+      message.success(language === 'zh' ? '视频上传成功' : 'Video uploaded successfully');
     } catch (error) {
       console.error('Failed to upload video:', error);
-      alert(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
+      message.error(language === 'zh' ? '视频上传失败，请稍后重试' : 'Failed to upload video, please try again');
     } finally {
       setIsUploadingVideo(false);
       // 清空 input 以便重复上传同一文件
@@ -1019,12 +1052,12 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
+      message.warning(language === 'zh' ? '请选择图片文件' : 'Please select an image file');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
+      message.warning(language === 'zh' ? '图片大小不能超过 5MB' : 'Image size cannot exceed 5MB');
       return;
     }
 
@@ -1032,9 +1065,10 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
     try {
       const result = await uploadImage(file);
       setEditNodeForm(prev => prev ? ({ ...prev, image: result.url }) : null);
+      message.success(language === 'zh' ? '图片上传成功' : 'Image uploaded successfully');
     } catch (error) {
       console.error('Failed to upload image:', error);
-      alert(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
+      message.error(language === 'zh' ? '图片上传失败，请稍后重试' : 'Failed to upload image, please try again');
     } finally {
       setIsUploadingCover(false);
       if (coverInputRef.current) {
@@ -1058,7 +1092,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   const handleUpdateCraft = async () => {
     if (!editNodeForm || !activeId || isUpdating) return;
     if (!editNodeForm.name.trim()) {
-      alert(language === 'zh' ? '名称不能为空' : 'Name is required');
+      message.warning(language === 'zh' ? '名称不能为空' : 'Name is required');
       return;
     }
 
@@ -1118,7 +1152,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         // 临时更新界面（使用带标记的数据，保持"待删除"状态显示）
         setCrafts(prev => prev.map(c => c.id === activeId ? { ...c, ...displayData } : c));
 
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `节点 "${editNodeForm.name}" 修改已临时生效，请点击保存按钮同步到数据库`
           : `Node "${editNodeForm.name}" updated temporarily, click Save to sync to database`
         );
@@ -1144,14 +1178,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         // 更新本地状态
         setCrafts(prev => prev.map(c => c.id === activeId ? updatedCraft : c));
 
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `节点 "${editNodeForm.name}" 已更新成功！`
           : `Node "${editNodeForm.name}" updated successfully!`
         );
       }
     } catch (error) {
       console.error('Failed to update craft:', error);
-      alert(language === 'zh' ? '更新失败，请稍后重试' : 'Failed to update, please try again');
+      message.error(language === 'zh' ? '更新失败，请稍后重试' : 'Failed to update, please try again');
     } finally {
       setIsUpdating(false);
     }
@@ -1214,7 +1248,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
   // 编辑模式：保存所有变更到数据库
   const handleSaveAllChanges = async () => {
     if (pendingChanges.length === 0) {
-      alert(language === 'zh' ? '没有需要保存的变更' : 'No changes to save');
+      message.info(language === 'zh' ? '没有需要保存的变更' : 'No changes to save');
       return;
     }
 
@@ -1310,12 +1344,12 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
       // 显示结果
       if (errorCount === 0) {
-        alert(language === 'zh' 
+        message.success(language === 'zh' 
           ? `所有变更已保存成功！(${successCount} 项)`
           : `All changes saved successfully! (${successCount} items)`
         );
       } else {
-        alert(language === 'zh' 
+        message.warning(language === 'zh' 
           ? `保存完成：成功 ${successCount} 项，失败 ${errorCount} 项`
           : `Save completed: ${successCount} succeeded, ${errorCount} failed`
         );
@@ -1326,33 +1360,36 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
       setCrafts(data);
     } catch (error) {
       console.error('Failed to save changes:', error);
-      alert(language === 'zh' ? '保存失败，请稍后重试' : 'Failed to save, please try again');
+      message.error(language === 'zh' ? '保存失败，请稍后重试' : 'Failed to save, please try again');
     } finally {
       setIsSaving(false);
     }
   };
 
   // 编辑模式：撤销所有变更
-  const handleDiscardChanges = async () => {
+  const handleDiscardChanges = () => {
     if (pendingChanges.length === 0) return;
 
-    const confirmed = window.confirm(
-      language === 'zh' 
-        ? `确定要放弃所有未保存的变更吗？(${pendingChanges.length} 项)`
-        : `Discard all unsaved changes? (${pendingChanges.length} items)`
-    );
-
-    if (confirmed) {
-      setPendingChanges([]);
-      // 重新加载数据
-      try {
-        const data = await fetchIdeas();
-        setCrafts(data);
-        setActiveId(null);
-        alert(language === 'zh' ? '已放弃所有变更' : 'All changes discarded');
-      } catch (error) {
-        console.error('Failed to reload crafts:', error);
-      }
+    setDialogState({
+      visible: true,
+      type: 'discardChanges',
+      data: { count: pendingChanges.length }
+    });
+  };
+  
+  // 确认撤销变更
+  const handleConfirmDiscardChanges = async () => {
+    setPendingChanges([]);
+    // 重新加载数据
+    try {
+      const data = await fetchIdeas();
+      setCrafts(data);
+      setActiveId(null);
+      message.success(language === 'zh' ? '已放弃所有变更' : 'All changes discarded');
+      setDialogState({ visible: false, type: null });
+    } catch (error) {
+      console.error('Failed to reload crafts:', error);
+      message.error(language === 'zh' ? '重新加载数据失败' : 'Failed to reload data');
     }
   };
 
@@ -1617,14 +1654,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           {/* <button 
             className="toolbar-btn" 
             title={language === "zh" ? "导入" : "Import"}
-            onClick={() => alert(language === "zh" ? "导入功能开发中..." : "Import feature in development...")}
+            onClick={() => message.info(language === "zh" ? "导入功能开发中..." : "Import feature in development...")}
           >
             <Icon name="upload" />
           </button>
           <button 
             className="toolbar-btn" 
             title={language === "zh" ? "导出" : "Export"}
-            onClick={() => alert(language === "zh" ? "导出功能开发中..." : "Export feature in development...")}
+            onClick={() => message.info(language === "zh" ? "导出功能开发中..." : "Export feature in development...")}
           >
             <Icon name="download" />
           </button> */}
@@ -2313,7 +2350,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
             }}
           >
             <div className="minimap-content">
-              {crafts.map((craft) => {
+              {filteredCrafts.map((craft) => {
                 const pos = nodePositions.get(craft.id);
                 if (!pos) return null;
                 return (
@@ -2795,6 +2832,49 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
           </div>
         </div>
       )}
+      
+      {/* 删除组别确认对话框 */}
+      <LandDialog
+        show={dialogState.visible && dialogState.type === 'deleteGroup'}
+        title={language === 'zh' ? '确认删除组别' : 'Confirm Delete Group'}
+        onClose={() => setDialogState({ visible: false, type: null })}
+        onSubmit={handleConfirmDeleteGroup}
+        submitLabel={language === 'zh' ? '确认删除' : 'Delete'}
+        cancelLabel={language === 'zh' ? '取消' : 'Cancel'}
+      >
+        {dialogState.data?.craftsInGroup?.length > 0 ? (
+          <p>
+            {language === 'zh' 
+              ? `确定要删除组别"${dialogState.data.group?.name}"吗？该组别下有 ${dialogState.data.craftsInGroup.length} 个灵感，删除后这些灵感将不属于任何组别。`
+              : `Delete group "${dialogState.data.group?.name}"? ${dialogState.data.craftsInGroup.length} craft(s) in this group will become ungrouped.`
+            }
+          </p>
+        ) : (
+          <p>
+            {language === 'zh'
+              ? `确定要删除组别"${dialogState.data?.group?.name}"吗？`
+              : `Delete group "${dialogState.data?.group?.name}"?`
+            }
+          </p>
+        )}
+      </LandDialog>
+      
+      {/* 放弃变更确认对话框 */}
+      <LandDialog
+        show={dialogState.visible && dialogState.type === 'discardChanges'}
+        title={language === 'zh' ? '确认放弃变更' : 'Confirm Discard Changes'}
+        onClose={() => setDialogState({ visible: false, type: null })}
+        onSubmit={handleConfirmDiscardChanges}
+        submitLabel={language === 'zh' ? '确认放弃' : 'Discard'}
+        cancelLabel={language === 'zh' ? '取消' : 'Cancel'}
+      >
+        <p>
+          {language === 'zh' 
+            ? `确定要放弃所有未保存的变更吗？(${dialogState.data?.count || 0} 项)`
+            : `Discard all unsaved changes? (${dialogState.data?.count || 0} items)`
+          }
+        </p>
+      </LandDialog>
     </div>
   );
 };
