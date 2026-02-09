@@ -250,7 +250,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   left: 100px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   background: rgba(255, 255, 255, 0.9);
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 14px;
@@ -301,62 +301,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // 组别管理面板
-.group-manager-panel {
-  position: fixed;
-  top: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  max-height: 500px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  box-shadow: $shadow-floating;
-  backdrop-filter: blur(20px);
-  z-index: 200;
-  overflow: hidden;
-  animation: slideDown 0.3s ease;
-  
-  .panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    
-    h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: $color-text-main;
-      margin: 0;
-    }
-    
-    .close-btn {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: transparent;
-      border: none;
-      border-radius: 8px;
-      color: $color-text-sub;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      
-      svg {
-        width: 18px;
-        height: 18px;
-      }
-      
-      &:hover {
-        background: rgba(0, 0, 0, 0.06);
-        color: $color-text-main;
-      }
-    }
-  }
-  
-  .panel-content {
+  .group-manager-panel-content {
     padding: 16px 24px 24px;
     max-height: 400px;
     overflow-y: auto;
@@ -430,7 +375,6 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       }
     }
   }
-}
 
 @keyframes slideDown {
   from {

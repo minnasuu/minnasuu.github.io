@@ -1670,16 +1670,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
 
       {/* 组别管理面板 */}
       {showGroupManager && (
-        <div className="group-manager-panel">
-          <div className="panel-header">
-            <h3>{language === 'zh' ? '管理组别' : 'Manage Groups'}</h3>
-            <button onClick={() => setShowGroupManager(false)} className="close-btn">
-              <Icon name="close" />
-            </button>
-          </div>
-          <div className="panel-content">
+        <LandDialog
+          show={showGroupManager}
+          title={language === 'zh' ? '管理组别' : 'Manage Groups'}
+          onCancel={() => setShowGroupManager(false)}
+          footerComponent={null}
+        >
+          <div className="group-manager-panel-content">
             <LandButton
-              type="fill"
               status="primary"
               icon={<Icon name="add" strokeWidth={4} />}
               text={language === 'zh' ? '新建组别' : 'New Group'}
@@ -1714,7 +1712,7 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               )}
             </div>
           </div>
-        </div>
+        </LandDialog>
       )}
 
       {/* 中心标题 */}
