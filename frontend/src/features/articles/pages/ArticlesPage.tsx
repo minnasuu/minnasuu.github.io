@@ -61,12 +61,6 @@ const ArticlesPage: React.FC = () => {
 
       <main className="articles-container">
         <div className="articles-hero">
-          {/* 背景装饰图形 */}
-          <div className="hero-graphics">
-            <div className="graphic-blob"></div>
-            <div className="graphic-line"></div>
-            <div className="graphic-circle"></div>
-          </div>
 
           <h1 className="hero-title">
             {language === "zh" ? (
@@ -96,8 +90,10 @@ const ArticlesPage: React.FC = () => {
         </div>
 
         <div className="articles-list">
-          {sortedArticles.map((article) => (
+          {sortedArticles.map((article,index) => (
             <article key={article.id} className="article-item">
+              <div className="article-item-line-top"></div>
+              {index === sortedArticles.length - 1 && <div className="article-item-line-bottom"></div>}
               <Link
                 to={`/articles/${article.id}`}
                 className="article-link-wrapper"
