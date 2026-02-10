@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { marked } from 'marked';
 import ArticleMarkdown from '../ArticleMarkdown';
 import type { Article } from '../../../../shared/types';
@@ -17,74 +17,170 @@ interface SlideData {
   title?: string;
 }
 
+// 从 token 列表中提取标题
+const extractTitle = (tokens: any[], fallbackIndex: number): string => {
+  const firstHeading = tokens.find((t: any) => t.type === 'heading');
+  if (firstHeading) return firstHeading.text;
+  const firstText = tokens.find((t: any) => t.type === 'paragraph' || t.type === 'text');
+  if (firstText) return firstText.text.slice(0, 20) + (firstText.text.length > 20 ? '...' : '');
+  return `Slide ${fallbackIndex}`;
+};
+
+// 第一阶段：粗分 - 按标题 + 字符数
+const coarseSplit = (markdown: string): SlideData[] => {
+  const slidesList: SlideData[] = [];
+  if (!markdown) return slidesList;
+
+  const tokens = marked.lexer(markdown);
+  let currentSlideTokens: any[] = [];
+  let currentSlideLength = 0;
+  const MAX_SLIDE_LENGTH = 1500;
+
+  const pushSlide = (tks: any[]) => {
+    if (tks.length > 0) {
+      slidesList.push({
+        type: 'markdown',
+        content: tks.map(t => t.raw).join(''),
+        title: extractTitle(tks, slidesList.length + 1),
+      });
+    }
+  };
+
+  tokens.forEach((token: any) => {
+    const tokenLength = token.raw?.length || 0;
+    if (token.type === 'heading' && token.depth <= 2) {
+      pushSlide(currentSlideTokens);
+      currentSlideTokens = [token];
+      currentSlideLength = tokenLength;
+    } else if (currentSlideTokens.length > 0 && currentSlideLength + tokenLength > MAX_SLIDE_LENGTH) {
+      pushSlide(currentSlideTokens);
+      currentSlideTokens = [token];
+      currentSlideLength = tokenLength;
+    } else {
+      currentSlideTokens.push(token);
+      currentSlideLength += tokenLength;
+    }
+  });
+  pushSlide(currentSlideTokens);
+
+  return slidesList;
+};
+
+// 第二阶段：将一个溢出 slide 的 markdown 拆分成多个
+const splitOverflowSlide = (slideContent: string): string[] => {
+  const tokens = marked.lexer(slideContent);
+  if (tokens.length <= 1) return [slideContent];
+
+  // 二分拆：前半 / 后半
+  const mid = Math.ceil(tokens.length / 2);
+  const firstHalf = tokens.slice(0, mid).map(t => t.raw).join('');
+  const secondHalf = tokens.slice(mid).map(t => t.raw).join('');
+
+  return [firstHalf, secondHalf];
+};
+
 const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const thumbnailRef = React.useRef<HTMLDivElement>(null);
+  const thumbnailRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [slides, setSlides] = useState<SlideData[]>([]);
+  const [isReady, setIsReady] = useState(false);
 
-  const slides = useMemo<SlideData[]>(() => {
+  // 第一阶段粗分
+  const coarseSlides = useMemo<SlideData[]>(() => {
     const markdown = article.markdownContent || '';
-    const slidesList: SlideData[] = [];
-    
-    // 1. Add Cover Slide
-    slidesList.push({ type: 'cover', title: 'Cover' });
+    const cover: SlideData = { type: 'cover', title: 'Cover' };
+    return [cover, ...coarseSplit(markdown)];
+  }, [article]);
 
-    // 2. Parse Markdown Slides
-    if (markdown) {
-        const tokens = marked.lexer(markdown);
-        let currentSlideTokens: any[] = [];
-        let currentSlideLength = 0;
-        const MAX_SLIDE_LENGTH = 1200;
-
-        const pushSlide = (tokens: any[]) => {
-            if (tokens.length > 0) {
-                // Extract title from first heading
-                const firstHeading = tokens.find((t: any) => t.type === 'heading');
-                let title = `Slide ${slidesList.length + 1}`;
-                if (firstHeading) {
-                    title = firstHeading.text;
-                } else {
-                   // Try to get first few words of text
-                   const firstText = tokens.find((t: any) => t.type === 'paragraph' || t.type === 'text');
-                   if (firstText) {
-                       title = firstText.text.slice(0, 20) + (firstText.text.length > 20 ? '...' : '');
-                   }
-                }
-
-                slidesList.push({
-                    type: 'markdown',
-                    content: tokens.map(t => t.raw).join(''),
-                    title
-                });
-            }
-        };
-
-        tokens.forEach((token: any) => {
-            const tokenLength = token.raw?.length || 0;
-
-            // Check if token is a heading of level 1 or 2
-            if (token.type === 'heading' && token.depth <= 2) {
-                pushSlide(currentSlideTokens);
-                currentSlideTokens = [token];
-                currentSlideLength = tokenLength;
-            } else {
-                // Check if adding this token would exceed the limit
-                // We only split if we already have content (don't split if it's the first item)
-                if (currentSlideTokens.length > 0 && currentSlideLength + tokenLength > MAX_SLIDE_LENGTH) {
-                    pushSlide(currentSlideTokens);
-                    currentSlideTokens = [token];
-                    currentSlideLength = tokenLength;
-                } else {
-                    currentSlideTokens.push(token);
-                    currentSlideLength += tokenLength;
-                }
-            }
-        });
-        
-        pushSlide(currentSlideTokens);
+  // 第二阶段：渲染后检测溢出并再拆分
+  useEffect(() => {
+    const container = measureRef.current;
+    if (!container) {
+      setSlides(coarseSlides);
+      setIsReady(true);
+      return;
     }
 
-    return slidesList;
-  }, [article]);
+    const refineSlides = async () => {
+      const refined: SlideData[] = [];
+
+      for (const slide of coarseSlides) {
+        if (slide.type === 'cover') {
+          refined.push(slide);
+          continue;
+        }
+
+        // 检测是否溢出
+        let contents = [slide.content || ''];
+        let stable = false;
+        let iterations = 0;
+        const MAX_ITERATIONS = 5;
+
+        while (!stable && iterations < MAX_ITERATIONS) {
+          stable = true;
+          iterations++;
+          const nextContents: string[] = [];
+
+          for (const content of contents) {
+            // 渲染到隐藏容器测量高度
+            const isOverflow = await measureContent(container, content);
+
+            if (isOverflow) {
+              const parts = splitOverflowSlide(content);
+              if (parts.length > 1) {
+                nextContents.push(...parts);
+                stable = false;
+              } else {
+                nextContents.push(content);
+              }
+            } else {
+              nextContents.push(content);
+            }
+          }
+          contents = nextContents;
+        }
+
+        // 将拆分结果加入 refined
+        contents.forEach((content, i) => {
+          const tokens = marked.lexer(content);
+          refined.push({
+            type: 'markdown',
+            content,
+            title: extractTitle(tokens as any[], refined.length + 1),
+          });
+        });
+      }
+
+      setSlides(refined);
+      setIsReady(true);
+    };
+
+    refineSlides();
+  }, [coarseSlides]);
+
+  // 测量内容是否溢出 slide 可视区域
+  const measureContent = useCallback((container: HTMLDivElement, content: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // 清空
+      container.innerHTML = '';
+
+      // 创建临时渲染节点
+      const wrapper = document.createElement('div');
+      wrapper.className = 'markdown-content-wrapper';
+      wrapper.innerHTML = marked(content) as string;
+      container.appendChild(wrapper);
+
+      // 等待一帧让浏览器完成布局
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const isOverflow = container.scrollHeight > container.clientHeight + 2;
+          container.innerHTML = '';
+          resolve(isOverflow);
+        });
+      });
+    });
+  }, []);
 
   const nextSlide = () => {
     if (currentSlide < slides.length - 1) {
@@ -123,8 +219,14 @@ const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => 
       }
   }, [currentSlide]);
 
-  if (slides.length === 0) {
-      return <div className="article-sliders-container">No content</div>;
+  if (!isReady || slides.length === 0) {
+      return (
+        <div className="article-sliders-container">
+          {/* 隐藏的测量容器 - 模拟 slide-inner 的尺寸 */}
+          <div ref={measureRef} className="slide-measure-container" />
+          <div className="slide-loading">Loading...</div>
+        </div>
+      );
   }
 
   const renderCoverSlide = () => (
@@ -163,6 +265,9 @@ const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => 
 
   return (
     <div className="article-sliders-container">
+      {/* 隐藏的测量容器 */}
+      <div ref={measureRef} className="slide-measure-container" />
+
       <div
         className="slider-track"
         style={{ transform: `translateX(-${currentSlide * 100}%)` }}

@@ -13,6 +13,39 @@
   color: var(--color-text-1);
   font-family: "Wotfard", system-ui, sans-serif;
 
+  // 隐藏的测量容器 - 模拟 slide-inner 的真实尺寸
+  .slide-measure-container {
+    position: absolute;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: -1;
+    // 与 slide-inner 保持一致的尺寸
+    width: 80%;
+    left: 10%;
+    aspect-ratio: 16 / 9;
+    max-height: 80vh;
+    padding: 40px 20px 100px;
+    box-sizing: border-box;
+    overflow: hidden;
+
+    .markdown-content-wrapper {
+      width: 100%;
+      max-width: 800px;
+      margin: auto;
+    }
+  }
+
+  .slide-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 1.2rem;
+    color: var(--color-text-3);
+    letter-spacing: 2px;
+  }
+
   .slider-track {
     display: flex;
     width: 100%;
