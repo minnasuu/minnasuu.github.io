@@ -24,7 +24,7 @@
     left: 10%;
     aspect-ratio: 16 / 9;
     max-height: 80vh;
-    padding: 40px 20px 100px;
+    padding: 40px 20px;
     box-sizing: border-box;
     overflow: hidden;
 
@@ -32,6 +32,15 @@
       width: 100%;
       max-width: 800px;
       margin: auto;
+      height: 100%;
+      .markdown-content{
+        height: 100%;
+        img,video{
+            margin-block: 0;
+            aspect-ratio: 568/262;
+            object-fit: contain;
+        }
+      }
     }
   }
 
