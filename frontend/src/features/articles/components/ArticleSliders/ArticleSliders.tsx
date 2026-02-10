@@ -142,7 +142,7 @@ const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => 
         }
 
         // 将拆分结果加入 refined
-        contents.forEach((content, i) => {
+        contents.forEach((content, _i) => {
           const tokens = marked.lexer(content);
           refined.push({
             type: 'markdown',
