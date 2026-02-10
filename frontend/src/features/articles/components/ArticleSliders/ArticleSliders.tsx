@@ -26,15 +26,29 @@ const extractTitle = (tokens: any[], fallbackIndex: number): string => {
   return `Slide ${fallbackIndex}`;
 };
 
-// 第一阶段：粗分 - 按标题 + 字符数
+// 检测 token 是否包含图片或视频
+const hasMedia = (token: any): boolean => {
+  const raw = token.raw || '';
+  // Markdown 图片语法 ![...](...) 或 HTML <img>/<video> 标签
+  return /!\[.*?\]\(.*?\)/.test(raw) || /<img\s/.test(raw) || /<video\s/.test(raw);
+};
+
+// 估算 token 的视觉权重（图片/视频占用大量空间）
+const estimateTokenWeight = (token: any): number => {
+  if (hasMedia(token)) return 800; // 图片/视频视觉权重很高
+  if (token.type === 'code') return Math.min(token.raw?.length || 0, 600); // 代码块上限
+  return token.raw?.length || 0;
+};
+
+// 第一阶段：粗分 - 按 h1~h3 标题分页，图片/视频特殊处理
 const coarseSplit = (markdown: string): SlideData[] => {
   const slidesList: SlideData[] = [];
   if (!markdown) return slidesList;
 
   const tokens = marked.lexer(markdown);
   let currentSlideTokens: any[] = [];
-  let currentSlideLength = 0;
-  const MAX_SLIDE_LENGTH = 1500;
+  let currentSlideWeight = 0;
+  const MAX_SLIDE_WEIGHT = 1200;
 
   const pushSlide = (tks: any[]) => {
     if (tks.length > 0) {
@@ -47,18 +61,44 @@ const coarseSplit = (markdown: string): SlideData[] => {
   };
 
   tokens.forEach((token: any) => {
-    const tokenLength = token.raw?.length || 0;
-    if (token.type === 'heading' && token.depth <= 2) {
+    const weight = estimateTokenWeight(token);
+    const isMediaToken = hasMedia(token);
+
+    // h1~h3 标题：强制分页
+    if (token.type === 'heading' && token.depth <= 3) {
       pushSlide(currentSlideTokens);
       currentSlideTokens = [token];
-      currentSlideLength = tokenLength;
-    } else if (currentSlideTokens.length > 0 && currentSlideLength + tokenLength > MAX_SLIDE_LENGTH) {
+      currentSlideWeight = weight;
+      return;
+    }
+
+    // 图片/视频：尽量独占一页或与前面少量文字同页
+    if (isMediaToken) {
+      // 如果当前已有较多内容，先把已有内容推出去，图片/视频单独起一页
+      if (currentSlideWeight > 300) {
+        pushSlide(currentSlideTokens);
+        currentSlideTokens = [token];
+        currentSlideWeight = weight;
+      } else {
+        // 前面内容少，图片和文字可以同页
+        currentSlideTokens.push(token);
+        currentSlideWeight += weight;
+      }
+      // 图片/视频之后的内容应该另起一页（除非后续是空的）
+      pushSlide(currentSlideTokens);
+      currentSlideTokens = [];
+      currentSlideWeight = 0;
+      return;
+    }
+
+    // 普通 token：按视觉权重累计分页
+    if (currentSlideTokens.length > 0 && currentSlideWeight + weight > MAX_SLIDE_WEIGHT) {
       pushSlide(currentSlideTokens);
       currentSlideTokens = [token];
-      currentSlideLength = tokenLength;
+      currentSlideWeight = weight;
     } else {
       currentSlideTokens.push(token);
-      currentSlideLength += tokenLength;
+      currentSlideWeight += weight;
     }
   });
   pushSlide(currentSlideTokens);
