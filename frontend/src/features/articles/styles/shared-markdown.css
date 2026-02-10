@@ -31,16 +31,18 @@
   position: relative;
   letter-spacing: -0.02em;
   font-weight: 600;
+  text-indent: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* H1 装饰线 - 双线设计 */
 .markdown-content h1::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  top: 10px;
   left: 0;
-  width: 36px;
-  height: 5px;
+  width: 5px;
+  height: 36px;
   background: #202020;
   border-radius: 5px;
 }
@@ -48,7 +50,6 @@
 .markdown-content h2 {
   font-size: 1.6em;
   padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
 }
 
 .markdown-content h3 {
@@ -190,7 +191,7 @@
 .markdown-content table {
   border-spacing: 0;
   border-collapse: collapse;
-  margin: 24px 0;
+  margin: 24px auto;
   width: fit-content;
   max-width: 100%;
   overflow: auto;
