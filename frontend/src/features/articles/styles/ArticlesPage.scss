@@ -177,10 +177,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   padding: 8rem 2rem 6rem 100px; // 左侧留出日期空间
   
-  &:first-child {
-    padding-top: 2rem;
-  }
-  
   .article-link-wrapper {
     display: flex;
     gap: 20px;
@@ -253,8 +249,8 @@ right: 0;
   // 日期显示在左侧
   .article-date-timeline {
     position: absolute;
-    left: 2rem;
-    top: 6rem;
+    left: 1rem;
+    top: 8rem;
     font-size: 0.9rem;
     font-weight: 500;
     color: $color-text-main;
