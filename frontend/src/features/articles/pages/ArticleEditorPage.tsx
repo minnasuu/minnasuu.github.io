@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import MdEditor from 'react-markdown-editor-lite';
+import MdEditor, { PluginComponent } from 'react-markdown-editor-lite';
 import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -29,8 +29,11 @@ mdParser.use(interactiveComponentPlugin);
 // 自定义视频上传插件
 let videoUploadHandler: ((file: File) => Promise<string>) | null = null;
 
-const VideoUploadPlugin = (editor: any) => {
-  const handleClick = () => {
+class VideoUploadPlugin extends PluginComponent {
+  static pluginName = 'video-upload';
+  static align = 'left';
+
+  handleClick = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'video/*';
@@ -40,29 +43,27 @@ const VideoUploadPlugin = (editor: any) => {
       if (videoUploadHandler) {
         const url = await videoUploadHandler(file);
         if (url) {
-          editor.insertText(`\n<video src="${url}" controls style="max-width:100%;border-radius:8px;"></video>\n`);
+          this.editor.insertText(`\n<video src="${url}" controls style="max-width:100%;border-radius:8px;"></video>\n`);
         }
       }
     };
     input.click();
   };
 
-  return {
-    comp: (
+  render() {
+    return (
       <span
         className="button button-type-video"
         title="上传视频"
-        onClick={handleClick}
+        onClick={this.handleClick}
         style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '16px' }}
       >
         ▶
       </span>
-    ),
-  };
-};
+    );
+  }
+}
 
-VideoUploadPlugin.align = 'left';
-VideoUploadPlugin.pluginName = 'video-upload';
 MdEditor.use(VideoUploadPlugin);
 
 // 自定义渲染函数包装器，修复中文标点符号导致的加粗/斜体解析问题
