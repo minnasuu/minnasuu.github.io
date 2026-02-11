@@ -4,7 +4,7 @@ import MarkdownIt from 'markdown-it';
 import 'react-markdown-editor-lite/lib/index.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom/client';
-import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, verifyEditorPassword, fetchDrafts, createDraft, updateDraft, deleteDraft } from '../../../shared/utils/backendClient';
+import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, uploadVideo, verifyEditorPassword, fetchDrafts, createDraft, updateDraft, deleteDraft } from '../../../shared/utils/backendClient';
 import type { CreateArticleRequest, Draft } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
@@ -25,6 +25,45 @@ const mdParser = new MarkdownIt({
 
 // 添加交互组件插件
 mdParser.use(interactiveComponentPlugin);
+
+// 自定义视频上传插件
+let videoUploadHandler: ((file: File) => Promise<string>) | null = null;
+
+const VideoUploadPlugin = (editor: any) => {
+  const handleClick = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'video/*';
+    input.onchange = async (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (videoUploadHandler) {
+        const url = await videoUploadHandler(file);
+        if (url) {
+          editor.insertText(`\n<video src="${url}" controls style="max-width:100%;border-radius:8px;"></video>\n`);
+        }
+      }
+    };
+    input.click();
+  };
+
+  return {
+    comp: (
+      <span
+        className="button button-type-video"
+        title="上传视频"
+        onClick={handleClick}
+        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '16px' }}
+      >
+        ▶
+      </span>
+    ),
+  };
+};
+
+VideoUploadPlugin.align = 'left';
+VideoUploadPlugin.pluginName = 'video-upload';
+MdEditor.use(VideoUploadPlugin);
 
 // 自定义渲染函数包装器，修复中文标点符号导致的加粗/斜体解析问题
 const originalRender = mdParser.render.bind(mdParser);
@@ -410,6 +449,51 @@ const ArticleEditorPage: React.FC = () => {
       });
     }
   };
+
+  // 处理视频上传 - 立即上传到服务器
+  const handleVideoDrop = async (file: File): Promise<string> => {
+    // 检查文件类型
+    if (!file.type.startsWith('video/')) {
+      showAlert('文件类型错误', '只支持视频文件');
+      return '';
+    }
+
+    // 检查文件大小（50MB）
+    if (file.size > 50 * 1024 * 1024) {
+      showAlert('文件过大', '视频大小不能超过 50MB');
+      return '';
+    }
+
+    const videoId = `vid-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+    
+    try {
+      setUploadingImages(prev => new Set(prev).add(videoId));
+      
+      console.log(`📤 开始上传视频: ${file.name}`);
+      const result = await uploadVideo(file);
+      console.log(`✅ 视频上传成功: ${file.name} -> ${result.url}`);
+      
+      return result.url;
+    } catch (error) {
+      console.error(`❌ 视频上传失败: ${file.name}`, error);
+      showAlert('上传失败', `视频 ${file.name} 上传失败，请稍后重试`);
+      return '';
+    } finally {
+      setUploadingImages(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(videoId);
+        return newSet;
+      });
+    }
+  };
+
+  // 注册视频上传处理器供插件调用
+  useEffect(() => {
+    videoUploadHandler = handleVideoDrop;
+    return () => {
+      videoUploadHandler = null;
+    };
+  });
 
   // 自定义图片上传处理
   const handleEditorImageUpload = async (file: File): Promise<string> => {
@@ -1235,7 +1319,7 @@ const ArticleEditorPage: React.FC = () => {
               }
             `}</style>
             
-            {/* 图片上传进度提示 */}
+            {/* 媒体上传进度提示 */}
             {uploadingImages.size > 0 && (
               <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 border border-gray-200 dark:border-gray-700 z-50">
                 <div className="flex items-center gap-3">
@@ -1243,7 +1327,7 @@ const ArticleEditorPage: React.FC = () => {
                     <Icon name="loading" size={20} strokeWidth={3} />
                   </div>
                   <div className="text-sm text-gray-700 dark:text-gray-300">
-                    正在上传图片... ({uploadingImages.size} 张)
+                    正在上传文件... ({uploadingImages.size} 个)
                   </div>
                 </div>
               </div>

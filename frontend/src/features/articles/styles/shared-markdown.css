@@ -236,9 +236,11 @@
 }
 
 /* 图片样式 */
-.markdown-content img {
+.markdown-content img,
+.markdown-content video {
   max-width: 100%;
   height: auto;
+  max-height: 800px;
   border-radius: 8px;
   margin: 24px auto;
   display: block;
