@@ -13,7 +13,7 @@
     "newArticle": "node scripts/newArticle.js"
   },
   "dependencies": {
-    "@suminhan/land-design": "^0.0.104",
+    "@suminhan/land-design": "^0.0.107",
     "@tailwindcss/vite": "^4.1.12",
     "@types/marked": "^5.0.2",
     "@types/react-router-dom": "^5.3.3",

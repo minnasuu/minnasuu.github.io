@@ -150,6 +150,7 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
       onSubmit={handleSave}
       cancelLabel="取消"
       submitLabel={isGenerating ? '生成中...' : (editingGoal ? '保存修改' : '创建目标')}
+      enableEnter
     >
       <div className="goal-creator">
         <div className="form-section">
