@@ -496,6 +496,7 @@ export interface CreateCraftRequest {
   weight?: number;
   coverImage?: string;
   htmlCode?: string;
+  configSchema?: any[];
   useCase?: string;
   githubUrl?: string;
   content?: string;

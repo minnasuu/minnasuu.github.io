@@ -60,6 +60,7 @@ export interface Craft {
   featured: boolean;
   link?: string; // 可选的链接
   htmlCode?: string; // HTML代码（包含样式和逻辑）
+  configSchema?: any[]; // 配置项 Schema
 }
 
 export interface PersonalData {

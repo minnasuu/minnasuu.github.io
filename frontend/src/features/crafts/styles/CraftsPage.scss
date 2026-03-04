@@ -420,11 +420,21 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   // 不同权重的大小
-  &.weight-1 .node-inner { width: 56px; height: 56px; border-radius: 16px; }
-  &.weight-2 .node-inner { width: 72px; height: 72px; border-radius: 20px; }
-  &.weight-3 .node-inner { width: 88px; height: 88px; border-radius: 24px; }
-  &.weight-4 .node-inner { width: 110px; height: 110px; border-radius: 28px; }
-  &.weight-5 .node-inner { width: 132px; height: 132px; border-radius: 32px; }
+  &.weight-1 .node-inner { width: 56px; height: 56px; border-radius: 16px;
+    iframe, .node-inner-iframe { transform: scale(0.056); }
+  }
+  &.weight-2 .node-inner { width: 72px; height: 72px; border-radius: 20px;
+    iframe, .node-inner-iframe { transform: scale(0.072); }
+  }
+  &.weight-3 .node-inner { width: 88px; height: 88px; border-radius: 24px;
+    iframe, .node-inner-iframe { transform: scale(0.088); }
+  }
+  &.weight-4 .node-inner { width: 110px; height: 110px; border-radius: 28px;
+    iframe, .node-inner-iframe { transform: scale(0.11); }
+  }
+  &.weight-5 .node-inner { width: 132px; height: 132px; border-radius: 32px;
+    iframe, .node-inner-iframe { transform: scale(0.132); }
+  }
 }
 
 .node-inner {
@@ -432,6 +442,7 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   height: 88px;
   border-radius: 24px;
   position: relative;
+  overflow: hidden;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.04);
   box-shadow: $shadow-md;
@@ -445,6 +456,13 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     transition: transform 0.5s ease;
   }
   
+  .node-html-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 24px;
+  }
+
   // iframe 样式（作为 coverImage 的兜底方案）
   iframe, .node-inner-iframe {
     width: 1000px;
@@ -452,8 +470,8 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
     border-radius: 24px;
     object-fit: cover;
-    pointer-events: none; // 防止在节点上拖拽时触发 iframe 交互
-    transform: scale(0.5);
+    pointer-events: none;
+    transform-origin: 0 0;
   }
   
   .craft-node:hover {

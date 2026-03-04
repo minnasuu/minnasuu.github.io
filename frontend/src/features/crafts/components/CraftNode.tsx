@@ -1,6 +1,26 @@
 import React from "react";
 import { Icon } from "@suminhan/land-design";
 
+/** 单个配置项定义 */
+export interface ConfigItem {
+  /** 配置项标识（传递给 HTML 的变量名） */
+  key: string;
+  /** 显示名称 */
+  label: string;
+  /** 配置项类型 */
+  type: "range" | "color" | "select" | "toggle" | "number";
+  /** 默认值 */
+  defaultValue: number | string | boolean;
+  /** range/number 最小值 */
+  min?: number;
+  /** range/number 最大值 */
+  max?: number;
+  /** range/number 步长 */
+  step?: number;
+  /** select 选项 */
+  options?: { label: string; value: string | number }[];
+}
+
 // Craft 类型定义
 export interface Craft {
   /** 唯一标识 */
@@ -29,6 +49,8 @@ export interface Craft {
   coverImage?: string;
   /** HTML代码（包含样式和逻辑的完整HTML，用于渲染Craft Demo） */
   htmlCode?: string;
+  /** 配置项 Schema（JSON 描述可调节参数，用于实时预览） */
+  configSchema?: ConfigItem[];
   /** 适用场景 */
   useCase?: string;
   /** GitHub 地址 */
@@ -125,7 +147,7 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
         {craft.coverImage && craft.coverImage !== '__PENDING_DELETE__' ? (
           <img src={craft.coverImage} alt={craft.name} />
         ) : craft.htmlCode ? (
-          <div className="w-full h-full overflow-hidden">
+          <div className="node-html-wrapper">
             <iframe 
             srcDoc={craft.htmlCode} 
             title={craft.name}

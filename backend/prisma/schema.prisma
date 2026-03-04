@@ -51,6 +51,7 @@ model Craft {
   weight        Int      @default(1)
   coverImage    String?
   htmlCode      String?  @db.Text
+  configSchema  Json?    // 配置项 Schema [{key, label, type, defaultValue, min?, max?, step?, options?}]
   useCase       String?  @db.Text
   githubUrl     String?
   content       String?  @db.Text

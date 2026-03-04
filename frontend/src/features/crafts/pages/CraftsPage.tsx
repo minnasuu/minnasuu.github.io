@@ -1994,7 +1994,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   {addNodeState.sourceCraft.coverImage && addNodeState.sourceCraft.coverImage !== '__PENDING_DELETE__' ? (
                     <img src={addNodeState.sourceCraft.coverImage} alt={addNodeState.sourceCraft.name} />
                   ) : addNodeState.sourceCraft.htmlCode ? (
-                    <div className="w-full h-full overflow-hidden">
+                    <div className="node-html-wrapper">
                       <iframe 
                       srcDoc={addNodeState.sourceCraft.htmlCode} 
                       title={addNodeState.sourceCraft.name}
