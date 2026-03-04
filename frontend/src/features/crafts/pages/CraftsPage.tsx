@@ -1330,7 +1330,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
         <div className="header-controls">
             {layoutMode === "canvas" && (
               <LandButton 
-                type="fill" 
+                variant="fill" 
                 status="default" 
                 icon={<Icon name="refresh"/>} 
                 className="control-btn" 
@@ -1338,7 +1338,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               />
             )}
             <LandButton 
-              type="fill" 
+              variant="fill" 
               status="default" 
               icon={<Icon name={layoutMode === "canvas" ? "application" : "zoom-in"}/>} 
               className="control-btn" 
@@ -1350,10 +1350,10 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       {/* 编辑器工具栏 */}
       {editorMode && layoutMode === "canvas" && (
         <div className="editor-toolbar">
-          <LandButton type="background" icon={<Icon name="add" strokeWidth={4} />} onClick={handleCreateStandaloneNode}/>
+          <LandButton variant="background" icon={<Icon name="add" strokeWidth={4} />} onClick={handleCreateStandaloneNode}/>
           <div className="toolbar-divider" />
           <LandButton 
-            type="background" 
+            variant="background" 
             status="primary"
             icon={<Icon name="file" />}
             text={isSaving ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? `保存 (${pendingChanges.length})` : `Save (${pendingChanges.length})`)}
@@ -1362,7 +1362,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           />
           {pendingChanges.length > 0 && (
             <LandButton 
-              type="fill"
+              variant="fill"
               status="default"
               text={language === "zh" ? "撤销" : "Discard"}
               onClick={handleDiscardChanges}
@@ -1435,14 +1435,14 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           </p>
           {editorMode ? (
             <LandButton
-              type="background"
+              variant="background"
               text={language === "zh" ? "新建作品" : "Create Craft"}
               icon={<Icon name="add" strokeWidth={4} />}
               onClick={handleCreateStandaloneNode}
             />
           ) : (
             <LandButton
-              type="background"
+              variant="background"
               text={language === "zh" ? "新建作品" : "Create Craft"}
               icon={<Icon name="add" strokeWidth={4} />}
               onClick={() => navigate('/crafts-editor')}
@@ -1646,7 +1646,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       {/* 详情面板 */}
       {activeCraft && (
         <div className={`detail-panel ${editorMode ? 'editor-mode' : ''}`}>
-           <LandButton type="background" status="default" icon={<Icon name="close"/>} className="panel-close" onClick={() => setActiveId(null)}/>
+           <LandButton variant="background" status="default" icon={<Icon name="close"/>} className="panel-close" onClick={() => setActiveId(null)}/>
 
           {/* 编辑模式：可编辑表单 */}
           {editorMode && editNodeForm ? (
@@ -1701,7 +1701,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                         }
                       }}
                     />
-                    <LandButton type="background" onClick={handleEditAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
+                    <LandButton variant="background" onClick={handleEditAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
                   </div>
                   {editNodeForm.technologies.length > 0 && (
                     <div className="tech-tags">
@@ -1814,12 +1814,12 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
               <div className="panel-footer">
                 <LandButton 
-                  type="background" 
+                  variant="background" 
                   text={language === "zh" ? "重置" : "Reset"}
                   onClick={handleResetEditForm}
                 />
                 <LandButton 
-                  type="background" 
+                  variant="background" 
                   status="primary"
                   text={isUpdating ? (language === "zh" ? "保存中..." : "Saving...") : (language === "zh" ? "保存" : "Save")}
                   onClick={handleUpdateCraft}
@@ -2062,7 +2062,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                       }
                     }}
                   />
-                  <LandButton type="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
+                  <LandButton variant="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
                 </div>
                 {newNodeForm.technologies.length > 0 && (
                   <div className="tech-tags">
@@ -2155,13 +2155,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
             <div className="panel-footer">
               <LandButton
-                type="fill"
+                variant="fill"
                 status="default"
                 text={language === "zh" ? "取消" : "Cancel"}
                 onClick={handleCancelAddNode}
               />
               <LandButton
-                type="background"
+                variant="background"
                 text={language === "zh" ? "添加节点" : "Add Node"}
                 onClick={handleConfirmAddNode}
                 disabled={!newNodeForm.name.trim() || isCreating}
@@ -2228,7 +2228,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                       }
                     }}
                   />
-                  <LandButton type="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
+                  <LandButton variant="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
                 </div>
                 {newNodeForm.technologies.length > 0 && (
                   <div className="tech-tags">
@@ -2321,13 +2321,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
             <div className="panel-footer">
               <LandButton
-                type="fill"
+                variant="fill"
                 status="default"
                 text={language === "zh" ? "取消" : "Cancel"}
                 onClick={handleCancelAddNode}
               />
               <LandButton
-                type="background"
+                variant="background"
                 text={language === "zh" ? "创建节点" : "Create Node"}
                 onClick={handleConfirmAddNode}
                 disabled={!newNodeForm.name.trim() || isCreating}
@@ -2353,14 +2353,14 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             </p>
             <div className="delete-actions">
               <LandButton
-                type="fill"
+                variant="fill"
                 status="default"
                 text={language === "zh" ? "取消" : "Cancel"}
                 onClick={handleCancelDelete}
                 disabled={isDeleting}
               />
               <LandButton
-                type="background"
+                variant="background"
                 status="danger"
                 text={isDeleting 
                   ? (language === "zh" ? "删除中..." : "Deleting...") 

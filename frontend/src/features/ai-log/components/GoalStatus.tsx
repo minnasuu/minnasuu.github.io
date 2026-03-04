@@ -157,13 +157,13 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
         <div className="goal-actions">
          {onEdit&& <LandButton
             text="编辑"
-            type="transparent"
+            variant="transparent"
             onClick={onEdit}
           />}
           {goal.status === 'planning' && (
             <LandButton
               text="开始目标"
-              type="background"
+              variant="background"
               onClick={onStart}
             />
           )}
@@ -171,12 +171,12 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
             <>
               <LandButton
                 text="暂停"
-                type="transparent"
+                variant="transparent"
                 onClick={onPause}
               />
               <LandButton
                 text="完成目标"
-                type="background"
+                variant="background"
                 onClick={onComplete}
               />
             </>
@@ -185,12 +185,12 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
             <>
               <LandButton
                 text="继续"
-                type="background"
+                variant="background"
                 onClick={onResume}
               />
               <LandButton
                 text="完成目标"
-                type="transparent"
+                variant="transparent"
                 onClick={onComplete}
               />
             </>

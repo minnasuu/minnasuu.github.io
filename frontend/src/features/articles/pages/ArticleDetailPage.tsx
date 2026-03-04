@@ -286,7 +286,7 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
 
       {/* 返回顶部按钮 */}
         <LandButton
-        type='outline'
+        variant='outline'
         style={{
             position: "fixed",
             bottom: "40px",

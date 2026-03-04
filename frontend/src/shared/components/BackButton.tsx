@@ -27,7 +27,7 @@ const BackButton: React.FC<BackButtonProps> = ({ to, onClick, className = '', st
   return (
     <div className={`back-btn-wrapper ${className}`} style={style}>
       <LandButton 
-        type='fill' 
+        variant='fill' 
         onClick={handleClick} 
         icon={<Icon name='last-step' strokeWidth={4}/>}
         className={`back-btn-circle back-btn-${theme}`}

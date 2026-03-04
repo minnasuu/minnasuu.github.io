@@ -369,14 +369,14 @@ const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => 
 
       <div className="slider-controls">
         <LandButton
-          type="fill"
+          variant="fill"
           onClick={prevSlide}
           disabled={currentSlide === 0}
         >
           <Icon name="arrow-line" className="rotate-90" strokeWidth={4} />
         </LandButton>
         <LandButton
-          type="fill"
+          variant="fill"
           onClick={nextSlide}
           disabled={currentSlide === slides.length - 1}
         >

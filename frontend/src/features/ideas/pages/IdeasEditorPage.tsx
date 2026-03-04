@@ -84,7 +84,7 @@ const IdeasEditorPage: React.FC = () => {
             </div>
 
             <LandButton
-              type="background"
+              variant="background"
               text={language === "zh" ? "验证访问" : "Verify Access"}
               onClick={handlePasswordSubmit}
               disabled={!passwordInput || isVerifying}

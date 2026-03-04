@@ -37,7 +37,7 @@ const ArticleCode: React.FC<Props> = ({
       >
         <p className="font-bold" style={{marginBottom:0}}>{language}</p>
         <div className="flex items-center gap-12">
-          <LandButton type="transparent" onClick={handleCopy} text="复制" />
+          <LandButton variant="transparent" onClick={handleCopy} text="复制" />
         </div>
       </div>
       <SyntaxHighlighter

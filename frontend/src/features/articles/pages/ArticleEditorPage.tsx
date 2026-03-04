@@ -1166,7 +1166,7 @@ const ArticleEditorPage: React.FC = () => {
               </div>
 
               <LandButton
-                type="background"
+                variant="background"
                 text="验证访问"
                 onClick={handlePasswordSubmit}
                 disabled={!passwordInput || isVerifying}
@@ -1226,7 +1226,7 @@ const ArticleEditorPage: React.FC = () => {
         
         <div className="flex items-center gap-3">
           <LandButton
-            type='text'
+            variant='text'
             onClick={() => setShowHistory(!showHistory)}
             icon={<Icon name='log' strokeWidth={4} size={18}/>}
               tip='查看历史文章'
@@ -1248,7 +1248,7 @@ const ArticleEditorPage: React.FC = () => {
           </LandPopOver>
 
           <LandButton
-            type='text'
+            variant='text'
             onClick={() => setShowSettings(!showSettings)}
             icon={<Icon name='setting' strokeWidth={4} size={18}/>}
             tip='设置文章信息'
@@ -1258,7 +1258,7 @@ const ArticleEditorPage: React.FC = () => {
           
           {!isEditMode && (
             <LandButton
-              type='outline'
+              variant='outline'
               onClick={() => handleSaveDraft(false)}
               disabled={isSaving || !formData.content.trim()}
               tipProps={{placement:'bottom'}}
@@ -1268,7 +1268,7 @@ const ArticleEditorPage: React.FC = () => {
           )}
           
           <LandButton
-            type='background'
+            variant='background'
             onClick={() => handleSubmit()}
             disabled={isSaving || !formData.content.trim()}
           >
@@ -1347,7 +1347,7 @@ const ArticleEditorPage: React.FC = () => {
           <div className="fixed right-0 top-0 h-full w-96 bg-white dark:bg-[#202020] shadow-2xl z-50 p-6 overflow-y-auto transform transition-transform duration-300 ease-in-out dark:border-gray-800">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">发布设置</h2>
-              <LandButton type='transparent' icon={<Icon name='close' strokeWidth={4}/>} onClick={() => setShowSettings(false)}/>
+              <LandButton variant='transparent' icon={<Icon name='close' strokeWidth={4}/>} onClick={() => setShowSettings(false)}/>
             </div>
 
             <div className="space-y-6">
@@ -1471,10 +1471,10 @@ const ArticleEditorPage: React.FC = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">历史文章</h2>
-                <LandButton type='transparent' icon={<Icon name='close' strokeWidth={4}/>} onClick={() => setShowHistory(false)}/>
+                <LandButton variant='transparent' icon={<Icon name='close' strokeWidth={4}/>} onClick={() => setShowHistory(false)}/>
               </div>
 
-              <LandButton text='新建文章' type='background' icon={<Icon name='add' strokeWidth={4}/>}  onClick={handleNewArticle}/>
+              <LandButton text='新建文章' variant='background' icon={<Icon name='add' strokeWidth={4}/>}  onClick={handleNewArticle}/>
 
               <div className='mt-6'>
                 <h3 className="py-2 px-4 w-fit rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 bg-gray-50 dark:bg-gray-900/20">草稿</h3>
@@ -1509,7 +1509,7 @@ const ArticleEditorPage: React.FC = () => {
                             </div>
                           </div>
                           <LandButton
-                            type='transparent'
+                            variant='transparent'
                             tip='删除'
                             onClick={(e) => handleDeleteDraft(draft.id, e)}
                             icon={<Icon name='delete' strokeWidth={4}/>}
@@ -1558,7 +1558,7 @@ const ArticleEditorPage: React.FC = () => {
                           </div>
                         </div>
                         <LandButton
-            type='transparent'
+            variant='transparent'
             tip='删除'
              onClick={(e) => handleDeleteArticle(article.id, e)}
             icon={<Icon name='delete' strokeWidth={4}/>}

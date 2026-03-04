@@ -176,7 +176,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
         <div className="section-header">
           <LandButton.ButtonArrow 
           onClick={() => navigate('/articles')} 
-          type='transparent' 
+          variant='transparent' 
           text={`📄 ${t('articles.title')}`}
           />
         </div>
@@ -215,7 +215,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
         <div className="section-header">
            <LandButton.ButtonArrow 
           onClick={() => navigate('/crafts')} 
-          type='transparent' 
+          variant='transparent' 
           text={`♾️ ${t('crafts.title')}`}
           />
         </div>

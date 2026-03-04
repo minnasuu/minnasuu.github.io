@@ -217,7 +217,7 @@ const AILogPage: React.FC = () => {
             </div>
             <LandButton
               text={t.createGoal}
-              type="background"
+              variant="background"
               onClick={() => setShowGoalCreator(true)}
             />
           </div>
@@ -231,7 +231,7 @@ const AILogPage: React.FC = () => {
                 <p>{t.goalDescription}</p>
                 <LandButton
                   text={t.createGoal}
-                  type="background"
+                  variant="background"
                   onClick={() => setShowGoalCreator(true)}
                 />
               </div>
@@ -270,7 +270,7 @@ const AILogPage: React.FC = () => {
                     <div className="goal-card-actions">
                       <LandButton
                         text={t.view}
-                        type="outline"
+                        variant="outline"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedGoal(goal);
@@ -279,7 +279,7 @@ const AILogPage: React.FC = () => {
                       {goal.status !== 'completed' && goal.status !== 'cancelled' && (
                         <LandButton
                           text={t.edit}
-                          type="text"
+                          variant="text"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditingGoal(goal);
@@ -289,7 +289,7 @@ const AILogPage: React.FC = () => {
                       )}
                       <LandButton
                         text={t.delete}
-                        type="text"
+                        variant="text"
                         onClick={(e) => handleDeleteGoal(goal.id, e)}
                       />
                     </div>

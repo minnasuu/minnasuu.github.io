@@ -241,7 +241,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
             />
         </div>
         <div className="form-actions">
-          <LandButton type='background' status='default'>{texts.save}</LandButton>
+          <LandButton variant='background' status='default'>{texts.save}</LandButton>
           <button type="button" onClick={onCancel} className="btn btn-secondary">{texts.cancel}</button>
         </div>
       </form>
@@ -362,7 +362,7 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
           )}
         </div>
         <div className="form-actions">
-          <LandButton type='background' status='default'>{texts.save}</LandButton>
+          <LandButton variant='background' status='default'>{texts.save}</LandButton>
           <button type="button" onClick={onCancel} className="btn btn-secondary">{texts.cancel}</button>
         </div>
       </form>
@@ -473,11 +473,11 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                         </div>
                         {!readonly && (
                           <div className="flex">
-                            <LandButton type='text' icon={ <Icon name="edit" />}  onClick={(e) => {
+                            <LandButton variant='text' icon={ <Icon name="edit" />}  onClick={(e) => {
                               e.preventDefault();
                               setEditingInput(input.id);
                             }}/>
-                            <LandButton type='text' icon={<Icon name="delete" />}  onClick={(e) => {
+                            <LandButton variant='text' icon={<Icon name="delete" />}  onClick={(e) => {
                               e.preventDefault();
                               handleDeleteMyInput(input.id);
                             }}/>
@@ -556,11 +556,11 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
                         </div>
                         {!readonly && (
                           <div className="flex">
-                            <LandButton type='text' icon={ <Icon name="edit" />}  onClick={(e) => {
+                            <LandButton variant='text' icon={ <Icon name="edit" />}  onClick={(e) => {
                               e.preventDefault();
                               setEditingInput(input.id);
                             }}/>
-                            <LandButton type='text' icon={<Icon name="delete" />}  onClick={(e) => {
+                            <LandButton variant='text' icon={<Icon name="delete" />}  onClick={(e) => {
                               e.preventDefault();
                               handleDeleteAIInput(input.id);
                             }}/>

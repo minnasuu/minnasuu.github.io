@@ -189,7 +189,7 @@ const GoalDetailView: React.FC<GoalDetailViewProps> = ({ isOpen, goal, onClose, 
         <div className="header-actions">
           <LandButton
             text={isSaving ? t.saving : t.save}
-            type="background"
+            variant="background"
             onClick={handleSave}
             disabled={isSaving}
           />

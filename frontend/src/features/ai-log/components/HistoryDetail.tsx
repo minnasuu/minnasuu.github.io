@@ -285,7 +285,7 @@ const HistoryDetail: React.FC<HistoryDetailProps> = ({ isOpen, goal, onClose }) 
         <div className="dialog-footer">
           <LandButton
             text={t.close}
-            type="background"
+            variant="background"
             onClick={onClose}
           />
         </div>

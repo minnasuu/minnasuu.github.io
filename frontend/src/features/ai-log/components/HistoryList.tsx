@@ -166,7 +166,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onViewGoal }) => {
             <div className="item-actions">
               <LandButton
                 text={t.view}
-                type="outline"
+                variant="outline"
                 onClick={(e) => {
                   e.stopPropagation();
                   onViewGoal(goal);
@@ -174,7 +174,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onViewGoal }) => {
               />
               <LandButton
                 text={t.delete}
-                type="text"
+                variant="text"
                 onClick={(e) => handleDelete(goal.id, e)}
               />
             </div>
@@ -186,7 +186,7 @@ const HistoryList: React.FC<HistoryListProps> = ({ onViewGoal }) => {
         <div className="load-more">
           <LandButton
             text={t.loadMore}
-            type="outline"
+            variant="outline"
             onClick={() => setPage(p => p + 1)}
             disabled={isLoading}
           />
