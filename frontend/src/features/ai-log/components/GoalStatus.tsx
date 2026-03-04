@@ -1,5 +1,5 @@
 import React from 'react';
-import { LandButton } from '@suminhan/land-design';
+import { Icon, LandButton, LandCheck,  LandProgress } from '@suminhan/land-design';
 import type { Goal } from '../../../shared/types';
 
 interface GoalStatusProps {
@@ -205,17 +205,11 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
       <div className="goal-progress">
         <div className="progress-header">
           <span className="progress-label">完成进度</span>
-          <span className="progress-percentage">{Math.round(actualProgress)}%</span>
         </div>
-        <div className="progress-bar">
-          <div 
-            className="progress-fill"
-            style={{ width: `${actualProgress}%` }}
-          />
-        </div>
+        <LandProgress value={actualProgress/100}/>
         {goal.status === 'paused' && (
-          <div className="progress-note">
-            <span className="pause-indicator">⏸️ 目标已暂停，暂停期间不计入周期时间</span>
+          <div className="progress-note mb-2">
+            <span className="pause-indicator"><Icon name='video-pause'/>目标已暂停，暂停期间不计入周期时间</span>
           </div>
         )}
       </div>
@@ -278,7 +272,7 @@ export const GoalStatus: React.FC<GoalStatusProps> = ({
           <ul className="criteria-list">
             {goal.successCriteria.map((criteria, index) => (
               <li key={index} className="criteria-item">
-                {criteria}
+                <LandCheck checked label={criteria}/>
               </li>
             ))}
           </ul>

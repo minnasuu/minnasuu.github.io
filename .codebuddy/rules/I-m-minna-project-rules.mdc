@@ -108,7 +108,7 @@ features/<module>/
 4. **样式方案**（混合使用）：
    - Tailwind CSS 4 用于 utility class
    - SCSS 用于模块级样式（与组件同名文件）
-   - styled-components 用于需要动态样式的场景
+   - 组件库 `@suminhan/land-design` 用于 UI 组件
 
 5. **TypeScript**：启用 strict 模式，类型定义放在 `shared/types/index.ts`
 

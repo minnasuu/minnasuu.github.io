@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../../../shared/contexts/LanguageContext';
 import { useTheme } from '../../../shared/contexts/ThemeContext';
 import BackButton from '../../../shared/components/BackButton';
-import { LandButton } from '@suminhan/land-design';
+import { LandButton, LandProgress } from '@suminhan/land-design';
 import type { Goal } from '../../../shared/types';
 import type { DifyGenerationResult } from '../../../shared/services/difyService';
 import { goalService } from '../../../shared/services/goalService';
@@ -186,6 +186,148 @@ const AILogPage: React.FC = () => {
 
   const t = texts[language];
 
+  // 横向滚动引用
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // 按更新时间排序（最近的在左边）
+  const sortedGoals = [...goals].sort((a, b) => 
+    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
+
+  // 鼠标拖拽滚动
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    setIsDragging(true);
+    setStartX(e.pageX - container.offsetLeft);
+    setScrollLeft(container.scrollLeft);
+    container.style.cursor = 'grabbing';
+  }, []);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const x = e.pageX - container.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    container.scrollLeft = scrollLeft - walk;
+  }, [isDragging, startX, scrollLeft]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    const container = scrollContainerRef.current;
+    if (container) container.style.cursor = 'grab';
+  }, []);
+
+  // 滚轮横向滚动
+  const handleWheel = useCallback((e: WheelEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+      e.preventDefault();
+      container.scrollLeft += e.deltaY;
+    }
+  }, []);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel, goals]);
+
+  // 格式化简短月份
+  const formatShortDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(language === 'zh' ? 'zh-CN' : 'en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // 本地样式调试：用 mock 数据填充
+  const isDev = import.meta.env.DEV;
+  const loadMockData = () => {
+    const mockGoals: Goal[] = [
+      {
+        id: 'mock-1',
+        title: '掌握 React 高级特性',
+        description: '深入学习 React 的 Suspense、Concurrent Mode 等高级特性，并完成实战项目。',
+        category: 'technical',
+        priority: 'high',
+        duration: 30,
+        startDate: '2026-03-01',
+        endDate: '2026-03-31',
+        status: 'active',
+        progress: 45,
+        createdAt: '2026-03-01T00:00:00Z',
+        updatedAt: '2026-03-04T00:00:00Z',
+        targetSkills: ['React', 'TypeScript'],
+        milestones: [],
+        successCriteria: ['能独立开发复杂 React 应用', '掌握性能优化技巧'],
+      },
+      {
+        id: 'mock-2',
+        title: '完成个人作品集网站',
+        description: '设计并开发一个展示个人项目的作品集网站。',
+        category: 'project',
+        priority: 'medium',
+        duration: 14,
+        startDate: '2026-02-20',
+        endDate: '2026-03-06',
+        status: 'completed',
+        progress: 100,
+        createdAt: '2026-02-20T00:00:00Z',
+        updatedAt: '2026-03-06T00:00:00Z',
+        targetSkills: ['Design', 'CSS'],
+        milestones: [],
+        successCriteria: ['网站上线并通过 Lighthouse 评分 90+'],
+      },
+      {
+        id: 'mock-3',
+        title: '学习 Rust 基础',
+        description: '通过 Rustlings 和官方教程学习 Rust 基础语法和所有权机制。',
+        category: 'technical',
+        priority: 'low',
+        duration: 60,
+        startDate: '2026-03-10',
+        endDate: '2026-05-09',
+        status: 'planning',
+        progress: 0,
+        createdAt: '2026-03-04T00:00:00Z',
+        updatedAt: '2026-03-04T00:00:00Z',
+        targetSkills: ['Rust'],
+        milestones: [],
+        successCriteria: ['完成 Rustlings 全部练习', '用 Rust 写一个 CLI 工具'],
+      },
+      {
+        id: 'mock-4',
+        title: '阅读《系统设计面试》',
+        description: '系统学习分布式系统设计知识，每周阅读两章并做笔记。',
+        category: 'career',
+        priority: 'medium',
+        duration: 28,
+        startDate: '2026-02-15',
+        endDate: '2026-03-15',
+        status: 'paused',
+        progress: 30,
+        createdAt: '2026-02-15T00:00:00Z',
+        updatedAt: '2026-03-02T00:00:00Z',
+        targetSkills: ['System Design'],
+        milestones: [],
+        successCriteria: ['完成全书阅读', '整理至少 5 篇学习笔记'],
+      },
+    ];
+    setGoals(mockGoals);
+    setIsLoading(false);
+    setTotalPages(1);
+  };
+
   if (isLoading && page === 1) {
     return (
       <div className={`ai-log-page ${currentTheme}`}>
@@ -207,7 +349,7 @@ const AILogPage: React.FC = () => {
           <BackButton to="/" />
         </div>
       </header>
-      <div className="ai-log-container">
+      <div className="ai-log-container" style={{justifyContent: goals.length > 0 ? 'flex-start' : 'center'}}>
         
         {goals.length > 0 &&<header className="ai-log-header">
           <LandButton
@@ -232,75 +374,122 @@ const AILogPage: React.FC = () => {
             </div>
           ) : (
             <>
-              <div className="goals-list">
-                {goals.map(goal => (
-                  <div 
-                    key={goal.id} 
-                    className="goal-card" 
-                    onClick={() => setSelectedGoal(goal)}
-                  >
-                    <div className="goal-card-header">
-                      <h3 className="goal-card-title">{goal.title}</h3>
-                      <span className={`goal-status status-${goal.status}`}>
-                        {getStatusInfo(goal.status)}
-                      </span>
-                    </div>
+              <div className="timeline-wrapper">
+                {/* 时间轴 */}
+                <div 
+                  className="timeline-scroll-container"
+                  ref={scrollContainerRef}
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
+                >
+                  <div className="timeline-track">
+                    {/* 时间轴线 */}
+                    <div className="timeline-line" />
                     
-                    {goal.description && (
-                      <p className="goal-card-description">{goal.description}</p>
-                    )}
-                    
-                    <div className="goal-card-meta">
-                      <span className="meta-item">
-                        📅 {formatDate(goal.createdAt)}
-                      </span>
-                      {goal.progress !== undefined && (
-                        <span className="meta-item">
-                          📊 {t.progress}: {goal.progress}%
-                        </span>
+                    {/* 时间轴节点 + 卡片 */}
+                    <div className="timeline-items">
+                      {sortedGoals.map((goal, index) => (
+                        <div key={goal.id} className="timeline-item" style={{ animationDelay: `${index * 0.08}s` }}>
+                          {/* 时间轴节点 */}
+                          <div className="timeline-node-area">
+                            <span className="timeline-date">{formatShortDate(goal.updatedAt)}</span>
+                            <div className={`timeline-dot status-${goal.status}`}>
+                              <div className="dot-inner" />
+                            </div>
+                          </div>
+
+                          {/* 卡片 */}
+                          <div 
+                            className={`goal-card status-border-${goal.status}`}
+                            onClick={() => setSelectedGoal(goal)}
+                          >
+                            <div className="goal-card-header">
+                              <span className={`goal-status status-${goal.status}`}>
+                                {getStatusInfo(goal.status)}
+                              </span>
+                            </div>
+
+                            <h3 className="goal-card-title">{goal.title}</h3>
+                            
+                            {goal.description && (
+                              <p className="goal-card-description">{goal.description}</p>
+                            )}
+
+                            {/* 进度条 */}
+                            {goal.progress !== undefined && goal.progress > 0 && (
+                              <div className="goal-card-progress">
+                                <LandProgress value={goal.progress/100} hideLabel className='mt-6'/>
+                                <span className="progress-text">{goal.progress}%</span>
+                              </div>
+                            )}
+
+                            <div className="goal-card-meta">
+                              <span className="meta-item">
+                                {formatDate(goal.startDate)} — {formatDate(goal.endDate)}
+                              </span>
+                              {goal.targetSkills && goal.targetSkills.length > 0 && (
+                                <div className="meta-skills">
+                                  {goal.targetSkills.slice(0, 3).map(skill => (
+                                    <span key={skill} className="skill-tag">{skill}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="goal-card-actions">
+                              <LandButton
+                                text={t.view}
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedGoal(goal);
+                                }}
+                              />
+                              {goal.status !== 'completed' && goal.status !== 'cancelled' && (
+                                <LandButton
+                                  text={t.edit}
+                                  variant="text"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingGoal(goal);
+                                    setShowGoalCreator(true);
+                                  }}
+                                />
+                              )}
+                              <LandButton
+                                text={t.delete}
+                                variant="text"
+                                onClick={(e) => handleDeleteGoal(goal.id, e)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* 加载更多节点 */}
+                      {page < totalPages && (
+                        <div className="timeline-item timeline-load-more">
+                          <div className="timeline-node-area">
+                            <div className="timeline-dot load-more-dot">
+                              <div className="dot-inner" />
+                            </div>
+                          </div>
+                          <div className="load-more-card">
+                            <LandButton
+                              text={t.loadMore}
+                              variant="outline"
+                              onClick={() => setPage(p => p + 1)}
+                              disabled={isLoading}
+                            />
+                          </div>
+                        </div>
                       )}
-                    </div>
-                    
-                    <div className="goal-card-actions">
-                      <LandButton
-                        text={t.view}
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedGoal(goal);
-                        }}
-                      />
-                      {goal.status !== 'completed' && goal.status !== 'cancelled' && (
-                        <LandButton
-                          text={t.edit}
-                          variant="text"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingGoal(goal);
-                            setShowGoalCreator(true);
-                          }}
-                        />
-                      )}
-                      <LandButton
-                        text={t.delete}
-                        variant="text"
-                        onClick={(e) => handleDeleteGoal(goal.id, e)}
-                      />
                     </div>
                   </div>
-                ))}
-              </div>
-              
-              {page < totalPages && (
-                <div className="load-more">
-                  <LandButton
-                    text={t.loadMore}
-                    variant="outline"
-                    onClick={() => setPage(p => p + 1)}
-                    disabled={isLoading}
-                  />
                 </div>
-              )}
+              </div>
             </>
           )}
         </div>
@@ -340,6 +529,28 @@ const AILogPage: React.FC = () => {
             }
           }}
         />
+
+        {isDev && (
+          <button
+            onClick={loadMockData}
+            style={{
+              position: 'fixed',
+              left: 12,
+              bottom: 12,
+              zIndex: 9999,
+              padding: '4px 10px',
+              fontSize: 12,
+              borderRadius: 4,
+              border: '1px solid #ccc',
+              background: '#f5f5f5',
+              color: '#666',
+              cursor: 'pointer',
+              opacity: 0.6,
+            }}
+          >
+            Mock
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Icon, LandButton, LandSelect } from '@suminhan/land-design';
+import { Icon, LandButton, LandSelect, LandTabs } from '@suminhan/land-design';
 import React, { useState, useRef, useEffect } from 'react';
 import type { MyToDoListDataType, AIToDoListDataType } from '../../../shared/types';
 import ReactMarkdown from 'react-markdown';
@@ -372,15 +372,9 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
   // 空状态组件
   const EmptyState: React.FC<{ type: 'my' | 'ai' }> = ({ type }) => {
     const isMyInputs = type === 'my';
-    const emptyTitle = isMyInputs ? texts.empty_my_inputs : texts.empty_ai_inputs;
-    const emptyDesc = isMyInputs ? texts.empty_my_inputs_desc : texts.empty_ai_inputs_desc;
-    const icon = isMyInputs ? '📚' : '🤖';
 
     return (
-      <div className="empty-state">
-        <div className="empty-state-icon">{icon}</div>
-        <h4 className="empty-state-title">{emptyTitle}</h4>
-        <p className="empty-state-description">{emptyDesc}</p>
+      <div className="ai-log-empty-state">
         {!readonly && (
           <LandButton 
             onClick={isMyInputs ? handleAddMyInput : handleAddAIInput}
@@ -428,20 +422,12 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
       </div>
 
       {/* 输入类型切换 */}
-      <div className="input-tabs">
-        <button 
-          className={`input-tab ${activeTab === 'my' ? 'active' : ''}`}
-          onClick={() => setActiveTab('my')}
-        >
-          {texts.myInput} ({myInputCount})
-        </button>
-        <button 
-          className={`input-tab ${activeTab === 'ai' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ai')}
-        >
-          {texts.aiInput} ({aiInputCount})
-        </button>
-      </div>
+      <div className='flex justify-center'><LandTabs
+      width='320px'
+       checked={activeTab}
+        data={[{ label: `${texts.myInput} (${myInputCount})`, key: 'my' }, { label: `🌟 ${texts.aiInput} (${aiInputCount})`, key: 'ai' }]  }
+        onChange={(key) => setActiveTab(key as 'my' | 'ai')}
+      /></div>
 
       {activeTab === 'my' && (
         <div className="my-inputs">

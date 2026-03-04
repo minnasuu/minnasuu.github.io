@@ -807,43 +807,6 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     }
   }
   
-  .input-tabs {
-    display: flex;
-    gap: 0;
-    margin-bottom: 2.5rem;
-    justify-content: center;
-    border: 1px solid $color-border-light;
-    border-radius: 8px;
-    overflow: hidden;
-    display: inline-flex;
-    
-    .input-tab {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      background: $color-bg-card;
-      cursor: pointer;
-      transition: all 0.2s $transition-smooth;
-      font-size: 0.9rem;
-      font-weight: 400;
-      color: $color-text-sub;
-      border-right: 1px solid $color-border-light;
-      
-      &:last-child {
-        border-right: none;
-      }
-      
-      &:hover {
-        background: $color-bg-section;
-        color: $color-text-main;
-      }
-      
-      &.active {
-        background: $color-text-main;
-        color: $color-bg-card;
-        font-weight: 500;
-      }
-    }
-  }
   
   .inputs-grid {
     display: grid;
