@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {  LandDialog, LandInput, LandDatePicker } from '@suminhan/land-design';
+import {  LandDialog, LandInput, LandDatePicker, LandTextarea } from '@suminhan/land-design';
 import type { Goal } from '../../../shared/types';
 import { difyService, type DifyGenerationResult } from '../../../shared/services/difyService';
 
@@ -36,10 +36,6 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
 
     if (!formData.title.trim()) {
       newErrors.title = '请输入目标标题';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = '请输入目标描述';
     }
 
     if (!formData.startDate) {
@@ -124,13 +120,31 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
     setErrors({});
     onClose();
   };
+  const goalGap = (() => {
+    const { startDate, endDate } = formData;
+    if (!startDate || !endDate) return 'N 天';
+    const diffMs = endDate.getTime() - startDate.getTime();
+    if (diffMs <= 0) return 'N 天';
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 1 || diffDays > 3650) return 'N 天';
+    if (diffDays % 30 === 0 && diffDays >= 30) {
+      const months = diffDays / 30;
+      return `${months} 个月`;
+    }
+    if (diffDays % 7 === 0 && diffDays >= 7) {
+      const weeks = diffDays / 7;
+      return `${weeks} 周`;
+    }
+    return `${diffDays} 天`;
+  })();
 
   return (
     <LandDialog
       show={isOpen}
+      mask
       onClose={handleClose}
       title={editingGoal ? '编辑目标' : '创建新目标'}
-      size="large"
+      size="medium"
       className='fixed'
       onCancel={handleClose}
       onSubmit={handleSave}
@@ -141,12 +155,12 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
         <div className="form-section">
           <div className="form-row">
             <div className="form-field">
-              <label>目标标题 <span className='required'>*</span></label>
+              <label>{goalGap} 后，你希望达成？ <span className='required'>*</span></label>
               <div className='flex flex-col'>
                 <LandInput
                 value={formData.title}
                 onChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
-                placeholder="输入目标标题，如：掌握React高级特性"
+                placeholder="输入目标标题，如：最好以动词开头"
               />
                 <p className='text-red-500 text-xs'>{errors.title}</p>
               </div>
@@ -154,48 +168,49 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
           </div>
 
           <div className="form-row">
-            <div className="form-field">
-              <label>目标描述 <span className='required'>*</span></label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="详细描述你的目标，包括具体要达到的效果和预期成果"
-                rows={4}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-field">
+            <div className="form-field flex-1">
               <label>开始日期 <span className='required'>*</span></label>
               <LandDatePicker
                 value={formData.startDate}
                 onChange={(value) => setFormData(prev => ({ ...prev, startDate: value }))}
                 placeholder="选择开始日期"
+                dropdownProps={{
+                  className: 'w-full',
+                }}
               />
             </div>
-            <div className="form-field">
+            <div className="form-field flex-1">
               <label>结束日期 <span className='required'>*</span></label>
               <LandDatePicker
                 value={formData.endDate}
                 onChange={(value) => setFormData(prev => ({ ...prev, endDate: value }))}
                 placeholder="选择结束日期"
+                dropdownProps={{
+                  className: 'w-full',
+                }}
               />
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-field">
-              <label>成功标准</label>
-              <textarea
-                value={formData.successCriteria}
-                onChange={(e) => setFormData(prev => ({ ...prev, successCriteria: e.target.value }))}
-                placeholder="每行一个成功标准，如：&#10;能够独立开发复杂的React应用&#10;掌握性能优化的核心技巧&#10;完成相关技术文章的撰写"
+              <label>怎样才算做到了？<span className='required'>*</span></label>
+              <LandTextarea
+              value={formData.successCriteria}
+              onChange={(value) => setFormData(prev => ({ ...prev, successCriteria: value }))}
+              placeholder="一些KR..."
+              />
+            </div>
+          </div>
+           <div className="form-row">
+            <div className="form-field">
+              <label>说明信息</label>
+              <LandTextarea
+                value={formData.description}
+                onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+                placeholder="添加关于这个目标的其他相关说明"
                 rows={4}
               />
-              <div className="field-hint">
-                每行一个成功标准，用于衡量目标是否达成
-              </div>
             </div>
           </div>
         </div>

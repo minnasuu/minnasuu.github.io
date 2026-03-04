@@ -23,6 +23,10 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     max-width: 800px;
     margin: 0 auto;
     padding: 0 40px;
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   // 加载状态
@@ -53,7 +57,8 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
   // 页面头部 - 参考文章页面的Hero设计
   .ai-log-header {
     padding: 6rem 0 4rem;
-    text-align: center;
+    display: flex;
+    justify-content: center;
     position: relative;
     
     .header-title-row {

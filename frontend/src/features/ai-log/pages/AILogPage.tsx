@@ -209,19 +209,13 @@ const AILogPage: React.FC = () => {
       </header>
       <div className="ai-log-container">
         
-        <header className="ai-log-header">
-          <div className="header-title-row">
-            <div>
-              <h1 className="ai-log-title">{t.title}</h1>
-              <p className="ai-log-subtitle">{t.subtitle}</p>
-            </div>
-            <LandButton
+        {goals.length > 0 &&<header className="ai-log-header">
+          <LandButton
               text={t.createGoal}
               variant="background"
               onClick={() => setShowGoalCreator(true)}
             />
-          </div>
-        </header>
+        </header>}
 
         <div className="ai-log-content">
           {goals.length === 0 ? (
