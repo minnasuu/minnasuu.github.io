@@ -1069,6 +1069,41 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
           transform: scale(1.1);
         }
       }
+
+      &.cover-html-preview {
+        background: #1a1a2e;
+
+        iframe {
+          width: 100%;
+          height: 100%;
+          border: none;
+          pointer-events: none;
+        }
+
+        .cover-upload-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          background: rgba(0, 0, 0, 0.5);
+          opacity: 0;
+          transition: opacity 0.2s ease;
+          cursor: pointer;
+          color: #ffffff;
+          font-size: 0.75rem;
+
+          svg {
+            color: #ffffff;
+          }
+
+          &:hover {
+            opacity: 1;
+          }
+        }
+      }
     }
 
     .cover-upload-area {

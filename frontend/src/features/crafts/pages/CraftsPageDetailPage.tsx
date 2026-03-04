@@ -140,6 +140,14 @@ export const CraftsPageDetailPage: React.FC = () => {
               <img src={craft.coverImage} alt={craft.name} />
               <div className="cover-overlay"></div>
             </div>
+          ) : craft.htmlCode ? (
+            <div className="cover-html-preview">
+              <iframe
+                srcDoc={craft.htmlCode}
+                title={craft.name}
+                sandbox="allow-scripts"
+              />
+            </div>
           ) : (
             <div className="cover-placeholder">
               <Icon name="image" />

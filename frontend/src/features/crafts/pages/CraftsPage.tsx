@@ -1770,6 +1770,18 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                         {language === "zh" ? "撤销删除" : "Undo"}
                       </button>
                     </div>
+                  ) : editNodeForm.htmlCode ? (
+                    <div className="cover-preview cover-html-preview">
+                      <iframe
+                        srcDoc={editNodeForm.htmlCode}
+                        title="HTML Preview"
+                        sandbox="allow-scripts"
+                      />
+                      <div className="cover-upload-overlay" onClick={() => coverInputRef.current?.click()}>
+                        <Icon name="upload" size={16} />
+                        <span>{language === "zh" ? "上传封面替换" : "Upload cover"}</span>
+                      </div>
+                    </div>
                   ) : (
                     <div 
                       className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
@@ -2114,6 +2126,18 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                       <Icon name="close" size={14} />
                     </button>
                   </div>
+                ) : newNodeForm.htmlCode ? (
+                  <div className="cover-preview cover-html-preview">
+                    <iframe
+                      srcDoc={newNodeForm.htmlCode}
+                      title="HTML Preview"
+                      sandbox="allow-scripts"
+                    />
+                    <div className="cover-upload-overlay" onClick={() => coverInputRef.current?.click()}>
+                      <Icon name="upload" size={16} />
+                      <span>{language === "zh" ? "上传封面替换" : "Upload cover"}</span>
+                    </div>
+                  </div>
                 ) : (
                   <div 
                     className={`cover-upload-area ${isUploadingCover ? 'uploading' : ''}`}
@@ -2280,6 +2304,18 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                     <button className="cover-remove-btn" onClick={handleRemoveCover}>
                       <Icon name="close" size={14} />
                     </button>
+                  </div>
+                ) : newNodeForm.htmlCode ? (
+                  <div className="cover-preview cover-html-preview">
+                    <iframe
+                      srcDoc={newNodeForm.htmlCode}
+                      title="HTML Preview"
+                      sandbox="allow-scripts"
+                    />
+                    <div className="cover-upload-overlay" onClick={() => coverInputRef.current?.click()}>
+                      <Icon name="upload" size={16} />
+                      <span>{language === "zh" ? "上传封面替换" : "Upload cover"}</span>
+                    </div>
                   </div>
                 ) : (
                   <div 
