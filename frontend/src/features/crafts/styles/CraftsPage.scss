@@ -1551,6 +1551,33 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
+// HTML 代码编辑 textarea
+.html-code-textarea {
+  width: 100%;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  background: #1a1a2e;
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  resize: vertical;
+  tab-size: 2;
+  white-space: pre;
+  overflow-x: auto;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(140, 169, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(140, 169, 255, 0.1);
+  }
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+}
+
 // 深色模式
 @media (prefers-color-scheme: dark) {
   .loading-overlay {

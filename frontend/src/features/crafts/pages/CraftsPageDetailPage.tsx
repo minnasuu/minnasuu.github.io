@@ -21,7 +21,7 @@ export const CraftsPageDetailPage: React.FC = () => {
   const [craft, setCraft] = useState<Craft | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<'info' | 'demo'>('info');
-  const [iframeLoading, setIframeLoading] = useState(true);
+  const [showCode, setShowCode] = useState(false);
   const demoSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,6 +62,13 @@ export const CraftsPageDetailPage: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // 复制 HTML 代码
+  const handleCopyCode = () => {
+    if (craft?.htmlCode) {
+      navigator.clipboard.writeText(craft.htmlCode);
+    }
+  };
+
   if (loading) {
     return (
       <div className="crafts-detail-page">
@@ -98,7 +105,7 @@ export const CraftsPageDetailPage: React.FC = () => {
             >
               {language === "zh" ? "信息" : "Info"}
             </button>
-            {craft.demoUrl && (
+            {craft.htmlCode && (
               <button 
                 className={`nav-item ${activeSection === 'demo' ? 'active' : ''}`}
                 onClick={scrollToDemo}
@@ -190,7 +197,7 @@ export const CraftsPageDetailPage: React.FC = () => {
             </div>
 
             {/* 查看 Demo 按钮 */}
-            {craft.demoUrl && (
+            {craft.htmlCode && (
               <button className="view-demo-btn" onClick={scrollToDemo}>
                 <Icon name="video-pause" />
                 <span>{language === "zh" ? "查看演示" : "View Demo"}</span>
@@ -202,43 +209,51 @@ export const CraftsPageDetailPage: React.FC = () => {
       </section>
 
       {/* 第二屏：Demo 展示 */}
-      {craft.demoUrl && (
+      {craft.htmlCode && (
         <section className="demo-section" ref={demoSectionRef}>
           <div className="demo-header">
             <h2 className="demo-title">
               {language === "zh" ? "在线演示" : "Live Demo"}
             </h2>
-            <a
-              href={craft.demoUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="open-external-btn"
-            >
-              <Icon name="zoom-in-arrow" />
-              <span>{language === "zh" ? "新窗口打开" : "Open in new tab"}</span>
-            </a>
+            <div className="demo-header-actions">
+              <button
+                className={`toggle-code-btn ${showCode ? 'active' : ''}`}
+                onClick={() => setShowCode(!showCode)}
+              >
+                <Icon name="code" />
+                <span>{showCode 
+                  ? (language === "zh" ? "隐藏代码" : "Hide Code")
+                  : (language === "zh" ? "查看代码" : "View Code")
+                }</span>
+              </button>
+              <button
+                className="copy-code-btn"
+                onClick={handleCopyCode}
+              >
+                <Icon name="copy" />
+                <span>{language === "zh" ? "复制代码" : "Copy Code"}</span>
+              </button>
+            </div>
           </div>
           
           <div className="demo-container">
-            {iframeLoading && (
-              <div className="iframe-loading">
-                <div className="loading-spinner"></div>
-                <p>{language === "zh" ? "加载中..." : "Loading..."}</p>
-              </div>
-            )}
             <iframe
-              src={craft.demoUrl}
+              srcDoc={craft.htmlCode}
               title={`${craft.name} Demo`}
-              onLoad={() => setIframeLoading(false)}
-              allow="accelerometer; camera; encrypted-media; geolocation; gyroscope; microphone; midi"
-              sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+              sandbox="allow-scripts"
             />
           </div>
+
+          {showCode && (
+            <div className="code-container">
+              <pre><code>{craft.htmlCode}</code></pre>
+            </div>
+          )}
         </section>
       )}
 
       {/* 无 Demo 时的占位 */}
-      {!craft.demoUrl && (
+      {!craft.htmlCode && (
         <section className="no-demo-section">
           <div className="no-demo-content">
             <Icon name="video-pause" />

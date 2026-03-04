@@ -59,6 +59,7 @@ export interface Craft {
   image?: string;
   featured: boolean;
   link?: string; // 可选的链接
+  htmlCode?: string; // HTML代码（包含样式和逻辑）
 }
 
 export interface PersonalData {

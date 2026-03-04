@@ -27,8 +27,8 @@ export interface Craft {
   
   /** demo封面图 */
   coverImage?: string;
-  /** demo体验地址（可交互iframe） */
-  demoUrl?: string;
+  /** HTML代码（包含样式和逻辑的完整HTML，用于渲染Craft Demo） */
+  htmlCode?: string;
   /** 适用场景 */
   useCase?: string;
   /** GitHub 地址 */
@@ -124,12 +124,13 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
       <div className="node-inner">
         {craft.coverImage && craft.coverImage !== '__PENDING_DELETE__' ? (
           <img src={craft.coverImage} alt={craft.name} />
-        ) : craft.demoUrl ? (
+        ) : craft.htmlCode ? (
           <div className="w-full h-full overflow-hidden">
             <iframe 
-            src={craft.demoUrl} 
+            srcDoc={craft.htmlCode} 
             title={craft.name}
             className="node-inner-iframe"
+            sandbox="allow-scripts"
           /></div>
         ) : null}
         <div className="node-overlay">

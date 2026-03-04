@@ -235,7 +235,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     weight: number;
     coverImage: string;
     originalCoverImage: string; // 保存原始封面，用于撤销删除
-    demoUrl: string;
+    htmlCode: string;
     useCase: string;
   } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -249,7 +249,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     featured: false,
     weight: 1,
     coverImage: '',
-    demoUrl: '',
+    htmlCode: '',
     useCase: '',
   });
   // 临时变更队列（仅编辑模式）
@@ -553,7 +553,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       featured: false,
       weight: 1,
       coverImage: '',
-      demoUrl: '',
+      htmlCode: '',
       useCase: '',
     });
     // 关闭详情面板
@@ -574,7 +574,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       featured: false,
       weight: 1,
       coverImage: '',
-      demoUrl: '',
+      htmlCode: '',
       useCase: '',
     });
     // 关闭详情面板
@@ -594,7 +594,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       featured: false,
       weight: 1,
       coverImage: '',
-      demoUrl: '',
+      htmlCode: '',
       useCase: '',
     });
   };
@@ -621,7 +621,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           featured: newNodeForm.featured,
           weight: newNodeForm.weight,
           coverImage: newNodeForm.coverImage || undefined,
-          demoUrl: newNodeForm.demoUrl || undefined,
+          htmlCode: newNodeForm.htmlCode || undefined,
           useCase: newNodeForm.useCase || undefined,
           relations: addNodeState ? [{
             targetId: addNodeState.sourceId,
@@ -653,7 +653,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           featured: newNodeForm.featured,
           weight: newNodeForm.weight,
           coverImage: newNodeForm.coverImage || undefined,
-          demoUrl: newNodeForm.demoUrl || undefined,
+          htmlCode: newNodeForm.htmlCode || undefined,
           useCase: newNodeForm.useCase || undefined,
           relations: addNodeState ? [{
             targetId: addNodeState.sourceId,
@@ -812,7 +812,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       weight: craft.weight || 1,
       coverImage: craft.coverImage || '',
       originalCoverImage: craft.coverImage || '', // 保存原始值
-      demoUrl: craft.demoUrl || '',
+      htmlCode: craft.htmlCode || '',
       useCase: craft.useCase || '',
     });
   }, []);
@@ -915,7 +915,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           featured: editNodeForm.featured,
           weight: editNodeForm.weight,
           coverImage: editNodeForm.coverImage, // 保留 __PENDING_DELETE__ 标记
-          demoUrl: editNodeForm.demoUrl || undefined,
+          htmlCode: editNodeForm.htmlCode || undefined,
           useCase: editNodeForm.useCase || undefined,
         };
         
@@ -970,7 +970,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           featured: editNodeForm.featured,
           weight: editNodeForm.weight,
           coverImage,
-          demoUrl: editNodeForm.demoUrl || undefined,
+          htmlCode: editNodeForm.htmlCode || undefined,
           useCase: editNodeForm.useCase || undefined,
         });
 
@@ -1029,7 +1029,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               featured: change.data.featured ?? false,
               weight: change.data.weight || 1,
               coverImage: change.data.coverImage,
-              demoUrl: change.data.demoUrl,
+              htmlCode: change.data.htmlCode,
               useCase: change.data.useCase,
               relations: change.data.relations || []
             });
@@ -1065,7 +1065,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               featured: change.data.featured,
               weight: change.data.weight,
               coverImage: coverImageForDB,
-              demoUrl: change.data.demoUrl,
+              htmlCode: change.data.htmlCode,
               useCase: change.data.useCase,
             });
             
@@ -1540,11 +1540,12 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   <div className="grid-card-image">
                     {craft.coverImage && craft.coverImage !== '__PENDING_DELETE__' ? (
                       <img src={craft.coverImage} alt={craft.name} />
-                    ) : craft.demoUrl ? (
+                    ) : craft.htmlCode ? (
                       <iframe 
-                        src={craft.demoUrl} 
+                        srcDoc={craft.htmlCode} 
                         title={craft.name}
                         className="grid-card-iframe"
+                        sandbox="allow-scripts"
                       />
                     ) : null}
                     {craft.featured && (
@@ -1791,11 +1792,14 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 </div>
 
                 <div className="form-group">
-                  <label>{language === "zh" ? "体验地址" : "Demo URL"}</label>
-                  <LandInput
-                    value={editNodeForm.demoUrl}
-                    onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, demoUrl: val }) : null)}
-                    placeholder={language === "zh" ? "输入demo体验地址" : "Enter demo URL"}
+                  <label>{language === "zh" ? "HTML 代码" : "HTML Code"}</label>
+                  <textarea
+                    value={editNodeForm.htmlCode}
+                    onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, htmlCode: e.target.value }) : null)}
+                    placeholder={language === "zh" ? "输入包含样式和逻辑的完整HTML代码" : "Enter complete HTML code with styles and logic"}
+                    rows={6}
+                    className="html-code-textarea"
+                    spellCheck={false}
                   />
                 </div>
 
@@ -1831,11 +1835,12 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               <div className="panel-image">
                 {activeCraft.coverImage && activeCraft.coverImage !== '__PENDING_DELETE__' ? (
                   <img src={activeCraft.coverImage} alt={activeCraft.name} />
-                ) : activeCraft.demoUrl ? (
+                ) : activeCraft.htmlCode ? (
                   <iframe 
-                    src={activeCraft.demoUrl} 
+                    srcDoc={activeCraft.htmlCode} 
                     title={activeCraft.name}
                     className="panel-image-iframe"
+                    sandbox="allow-scripts"
                   />
                 ) : null}
                 {activeCraft.featured && (
@@ -1902,11 +1907,11 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 )}
 
                 <div className="panel-actions">
-                  {activeCraft.demoUrl && (
-                    <a href={activeCraft.demoUrl} target="_blank" rel="noopener noreferrer" className="panel-demo-link">
-                      {language === "zh" ? "在线体验" : "Live Demo"}
+                  {activeCraft.htmlCode && (
+                    <Link to={`/crafts/${activeCraft.id}`} className="panel-demo-link">
+                      {language === "zh" ? "查看演示" : "View Demo"}
                       <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
-                    </a>
+                    </Link>
                   )}
                   <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
                     {language === "zh" ? "查看详情" : "View Details"}
@@ -1976,12 +1981,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 <div className="node-inner">
                   {addNodeState.sourceCraft.coverImage && addNodeState.sourceCraft.coverImage !== '__PENDING_DELETE__' ? (
                     <img src={addNodeState.sourceCraft.coverImage} alt={addNodeState.sourceCraft.name} />
-                  ) : addNodeState.sourceCraft.demoUrl ? (
+                  ) : addNodeState.sourceCraft.htmlCode ? (
                     <div className="w-full h-full overflow-hidden">
                       <iframe 
-                      src={addNodeState.sourceCraft.demoUrl} 
+                      srcDoc={addNodeState.sourceCraft.htmlCode} 
                       title={addNodeState.sourceCraft.name}
                       className="node-inner-iframe"
+                      sandbox="allow-scripts"
                     />
                     </div>
                   ) : null}
@@ -2130,11 +2136,14 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               </div>
 
               <div className="form-group">
-                <label>{language === "zh" ? "体验地址" : "Demo URL"}</label>
-                <LandInput
-                  value={newNodeForm.demoUrl}
-                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, demoUrl: val }))}
-                  placeholder={language === "zh" ? "输入demo体验地址" : "Enter demo URL"}
+                <label>{language === "zh" ? "HTML 代码" : "HTML Code"}</label>
+                <textarea
+                  value={newNodeForm.htmlCode}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, htmlCode: e.target.value }))}
+                  placeholder={language === "zh" ? "输入包含样式和逻辑的完整HTML代码" : "Enter complete HTML code with styles and logic"}
+                  rows={6}
+                  className="html-code-textarea"
+                  spellCheck={false}
                 />
               </div>
 
@@ -2294,11 +2303,14 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               </div>
 
               <div className="form-group">
-                <label>{language === "zh" ? "体验地址" : "Demo URL"}</label>
-                <LandInput
-                  value={newNodeForm.demoUrl}
-                  onChange={(val) => setNewNodeForm(prev => ({ ...prev, demoUrl: val }))}
-                  placeholder={language === "zh" ? "输入demo体验地址" : "Enter demo URL"}
+                <label>{language === "zh" ? "HTML 代码" : "HTML Code"}</label>
+                <textarea
+                  value={newNodeForm.htmlCode}
+                  onChange={(e) => setNewNodeForm(prev => ({ ...prev, htmlCode: e.target.value }))}
+                  placeholder={language === "zh" ? "输入包含样式和逻辑的完整HTML代码" : "Enter complete HTML code with styles and logic"}
+                  rows={6}
+                  className="html-code-textarea"
+                  spellCheck={false}
                 />
               </div>
 
