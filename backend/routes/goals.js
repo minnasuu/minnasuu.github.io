@@ -111,23 +111,22 @@ router.post('/', async (req, res) => {
     console.log('Creating goal with data:', JSON.stringify(goalData, null, 2));
     
     // 验证必填字段
-    if (!goalData.title || !goalData.description || !goalData.startDate || !goalData.endDate) {
+    if (!goalData.title || !goalData.startDate || !goalData.endDate) {
       console.error('Missing required fields:', { 
         hasTitle: !!goalData.title, 
-        hasDescription: !!goalData.description,
         hasStartDate: !!goalData.startDate,
         hasEndDate: !!goalData.endDate
       });
       return res.status(400).json({ 
         error: 'Missing required fields',
-        details: 'title, description, startDate, and endDate are required' 
+        details: 'title, startDate, and endDate are required' 
       });
     }
     
     // 准备数据库数据
     const dbData = {
       title: goalData.title,
-      description: goalData.description,
+      description: goalData.description || '',
       category: goalData.category,
       priority: goalData.priority,
       status: goalData.status || 'planning',
