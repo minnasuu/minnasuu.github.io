@@ -12,9 +12,9 @@ import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
 import { AILogPage } from '../features/ai-log';
 import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
-import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
-import { IdeasPage } from '../features/ideas';
-import IdeasEditorPage from '../features/ideas/pages/IdeasEditorPage';
+// import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
+// import { IdeasPage } from '../features/ideas';
+// import IdeasEditorPage from '../features/ideas/pages/IdeasEditorPage';
 
 // 滚动重置组件
 const ScrollToTop: React.FC = () => {
@@ -50,14 +50,14 @@ const AppRouter: React.FC = () => {
             <Route path='/crafts-editor' element={<CraftEditorPage/>}/>
             <Route path="/crafts/:id" element={<CraftsPageDetailPage />} />
 
-            <Route path='/ideas' element={<IdeasPage/>}/>
-            <Route path='/ideas-editor' element={<IdeasEditorPage/>}/>
+            {/* <Route path='/ideas' element={<IdeasPage/>}/>
+            <Route path='/ideas-editor' element={<IdeasEditorPage/>}/> */}
             
             {/* AI LOG */}
             <Route path="/ai-log" element={<AILogPage />} />
             
             {/* CRAFTS DEMO */}
-            <Route path="/crafts/demo/dots-overlay" element={<DotsOverlayDemo/>}/>
+            {/* <Route path="/crafts/demo/dots-overlay" element={<DotsOverlayDemo/>}/> */}
 
             {/* ARTICLES DEMO */}
             <Route path='/articles/demo/AgentScrollLayout/:type' element={<AgentScrollLayout/>}/>

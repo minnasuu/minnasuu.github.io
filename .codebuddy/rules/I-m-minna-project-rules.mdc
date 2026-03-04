@@ -1,0 +1,154 @@
+---
+description: 
+globs:
+alwaysApply: false
+---
+
+# I'm Minna 项目规则规范
+
+## 项目概述
+
+个人博客与作品集网站，前后端分离架构，Docker 容器化部署。
+
+## 技术栈
+
+| 层级 | 技术 |
+|------|------|
+| 前端 | React 19 + TypeScript + Vite 6 |
+| 路由 | React Router DOM 6 |
+| 样式 | Tailwind CSS 4 + SCSS + styled-components（混合使用） |
+| UI 库 | @suminhan/land-design |
+| Markdown | markdown-it / react-markdown / marked + react-markdown-editor-lite |
+| 3D | Three.js |
+| 后端 | Express.js (CommonJS, 无 TypeScript) |
+| ORM | Prisma |
+| 数据库 | PostgreSQL 15 |
+| AI | Dify API（后端代理） |
+| 部署 | Docker Compose (前端 Nginx + 后端 Express + PostgreSQL) |
+
+## 目录结构约定
+
+```
+frontend/src/
+├── app/           # 入口层：main.tsx, App.tsx, router.tsx
+├── config/        # 全局配置：主题、颜色
+├── data/          # 静态数据：个人信息、翻译
+├── features/      # 功能模块（核心业务）
+│   ├── articles/  # 文章模块
+│   ├── crafts/    # 作品模块
+│   ├── ideas/     # 灵感模块
+│   ├── ai-log/    # AI 日志模块
+│   └── themes/    # 主题皮肤模块
+├── shared/        # 共享代码
+│   ├── components/  # 通用组件
+│   ├── contexts/    # React Context (Theme/Language)
+│   ├── hooks/       # 自定义 Hooks
+│   ├── services/    # 外部服务封装（类实例模式）
+│   ├── types/       # TypeScript 类型定义
+│   └── utils/       # 工具函数
+├── styles/        # 全局样式
+└── assets/        # 静态资源
+
+backend/
+├── index.js       # Express 入口
+├── prisma/        # schema.prisma + migrations
+├── routes/        # API 路由（按资源分文件）
+└── uploads/       # 上传文件存储
+```
+
+## Feature 模块结构
+
+每个 feature 模块遵循统一内部结构：
+
+```
+features/<module>/
+├── index.ts       # Barrel export（统一导出入口）
+├── components/    # 模块专属组件
+├── pages/         # 页面组件
+├── styles/        # 模块样式 (.scss)
+├── utils/         # 模块工具函数（可选）
+├── demos/         # 演示内容（可选）
+└── nodes/         # 节点组件（可选，ideas/crafts 使用）
+```
+
+## 命名约定
+
+| 类别 | 规则 | 示例 |
+|------|------|------|
+| 组件文件 | PascalCase.tsx | `ArticleDetailPage.tsx` |
+| 样式文件 | 与组件同名.scss | `ArticlesPage.scss` |
+| 工具文件 | camelCase.ts | `backendClient.ts` |
+| Context | PascalCase + Context 后缀 | `ThemeContext.tsx` |
+| Hook | use + PascalCase | `useTranslations.ts` |
+| Service | PascalCase 类 + camelCase 导出实例 | `class GoalService` → `export const goalService` |
+| 后端路由 | 小写复数名词.js | `articles.js`, `goals.js` |
+| Prisma 模型 | PascalCase 单数 | `Article`, `Craft`, `Goal` |
+| API 路径 | RESTful `/api/<resource>` | `/api/articles`, `/api/crafts/:id` |
+
+## 编码规范
+
+### 前端
+
+1. **模块导出**：每个 feature 必须有 `index.ts`，使用 barrel export 导出公共 API
+   ```ts
+   export { default as ArticlesPage } from './pages/ArticlesPage';
+   export { default as ArticleEditorPage } from './pages/ArticleEditorPage';
+   ```
+
+2. **状态管理**：不使用 Redux/Zustand，使用 React Context + useState/useEffect
+   - `ThemeContext` — 主题切换 (terminal / ai / wechat)
+   - `LanguageContext` — 语言切换 (zh / en)
+
+3. **数据获取**：
+   - 不使用 React Query/SWR
+   - 使用原生 fetch，统一封装在 `shared/utils/backendClient.ts`
+   - 支持 Mock 降级：后端不可用时自动回退 mock 数据
+   - 服务层使用类实例模式（如 `difyService`, `goalService`）
+
+4. **样式方案**（混合使用）：
+   - Tailwind CSS 4 用于 utility class
+   - SCSS 用于模块级样式（与组件同名文件）
+   - styled-components 用于需要动态样式的场景
+
+5. **TypeScript**：启用 strict 模式，类型定义放在 `shared/types/index.ts`
+
+6. **国际化**：中英文双语，翻译数据在 `data/translations.ts`，通过 `useTranslations` hook 获取 `t(key)`
+
+7. **路由**：在 `app/router.tsx` 中使用 React Router 6 的 `createBrowserRouter` 定义
+
+### 后端
+
+1. **CommonJS** 模块规范，纯 JavaScript（无 TypeScript）
+2. **路由组织**：每个资源对应 `routes/` 下一个文件，通过 `express.Router()` 定义
+3. **Prisma ORM**：UUID 主键，通过 `@prisma/client` 操作数据库
+4. **文件上传**：Multer 处理，存储到 `uploads/` 目录
+5. **AI 代理**：后端代理 Dify API 请求，隐藏 API Key
+
+## 数据模型
+
+| 模型 | 用途 |
+|------|------|
+| `Article` | 博客文章（Markdown 内容） |
+| `Draft` | 文章草稿 |
+| `Craft` | 技术作品/组件展示 |
+| `Idea` | 创意/灵感节点 |
+| `Goal` | AI 辅助目标管理 |
+
+## 新增 Feature 流程
+
+1. 在 `frontend/src/features/` 下创建模块目录
+2. 创建 `pages/`、`components/`、`styles/` 子目录
+3. 创建 `index.ts` barrel export
+4. 在 `app/router.tsx` 添加路由
+5. 如需后端支持：
+   - 在 `backend/prisma/schema.prisma` 添加模型
+   - 在 `backend/routes/` 添加路由文件
+   - 在 `backend/index.js` 注册路由
+   - 在 `frontend/src/shared/utils/backendClient.ts` 添加 API 封装
+
+## 部署
+
+- Docker Compose 编排 3 个服务：frontend (Nginx:8080)、backend (Express:8001)、db (PostgreSQL:5432)
+- 前端通过 Nginx 反向代理 `/api` 到后端
+- 开发环境：Vite dev server proxy 代理 API 请求
+- 前端也支持 GitHub Pages 静态部署（`gh-pages` 脚本）
