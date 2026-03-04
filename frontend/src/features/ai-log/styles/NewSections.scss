@@ -190,6 +190,7 @@ $transition-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
     background-color: rgba(0, 0, 0, 0.02);
     border-radius: 12px;
     padding: 12px;
+    overflow: auto;
       // Markdown 渲染样式
       h1, h2, h3, h4, h5, h6 {
         color: $color-text-main;
