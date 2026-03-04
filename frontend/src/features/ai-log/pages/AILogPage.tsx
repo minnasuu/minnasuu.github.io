@@ -301,7 +301,7 @@ const AILogPage: React.FC = () => {
                 <div className="load-more">
                   <LandButton
                     text={t.loadMore}
-                    type="outline"
+                    variant="outline"
                     onClick={() => setPage(p => p + 1)}
                     disabled={isLoading}
                   />

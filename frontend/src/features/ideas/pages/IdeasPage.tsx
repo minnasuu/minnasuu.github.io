@@ -7,7 +7,6 @@ import { DotMatrixTitle } from "../components/DotMatrixTitle";
 import type { Idea } from "../components/IdeaNode";
 import "../styles/IdeasPage.scss";
 import { Icon, LandButton, LandInput, LandRadioGroup, LandNumberInput, LandSelect, message, LandDialog } from "@suminhan/land-design";
-import type { SelectItemType } from "@suminhan/land-design";
 import { uploadImage, uploadVideo, fetchIdeas, createIdea, deleteIdea, updateIdea } from "../../../shared/utils/backendClient";
 
 // 添加节点模式的状态类型

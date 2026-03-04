@@ -227,13 +227,13 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         />
         <div className="form-row">
           <LandSelect
-            selected={formData.difficulty}
-            data={[
+            value={formData.difficulty}
+            options={[
               { label: '简单', key: 'easy' },
               { label: '中等', key: 'medium' },
               { label: '困难', key: 'hard' },
             ]}
-            onChange={item => {
+            onChange={(_val,item) => {
               if (item.key !== undefined && (item.key === 'easy' || item.key === 'medium' || item.key === 'hard')) {
                 setFormData({ ...formData, difficulty: item.key });
               }
@@ -347,13 +347,13 @@ const InputSection = React.forwardRef<InputSectionRef, InputSectionProps>(({
         <div className="form-row">
           {formData.difficulty && (
             <LandSelect
-            selected={formData.difficulty}
-            data={[
+            value={formData.difficulty}
+            options={[
               { label: '简单', key: 'easy' },
               { label: '中等', key: 'medium' },
               { label: '困难', key: 'hard' },
             ]}
-            onChange={item => {
+            onChange={(_val,item) => {
               if (item.key !== undefined && (item.key === 'easy' || item.key === 'medium' || item.key === 'hard')) {
                 setFormData({ ...formData, difficulty: item.key });
               }
