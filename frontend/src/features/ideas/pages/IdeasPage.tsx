@@ -1564,14 +1564,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
         {/* 组别选择器 */}
         <div className="group-selector">
           <LandSelect
-            type="background"
-            selected={selectedGroupId}
-            onChange={(item: SelectItemType) => {
-              if (item.key !== undefined) {
-                setSelectedGroupId(String(item.key));
+            variant="fill"
+            value={selectedGroupId}
+            onChange={(_val,option) => {
+              if (option.key !== undefined) {
+                setSelectedGroupId(String(option.key));
               }
             }}
-            data={[
+            options={[
               { key: 'all', label: language === 'zh' ? '全部组别' : 'All Groups' },
               ...groups.map(group => ({
                 key: group.id,
@@ -2129,14 +2129,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
                 <div className="form-group">
                   <label>{language === "zh" ? "所属组别" : "Group"}</label>
                   <LandSelect
-                    type="background"
-                    selected={editNodeForm.group || ''}
-                    onChange={(item: SelectItemType) => {
-                      if (item.key !== undefined) {
-                        setEditNodeForm(prev => prev ? ({ ...prev, group: String(item.key) }) : null);
+                    variant="fill"
+                    value={editNodeForm.group || ''}
+                    onChange={(_val,option) => {
+                      if (option.key !== undefined) {
+                        setEditNodeForm(prev => prev ? ({ ...prev, group: String(option.key) }) : null);
                       }
                     }}
-                    data={[
+                    options={[
                       { key: '', label: language === "zh" ? "无组别" : "No group" },
                       ...groups.map(group => ({
                         key: group.id,
@@ -2572,14 +2572,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               <div className="form-group">
                 <label>{language === "zh" ? "所属组别" : "Group"}</label>
                 <LandSelect
-                  type="background"
-                  selected={newNodeForm.group || ''}
-                  onChange={(item: SelectItemType) => {
-                    if (item.key !== undefined) {
-                      setNewNodeForm(prev => ({ ...prev, group: String(item.key) }));
+                  variant="fill"
+                  value={newNodeForm.group || ''}
+                  onChange={(_val,option) => {
+                    if (option.key !== undefined) {
+                      setNewNodeForm(prev => ({ ...prev, group: String(option.key) }));
                     }
                   }}
-                  data={[
+                  options={[
                     { key: '', label: language === "zh" ? "无组别" : "No group" },
                     ...groups.map(group => ({
                       key: group.id,
@@ -2758,14 +2758,14 @@ export const IdeasPage: React.FC<IdeasPageProps> = ({ editorMode = false }) => {
               <div className="form-group">
                 <label>{language === "zh" ? "所属组别" : "Group"}</label>
                 <LandSelect
-                  type="background"
-                  selected={newNodeForm.group || ''}
-                  onChange={(item: SelectItemType) => {
-                    if (item.key !== undefined) {
-                      setNewNodeForm(prev => ({ ...prev, group: String(item.key) }));
+                  variant="fill"
+                  value={newNodeForm.group || ''}
+                  onChange={(_val,option) => {
+                    if (option.key !== undefined) {
+                      setNewNodeForm(prev => ({ ...prev, group: String(option.key) }));
                     }
                   }}
-                  data={[
+                  options={[
                     { key: '', label: language === "zh" ? "无组别" : "No group" },
                     ...groups.map(group => ({
                       key: group.id,

@@ -1694,11 +1694,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                       value={editNodeForm.techInput}
                       onChange={(val) => setEditNodeForm(prev => prev ? ({ ...prev, techInput: val }) : null)}
                       placeholder={language === "zh" ? "添加技术标签" : "Add technology tag"}
-                      onKeyDown={(e: React.KeyboardEvent) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
+                      onEnter={(_val,e) => {
+                          e?.preventDefault();
                           handleEditAddTech();
-                        }
                       }}
                     />
                     <LandButton variant="background" onClick={handleEditAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
@@ -2055,11 +2053,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                     value={newNodeForm.techInput}
                     onChange={(val) => setNewNodeForm(prev => ({ ...prev, techInput: val }))}
                     placeholder={language === "zh" ? "添加技术标签" : "Add technology tag"}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
+                    onEnter={(_val,e) => {
+                        e?.preventDefault();
                         handleAddTech();
-                      }
                     }}
                   />
                   <LandButton variant="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>
@@ -2221,11 +2217,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                     value={newNodeForm.techInput}
                     onChange={(val) => setNewNodeForm(prev => ({ ...prev, techInput: val }))}
                     placeholder={language === "zh" ? "添加技术标签" : "Add technology tag"}
-                    onKeyDown={(e: React.KeyboardEvent) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
+                    onEnter={(_val,e) => {
+                        e?.preventDefault();
                         handleAddTech();
-                      }
                     }}
                   />
                   <LandButton variant="background" onClick={handleAddTech} icon={<Icon name="add" strokeWidth={4} />}/>

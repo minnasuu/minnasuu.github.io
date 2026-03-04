@@ -142,12 +142,14 @@ export const GoalCreator: React.FC<GoalCreatorProps> = ({
           <div className="form-row">
             <div className="form-field">
               <label>目标标题 <span className='required'>*</span></label>
-              <LandInput
+              <div className='flex flex-col'>
+                <LandInput
                 value={formData.title}
                 onChange={(value) => setFormData(prev => ({ ...prev, title: value }))}
                 placeholder="输入目标标题，如：掌握React高级特性"
-                error={errors.title}
               />
+                <p className='text-red-500 text-xs'>{errors.title}</p>
+              </div>
             </div>
           </div>
 

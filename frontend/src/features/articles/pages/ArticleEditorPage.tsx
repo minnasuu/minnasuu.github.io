@@ -1230,7 +1230,7 @@ const ArticleEditorPage: React.FC = () => {
             onClick={() => setShowHistory(!showHistory)}
             icon={<Icon name='log' strokeWidth={4} size={18}/>}
               tip='查看历史文章'
-              tipProps={{placement:'bottom'}}
+              popoverProps={{placement:'bottom'}}
           >
           </LandButton>
 
@@ -1252,7 +1252,7 @@ const ArticleEditorPage: React.FC = () => {
             onClick={() => setShowSettings(!showSettings)}
             icon={<Icon name='setting' strokeWidth={4} size={18}/>}
             tip='设置文章信息'
-            tipProps={{placement:'bottom'}}
+            popoverProps={{placement:'bottom'}}
           >
           </LandButton>
           
@@ -1261,7 +1261,7 @@ const ArticleEditorPage: React.FC = () => {
               variant='outline'
               onClick={() => handleSaveDraft(false)}
               disabled={isSaving || !formData.content.trim()}
-              tipProps={{placement:'bottom'}}
+              popoverProps={{placement:'bottom'}}
               text='保存草稿'
             >
             </LandButton>
@@ -1368,8 +1368,8 @@ const ArticleEditorPage: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">标签</label>
                 <LandTagInput
-                  tags={formData.tags}
-                  onChange={handleTagsChange}
+                  value={formData.tags}
+                  onInputChange={handleTagsChange}
                   placeholder="添加标签..."
                 />
               </div>
@@ -1388,9 +1388,9 @@ const ArticleEditorPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">阅读时长 (分钟)</label>
                   <LandNumberInput
-                  type='background'
+                  variant='fill'
                     value={formData.readTime}
-                    onChange={handleReadTimeChange}
+                    onChange={val => val&&handleReadTimeChange?.(val)}
                   />
                 </div>
               </div>
@@ -1398,10 +1398,10 @@ const ArticleEditorPage: React.FC = () => {
                <div>
                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">类型</label>
                  <LandSelect
-                 type='background'
-                   selected={formData.type}
-                   onChange={handleTypeChange}
-                   data={[
+                 variant='fill'
+                   value={formData.type}
+                   onChange={(_vals,val) => val&&handleTypeChange?.(val)}
+                   options={[
                      { key: 'Engineering', label: 'Engineering' },
                      { key: 'Experience', label: 'Experience' },
                      { key: 'AI', label: 'AI' },
