@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/AssistantPage.scss';
 
@@ -24,7 +24,14 @@ const assistants = [
     accent: '#96BAFF',
     accessory: 'glasses',
     item: 'laptop',
-    eyeType: 'normal'
+    eyeType: 'normal',
+    messages: [
+      '今日UV上涨12%~ 📈',
+      '跳出率有点高呢...',
+      '让我分析一下数据!',
+      '转化率创新高了! ✨',
+      '用户画像已更新~',
+    ]
   },
   {
     id: 'email',
@@ -46,7 +53,14 @@ const assistants = [
     accent: '#F2A5B9',
     accessory: 'hat',
     item: 'mail',
-    eyeType: 'happy'
+    eyeType: 'happy',
+    messages: [
+      '有3封新邮件! 📬',
+      '周报已送达~',
+      '订阅者又增加了!',
+      '邮件送达率99%! 💌',
+      '通知已全部发出~',
+    ]
   },
   {
     id: 'writer',
@@ -68,7 +82,14 @@ const assistants = [
     accent: '#FF6B6B',
     accessory: 'headphones',
     item: 'notebook',
-    eyeType: 'smart'
+    eyeType: 'smart',
+    messages: [
+      '灵感来了! ✍️',
+      '这段话可以更好~',
+      '大纲已经拟好了!',
+      '文章润色完成~ 📝',
+      '要来点创意写作吗?',
+    ]
   },
   {
     id: 'crafts',
@@ -90,12 +111,91 @@ const assistants = [
     },
     accent: '#A0D8B3',
     item: 'palette',
-    eyeType: 'wide'
+    eyeType: 'wide',
+    messages: [
+      '新组件出炉了! 🎨',
+      '配色方案已生成~',
+      '这个动画很流畅!',
+      '代码已优化完毕~ ✨',
+      '要做点什么创意?',
+    ]
   }
 ];
 
+const BUBBLE_DISPLAY_DURATION = 3000;
+const BUBBLE_CYCLE_INTERVAL = 5000;
+const BUBBLE_STAGGER_OFFSET = 1200;
+
+interface BubbleState {
+  visible: boolean;
+  messageIndex: number;
+}
+
 const AssistantPage: React.FC = () => {
   const navigate = useNavigate();
+  const [bubbles, setBubbles] = useState<Record<string, BubbleState>>(() => {
+    const initial: Record<string, BubbleState> = {};
+    assistants.forEach((a) => {
+      initial[a.id] = { visible: false, messageIndex: 0 };
+    });
+    return initial;
+  });
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const indicesRef = useRef<Record<string, number>>(
+    assistants.reduce<Record<string, number>>((m, a) => { m[a.id] = 0; return m; }, {})
+  );
+
+  const showBubble = useCallback((id: string) => {
+    const assistant = assistants.find((a) => a.id === id);
+    if (!assistant) return;
+
+    const idx = (indicesRef.current as Record<string, number>)[id] ?? 0;
+    setBubbles((prev) => ({
+      ...prev,
+      [id]: { visible: true, messageIndex: idx },
+    }));
+
+    if (timersRef.current[`hide_${id}`]) clearTimeout(timersRef.current[`hide_${id}`]);
+    timersRef.current[`hide_${id}`] = setTimeout(() => {
+      setBubbles((prev) => ({
+        ...prev,
+        [id]: { ...prev[id], visible: false },
+      }));
+    }, BUBBLE_DISPLAY_DURATION);
+
+    (indicesRef.current as Record<string, number>)[id] = (idx + 1) % assistant.messages.length;
+  }, []);
+
+  useEffect(() => {
+    const intervals: ReturnType<typeof setInterval>[] = [];
+
+    assistants.forEach((assistant, i) => {
+      const startDelay = setTimeout(() => {
+        showBubble(assistant.id);
+        const interval = setInterval(() => {
+          showBubble(assistant.id);
+        }, BUBBLE_CYCLE_INTERVAL);
+        intervals.push(interval);
+      }, i * BUBBLE_STAGGER_OFFSET);
+
+      timersRef.current[`start_${assistant.id}`] = startDelay;
+    });
+
+    return () => {
+      intervals.forEach(clearInterval);
+      Object.values(timersRef.current).forEach((t) => clearTimeout(t));
+    };
+  }, [showBubble]);
+
+  const handleMouseEnter = useCallback((id: string) => {
+    setHoveredId(id);
+    showBubble(id);
+  }, [showBubble]);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredId(null);
+  }, []);
 
   const handleAssistantClick = (id: string) => {
     console.log(`Clicked on assistant: ${id}`);
@@ -110,11 +210,19 @@ const AssistantPage: React.FC = () => {
     <div className="assistant-page">
 
       <div className="office-grid">
-        {assistants.map((assistant) => (
+        {assistants.map((assistant) => {
+          const bubble = bubbles[assistant.id];
+          const isHovered = hoveredId === assistant.id;
+          const showBubbleNow = bubble?.visible || isHovered;
+          const currentMessage = assistant.messages[bubble?.messageIndex ?? 0];
+
+          return (
           <div 
             key={assistant.id}
             className="desk-workspace"
             onClick={() => handleAssistantClick(assistant.id)}
+            onMouseEnter={() => handleMouseEnter(assistant.id)}
+            onMouseLeave={handleMouseLeave}
             style={{ 
                 '--cat-base': assistant.catColor, 
                 '--cat-body': assistant.colors.body,
@@ -131,6 +239,11 @@ const AssistantPage: React.FC = () => {
                 '--accent': assistant.accent 
             } as React.CSSProperties}
           >
+            {/* Speech Bubble */}
+            <div className={`speech-bubble ${showBubbleNow ? 'visible' : ''}`}>
+              <span className="speech-text">{currentMessage}</span>
+            </div>
+
             {/* The Cat */}
             <div className="cat-worker">
                 {/* Ears */}
@@ -262,7 +375,8 @@ const AssistantPage: React.FC = () => {
                 </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
