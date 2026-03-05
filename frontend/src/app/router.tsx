@@ -8,11 +8,11 @@ import {
   ArticleDetailPage,
   ArticleEditorPage,
 } from "../features/articles";
-import { AssistantPage } from "../features/assistant";
 import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
 import { AILogPage } from '../features/ai-log';
 import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
+import AssistantPage from '../features/assistant/pages/AssistantPage';
 // import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
 // import { IdeasPage } from '../features/ideas';
 // import IdeasEditorPage from '../features/ideas/pages/IdeasEditorPage';
