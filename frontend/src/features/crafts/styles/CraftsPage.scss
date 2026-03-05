@@ -672,10 +672,14 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
     // iframe 样式（作为 coverImage 的兜底方案）
     iframe, .panel-image-iframe {
-      width: 100%;
-      height: 100%;
       border: none;
       object-fit: cover;
+      width: 1790px;
+    height: 1100px;
+    border: none;
+    object-fit: cover;
+    transform: scale(0.2);
+    transform-origin: left top;
     }
 
     .featured-badge {
