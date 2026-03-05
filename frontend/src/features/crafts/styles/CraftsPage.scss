@@ -1052,6 +1052,138 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
       }
     }
 
+    // 关系类型选择器
+    .relation-type-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .relation-type-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 100px;
+        border: 1.5px solid rgba(0, 0, 0, 0.08);
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: $color-text-main;
+        transition: all 0.2s ease;
+
+        .relation-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        &:hover {
+          border-color: var(--relation-color);
+          background: color-mix(in srgb, var(--relation-color) 8%, transparent);
+        }
+
+        &.active {
+          font-weight: 600;
+        }
+      }
+
+      &.compact {
+        .relation-type-btn {
+          padding: 4px 6px;
+          
+          span:not(.relation-dot) {
+            display: none;
+          }
+        }
+      }
+    }
+
+    // 关系列表
+    .relations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+
+      .relation-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.03);
+        font-size: 0.8rem;
+
+        .relation-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .relation-type-label {
+          font-weight: 600;
+          font-size: 0.7rem;
+          flex-shrink: 0;
+        }
+
+        .relation-target-name {
+          flex: 1;
+          color: $color-text-main;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .relation-remove-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 20px;
+          height: 20px;
+          padding: 0;
+          background: rgba(0, 0, 0, 0.08);
+          border: none;
+          border-radius: 50%;
+          cursor: pointer;
+          color: $color-text-sub;
+          flex-shrink: 0;
+          transition: all 0.2s ease;
+
+          &:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+          }
+        }
+      }
+    }
+
+    // 添加关系行
+    .relation-add-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .relation-select {
+        flex: 1;
+        padding: 6px 10px;
+        border: 1.5px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        background: $color-bg;
+        font-size: 0.8rem;
+        color: $color-text-main;
+        outline: none;
+        cursor: pointer;
+        transition: border-color 0.2s ease;
+
+        &:focus {
+          border-color: $color-accent;
+        }
+      }
+    }
+
     // 封面上传
     .cover-preview {
       position: relative;
@@ -1643,6 +1775,32 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
     span {
       color: #a0aec0;
+    }
+  }
+
+  .detail-panel, .add-node-panel, .standalone-panel {
+    .relation-type-selector .relation-type-btn {
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .relations-list .relation-item {
+      background: rgba(255, 255, 255, 0.06);
+
+      .relation-target-name {
+        color: #e2e8f0;
+      }
+
+      .relation-remove-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: #a0aec0;
+      }
+    }
+
+    .relation-add-row .relation-select {
+      background: #1a1a2e;
+      border-color: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
     }
   }
 }

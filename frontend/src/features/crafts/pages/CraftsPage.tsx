@@ -237,6 +237,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     originalCoverImage: string; // 保存原始封面，用于撤销删除
     htmlCode: string;
     useCase: string;
+    relations: { targetId: string; type: string }[];
+    newRelationTargetId: string;
+    newRelationType: string;
   } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   // 新节点表单数据
@@ -251,6 +254,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     coverImage: '',
     htmlCode: '',
     useCase: '',
+    relationType: 'relatedTo' as string,
   });
   // 临时变更队列（仅编辑模式）
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
@@ -555,6 +559,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       coverImage: '',
       htmlCode: '',
       useCase: '',
+      relationType: 'relatedTo',
     });
     // 关闭详情面板
     setActiveId(null);
@@ -576,6 +581,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       coverImage: '',
       htmlCode: '',
       useCase: '',
+      relationType: 'relatedTo',
     });
     // 关闭详情面板
     setActiveId(null);
@@ -596,6 +602,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       coverImage: '',
       htmlCode: '',
       useCase: '',
+      relationType: 'relatedTo',
     });
   };
 
@@ -625,7 +632,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           useCase: newNodeForm.useCase || undefined,
           relations: addNodeState ? [{
             targetId: addNodeState.sourceId,
-            type: 'relatedTo'
+            type: newNodeForm.relationType as "extends" | "inspiredBy" | "variant" | "uses" | "relatedTo"
           }] : []
         };
         
@@ -657,7 +664,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           useCase: newNodeForm.useCase || undefined,
           relations: addNodeState ? [{
             targetId: addNodeState.sourceId,
-            type: 'relatedTo'
+            type: newNodeForm.relationType
           }] : []
         });
         
@@ -814,6 +821,9 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       originalCoverImage: craft.coverImage || '', // 保存原始值
       htmlCode: craft.htmlCode || '',
       useCase: craft.useCase || '',
+      relations: craft.relations ? craft.relations.map(r => ({ ...r })) : [],
+      newRelationTargetId: '',
+      newRelationType: 'relatedTo',
     });
   }, []);
 
@@ -917,6 +927,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           coverImage: editNodeForm.coverImage, // 保留 __PENDING_DELETE__ 标记
           htmlCode: editNodeForm.htmlCode || undefined,
           useCase: editNodeForm.useCase || undefined,
+          relations: editNodeForm.relations as Craft['relations'],
         };
         
         // 用于保存到数据库的数据（转换 __PENDING_DELETE__ 为 undefined）
@@ -972,6 +983,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
           coverImage,
           htmlCode: editNodeForm.htmlCode || undefined,
           useCase: editNodeForm.useCase || undefined,
+          relations: editNodeForm.relations,
         });
 
         // 更新本地状态
@@ -1824,6 +1836,88 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                     rows={2}
                   />
                 </div>
+
+                <div className="form-group">
+                  <label>{language === "zh" ? "关系管理" : "Relations"}</label>
+                  {editNodeForm.relations.length > 0 && (
+                    <div className="relations-list">
+                      {editNodeForm.relations.map((rel, idx) => {
+                        const targetCraft = crafts.find(c => c.id === rel.targetId);
+                        const relStyle = relationLabels[rel.type];
+                        return (
+                          <div key={idx} className="relation-item">
+                            <span className="relation-dot" style={{ background: relStyle?.color || '#ccc' }} />
+                            <span className="relation-type-label" style={{ color: relStyle?.color || '#ccc' }}>
+                              {relStyle?.[language] || rel.type}
+                            </span>
+                            <span className="relation-target-name">
+                              {targetCraft?.name || rel.targetId}
+                            </span>
+                            <button 
+                              className="relation-remove-btn"
+                              onClick={() => {
+                                setEditNodeForm(prev => prev ? ({
+                                  ...prev,
+                                  relations: prev.relations.filter((_, i) => i !== idx)
+                                }) : null);
+                              }}
+                            >
+                              <Icon name="close" size={12} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="relation-add-row">
+                    <select
+                      className="relation-select"
+                      value={editNodeForm.newRelationTargetId}
+                      onChange={(e) => setEditNodeForm(prev => prev ? ({ ...prev, newRelationTargetId: e.target.value }) : null)}
+                    >
+                      <option value="">{language === "zh" ? "选择目标节点..." : "Select target..."}</option>
+                      {crafts
+                        .filter(c => c.id !== activeId && !editNodeForm.relations.some(r => r.targetId === c.id))
+                        .map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))
+                      }
+                    </select>
+                    <div className="relation-type-selector compact">
+                      {Object.entries(relationLabels).map(([type, style]) => (
+                        <button
+                          key={type}
+                          className={`relation-type-btn ${editNodeForm.newRelationType === type ? 'active' : ''}`}
+                          style={{ 
+                            '--relation-color': style.color,
+                            borderColor: editNodeForm.newRelationType === type ? style.color : undefined,
+                            background: editNodeForm.newRelationType === type ? `${style.color}18` : undefined,
+                          } as React.CSSProperties}
+                          onClick={() => setEditNodeForm(prev => prev ? ({ ...prev, newRelationType: type }) : null)}
+                          title={style[language]}
+                        >
+                          <span className="relation-dot" style={{ background: style.color }} />
+                        </button>
+                      ))}
+                    </div>
+                    <LandButton
+                      variant="background"
+                      icon={<Icon name="add" strokeWidth={4} />}
+                      disabled={!editNodeForm.newRelationTargetId}
+                      onClick={() => {
+                        if (!editNodeForm.newRelationTargetId) return;
+                        setEditNodeForm(prev => prev ? ({
+                          ...prev,
+                          relations: [...prev.relations, {
+                            targetId: prev.newRelationTargetId,
+                            type: prev.newRelationType
+                          }],
+                          newRelationTargetId: '',
+                        }) : null);
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="panel-footer">
@@ -2033,6 +2127,27 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
             </div>
             
             <div className="panel-body">
+              <div className="form-group">
+                <label>{language === "zh" ? "与源节点关系" : "Relation to source"}</label>
+                <div className="relation-type-selector">
+                  {Object.entries(relationLabels).map(([type, style]) => (
+                    <button
+                      key={type}
+                      className={`relation-type-btn ${newNodeForm.relationType === type ? 'active' : ''}`}
+                      style={{ 
+                        '--relation-color': style.color,
+                        borderColor: newNodeForm.relationType === type ? style.color : undefined,
+                        background: newNodeForm.relationType === type ? `${style.color}18` : undefined,
+                      } as React.CSSProperties}
+                      onClick={() => setNewNodeForm(prev => ({ ...prev, relationType: type }))}
+                    >
+                      <span className="relation-dot" style={{ background: style.color }} />
+                      <span>{style[language]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>{language === "zh" ? "名称" : "Name"} <span className="text-red-500">*</span></label>
                 <LandInput

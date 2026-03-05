@@ -561,7 +561,7 @@ $header-height: 56px;
 
 // ─── 第二屏：代码 + 信息 ──────────────────────────
 .code-section {
-  min-height: 100vh;
+  max-height: calc(100vh - 56px);
   display: flex;
   flex-direction: column;
   background: #fafafa;
@@ -570,8 +570,7 @@ $header-height: 56px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 32px;
-    height: 56px;
+    padding: 12px 20px;
     background: #fff;
     border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     
@@ -636,6 +635,7 @@ $header-height: 56px;
     flex: 1;
     overflow: auto;
     background: #1a1a2e;
+    height: 100%;
     
     pre {
       margin: 0;

@@ -5,6 +5,7 @@ import BackButton from "../../../shared/components/BackButton";
 import { Icon } from "@suminhan/land-design";
 import { fetchCraftById } from "../../../shared/utils/backendClient";
 import type { Craft, ConfigItem } from "../components/CraftNode";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import "../styles/CraftsDetailPage.scss";
 
 const categoryLabels: Record<Craft["category"], { zh: string; en: string }> = {
@@ -391,7 +392,19 @@ export const CraftsPageDetailPage: React.FC = () => {
           
           <div className="code-body">
             <div className="code-main">
-              <pre><code>{craft.htmlCode}</code></pre>
+              <SyntaxHighlighter
+                language="html"
+                wrapLongLines
+                showLineNumbers
+                customStyle={{
+                  borderRadius: "8px",
+                  backgroundColor: "transparent",
+                  padding: "20px",
+                  margin: 0,
+                }}
+              >
+                {craft.htmlCode?.trim() || ""}
+              </SyntaxHighlighter>
             </div>
             
             {/* 代码区右侧信息 */}
