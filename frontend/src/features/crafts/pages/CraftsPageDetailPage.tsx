@@ -209,7 +209,7 @@ export const CraftsPageDetailPage: React.FC = () => {
                 ref={iframeRef}
                 srcDoc={injectedHtml}
                 title={craft.name}
-                sandbox="allow-scripts"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
               />
             </div>
           ) : craft.coverImage ? (
