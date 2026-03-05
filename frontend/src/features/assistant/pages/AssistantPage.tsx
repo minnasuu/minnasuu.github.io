@@ -15,10 +15,11 @@ const assistants = [
         ears: '#000',
         eyes: '#FFD54F',
         nose: '#FFAB91',
-        paws: '#fff',
+        paws: '#ECEFF1',
         tail: '#000',
         blush: 'rgba(255, 183, 178, 0.6)',
-        whiskers: '#455A64'
+        whiskers: '#999',
+        stroke: '#263238'
     },
     accent: '#96BAFF',
     accessory: 'glasses',
@@ -39,7 +40,8 @@ const assistants = [
         paws: '#FFF3E0',
         tail: '#FFB74D',
         blush: 'rgba(255, 87, 34, 0.3)',
-        whiskers: '#BF360C'
+        whiskers: '#BF360C',
+        stroke: '#BF360C'
     },
     accent: '#F2A5B9',
     accessory: 'hat',
@@ -54,17 +56,17 @@ const assistants = [
     catColor: '#fff', // Cow Cat (Black)
     colors: {
         body: '#fff',
-        ears: '#EDCBCF',
+        ears: '#fff',
         eyes: '#81C784', // Green eyes
         nose: '#F8BBD0', // Pink nose
         paws: '#FFFFFF', // White socks
         tail: '#fff',
         blush: 'rgba(255, 182, 193, 0.4)',
         whiskers: '#CFD8DC',
-        maskBlur: '3px'
+        stroke: '#101010'
     },
     accent: '#FF6B6B',
-    accessory: 'tie',
+    accessory: 'headphones',
     item: 'notebook',
     eyeType: 'smart'
   },
@@ -83,10 +85,10 @@ const assistants = [
         tail: '#3E2723', // Dark tail
         blush: 'rgba(255, 82, 82, 0.4)',
         whiskers: '#3E2723',
-        faceMask: '#5D4037' // Dark mask
+        faceMask: '#5D4037', // Dark mask
+        stroke: '#3E2723'
     },
     accent: '#A0D8B3',
-    accessory: 'headphones',
     item: 'palette',
     eyeType: 'wide'
   }
@@ -125,6 +127,7 @@ const AssistantPage: React.FC = () => {
                 '--cat-whiskers': assistant.colors.whiskers,
                 '--cat-face-mask': (assistant.colors as any).faceMask || 'transparent',
                 '--cat-mask-blur': (assistant.colors as any).maskBlur || '8px',
+                '--cat-stroke': (assistant.colors as any).stroke || '#3E2723',
                 '--accent': assistant.accent 
             } as React.CSSProperties}
           >
@@ -152,11 +155,11 @@ const AssistantPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="muzzle">
-                            <div className="nose"></div>
                             <div className="mouth">
                                 <div className="lip left"></div>
                                 <div className="lip right"></div>
                             </div>
+                            <div className="nose"></div>
                         </div>
                         <div className="blush left"></div>
                         <div className="blush right"></div>

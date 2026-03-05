@@ -11,10 +11,14 @@ $cat-shadow: rgba(0,0,0,0.1);
   padding: 40px;
   background-color: $bg-color;
   background-size: 30px 30px;
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   box-sizing: border-box;
   color: #555;
-  overflow-x: hidden;
+  overflow-x: auto;
 
 
   .office-grid {
@@ -63,7 +67,7 @@ $cat-shadow: rgba(0,0,0,0.1);
         left: 50%;
         transform: translateX(-50%);
         width: 100px;
-        height: 90px;
+        height: 80px;
         background-color: var(--cat-base);
         border-radius: 45% 45% 40% 40%; // Squircle head
         z-index: 10;
@@ -141,25 +145,26 @@ $cat-shadow: rgba(0,0,0,0.1);
                 width: 24px;
                 
                 .nose {
-                    width: 8px;
-                    height: 6px;
+                    position: absolute;
+                    left: 50%;
+                    top: 4px;
+                    transform: translateX(-50%);
+                    width: 10px;
+                    height: 7px;
                     background-color: var(--cat-nose, #FFAB91);
                     border-radius: 50% 50% 50% 50% / 30% 30% 70% 70%; // Triangle-ish
-                    margin: 0 auto;
                 }
                 .mouth {
                     display: flex;
                     justify-content: center;
-                    margin-top: 2px;
+                    transform: translateY(5px);
                     
                     .lip {
-                        width: 8px;
-                        height: 6px;
-                        border-bottom: 2px solid #333;
-                        border-radius: 50%;
-                        
-                        &.left { border-right: 1px solid transparent; }
-                        &.right { border-left: 1px solid transparent; }
+                        width: 18px;
+                        height: 18px;
+                        background-color: var(--cat-mouth, #fff);
+                        border-radius: 40% 40% 50% 50%;
+                        flex-shrink: 0;
                     }
                 }
             }
@@ -230,7 +235,6 @@ $cat-shadow: rgba(0,0,0,0.1);
                 .lens {
                     width: 24px;
                     height: 24px;
-                    border: 3px solid #333;
                     border-radius: 50%;
                     background-color: rgba(255,255,255,0.3);
                 }
