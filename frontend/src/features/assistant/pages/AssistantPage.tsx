@@ -1,133 +1,200 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useCallback, useMemo } from 'react';
 import CatSVG from '../components/CatSVG';
+import WorkflowPanel from '../components/WorkflowPanel';
 import '../styles/AssistantPage.scss';
-import { assistants } from '../data';
+import { assistants, workHistory, type Skill } from '../data';
 
+const formatTime = (iso: string) => {
+  const d = new Date(iso);
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const h = String(d.getHours()).padStart(2, '0');
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${month}/${day} ${h}:${m}`;
+};
 
-const BUBBLE_DISPLAY_DURATION = 3000;
-const BUBBLE_CYCLE_INTERVAL = 5000;
-const BUBBLE_STAGGER_OFFSET = 1200;
-
-interface BubbleState {
-  visible: boolean;
-  messageIndex: number;
-}
+const statusIcon = (s: string) => s === 'success' ? '✅' : s === 'warning' ? '⚠️' : '❌';
 
 const AssistantPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [bubbles, setBubbles] = useState<Record<string, BubbleState>>(() => {
-    const initial: Record<string, BubbleState> = {};
-    assistants.forEach((a) => {
-      initial[a.id] = { visible: false, messageIndex: 0 };
-    });
-    return initial;
-  });
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const timersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  const indicesRef = useRef<Record<string, number>>(
-    assistants.reduce<Record<string, number>>((m, a) => { m[a.id] = 0; return m; }, {})
+  const [hoverMessage, setHoverMessage] = useState<Record<string, string>>({});
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selectedAssistant = useMemo(
+    () => assistants.find((a) => a.id === selectedId) ?? null,
+    [selectedId]
   );
 
-  const showBubble = useCallback((id: string) => {
-    const assistant = assistants.find((a) => a.id === id);
-    if (!assistant) return;
-
-    const idx = (indicesRef.current as Record<string, number>)[id] ?? 0;
-    setBubbles((prev) => ({
-      ...prev,
-      [id]: { visible: true, messageIndex: idx },
-    }));
-
-    if (timersRef.current[`hide_${id}`]) clearTimeout(timersRef.current[`hide_${id}`]);
-    timersRef.current[`hide_${id}`] = setTimeout(() => {
-      setBubbles((prev) => ({
-        ...prev,
-        [id]: { ...prev[id], visible: false },
-      }));
-    }, BUBBLE_DISPLAY_DURATION);
-
-    (indicesRef.current as Record<string, number>)[id] = (idx + 1) % assistant.messages.length;
-  }, []);
-
-  useEffect(() => {
-    const intervals: ReturnType<typeof setInterval>[] = [];
-
-    assistants.forEach((assistant, i) => {
-      const startDelay = setTimeout(() => {
-        showBubble(assistant.id);
-        const interval = setInterval(() => {
-          showBubble(assistant.id);
-        }, BUBBLE_CYCLE_INTERVAL);
-        intervals.push(interval);
-      }, i * BUBBLE_STAGGER_OFFSET);
-
-      timersRef.current[`start_${assistant.id}`] = startDelay;
-    });
-
-    return () => {
-      intervals.forEach(clearInterval);
-      Object.values(timersRef.current).forEach((t) => clearTimeout(t));
-    };
-  }, [showBubble]);
+  const selectedHistory = useMemo(
+    () => selectedId ? workHistory.filter((h) => h.agentId === selectedId) : [],
+    [selectedId]
+  );
 
   const handleMouseEnter = useCallback((id: string) => {
+    const assistant = assistants.find((a) => a.id === id);
+    if (!assistant) return;
+    const randomMsg = assistant.messages[Math.floor(Math.random() * assistant.messages.length)];
+    setHoverMessage((prev) => ({ ...prev, [id]: randomMsg }));
     setHoveredId(id);
-    showBubble(id);
-  }, [showBubble]);
+  }, []);
 
   const handleMouseLeave = useCallback(() => {
     setHoveredId(null);
   }, []);
 
-  const handleAssistantClick = (id: string) => {
-    console.log(`Clicked on assistant: ${id}`);
-    if (id === 'crafts') {
-        navigate('/crafts');
-    } else if (id === 'writer') {
-        navigate('/articles');
-    } else if (id === 'image') {
-        navigate('/image-gen');
-    }
-  };
+  const handleAssistantClick = useCallback((id: string) => {
+    setSelectedId(id);
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setSelectedId(null);
+  }, []);
 
   return (
     <div className="assistant-page">
-
       <div className="office-grid">
         {assistants.map((assistant) => {
-          const bubble = bubbles[assistant.id];
           const isHovered = hoveredId === assistant.id;
-          const showBubbleNow = bubble?.visible || isHovered;
-          const currentMessage = assistant.messages[bubble?.messageIndex ?? 0];
+          const currentMessage = hoverMessage[assistant.id] ?? assistant.messages[0];
 
           return (
-          <div 
-            key={assistant.id}
-            className="desk-workspace"
-            onClick={() => handleAssistantClick(assistant.id)}
-            onMouseEnter={() => handleMouseEnter(assistant.id)}
-            onMouseLeave={handleMouseLeave}
-            style={{ '--accent': assistant.accent } as React.CSSProperties}
-          >
-            {/* Speech Bubble */}
-            <div className={`speech-bubble ${showBubbleNow ? 'visible' : ''}`}>
-              <span className="speech-text">{currentMessage}</span>
+            <div
+              key={assistant.id}
+              className="desk-workspace"
+              onClick={() => handleAssistantClick(assistant.id)}
+              onMouseEnter={() => handleMouseEnter(assistant.id)}
+              onMouseLeave={handleMouseLeave}
+              style={{ '--accent': assistant.accent } as React.CSSProperties}
+            >
+              <div className={`speech-bubble ${isHovered ? 'visible' : ''}`}>
+                <span className="speech-text">{currentMessage}</span>
+              </div>
+              <div className="cat-worker">
+                <CatSVG colors={assistant.catColors} className="cat-svg" />
+              </div>
+              <div className="name-plate">
+                <span className="name-text">{assistant.name}</span>
+              </div>
+              {assistant.skills && (
+                <div className="skill-tags">
+                  {(assistant.skills as Skill[]).map((skill) => (
+                    <span key={skill.id} className="skill-tag" style={{ color: assistant.accent, borderColor: assistant.accent + '60' }}>
+                      <span className="skill-icon">{skill.icon}</span>
+                      <span className="skill-name">{skill.name}</span>
+                      <span className="skill-io">
+                        <span className="io-badge io-in">{skill.input}</span>
+                        <span className="io-arrow">→</span>
+                        <span className="io-badge io-out">{skill.output}</span>
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-
-            {/* The Cat (SVG) */}
-            <div className="cat-worker">
-              <CatSVG colors={assistant.catColors} className="cat-svg" />
-            </div>
-
-            {/* Name Plate */}
-            <div className="name-plate">
-              <span className="name-text">{assistant.name}</span>
-            </div>
-          </div>
           );
         })}
       </div>
+
+      {/* 猫猫详情 Overlay - 三栏布局 */}
+      {selectedAssistant && (
+        <div className="cat-detail-overlay" onClick={handleCloseDetail}>
+          <div className="cat-detail-card three-col" onClick={(e) => e.stopPropagation()} style={{ '--cat-accent': selectedAssistant.accent } as React.CSSProperties}>
+            {/* 关闭按钮 */}
+            <button className="detail-close" onClick={handleCloseDetail}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* 第1栏：头像 + 名字 + 个性签名 */}
+            <div className="col col-profile">
+              <div className="profile-avatar">
+                <CatSVG colors={selectedAssistant.catColors} className="detail-cat-svg" />
+              </div>
+              <h2 className="profile-name">{selectedAssistant.name}</h2>
+              <span className="profile-role" style={{ color: selectedAssistant.accent }}>{selectedAssistant.role}</span>
+              <p className="profile-desc">{selectedAssistant.description}</p>
+              <div className="profile-signature">
+                <span className="signature-quote">"</span>
+                <span className="signature-text">{selectedAssistant.messages[0]}</span>
+                <span className="signature-quote">"</span>
+              </div>
+            </div>
+
+            {/* 第2栏：Skills */}
+            <div className="col col-skills">
+              <h3 className="col-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={selectedAssistant.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                </svg>
+                技能工具
+                <span className="col-count">{(selectedAssistant.skills as Skill[]).length}</span>
+              </h3>
+              <div className="col-scroll">
+                <div className="skill-detail-list">
+                  {(selectedAssistant.skills as Skill[]).map((skill) => (
+                    <div key={skill.id} className="skill-detail-item" style={{ borderLeftColor: selectedAssistant.accent }}>
+                      <div className="skill-detail-head">
+                        <span className="sd-icon">{skill.icon}</span>
+                        <span className="sd-name">{skill.name}</span>
+                        <div className="sd-io">
+                          <span className="sd-io-tag sd-in">{skill.input}</span>
+                          <span className="sd-arrow">→</span>
+                          <span className="sd-io-tag sd-out">{skill.output}</span>
+                        </div>
+                      </div>
+                      <p className="sd-desc">{skill.description}</p>
+                      <div className="sd-meta">
+                        {skill.provider && <span className="sd-provider">via {skill.provider}</span>}
+                        {skill.mockResult && <span className="sd-mock">{skill.mockResult}</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 第3栏：历史事件 */}
+            <div className="col col-history">
+              <h3 className="col-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={selectedAssistant.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                历史事件
+                <span className="col-count">{selectedHistory.length}</span>
+              </h3>
+              <div className="col-scroll">
+                <div className="history-list">
+                  {selectedHistory.length === 0 ? (
+                    <p className="history-empty">暂无历史记录</p>
+                  ) : (
+                    selectedHistory.map((item) => {
+                      const skill = (selectedAssistant.skills as Skill[]).find((s) => s.id === item.skillId);
+                      return (
+                        <div key={item.id} className={`history-item status-${item.status}`}>
+                          <div className="hi-top">
+                            <span className="hi-status">{statusIcon(item.status)}</span>
+                            <span className="hi-summary">{item.summary}</span>
+                            <span className="hi-time">{formatTime(item.timestamp)}</span>
+                          </div>
+                          <div className="hi-bottom">
+                            {skill && <span className="hi-skill">{skill.icon} {skill.name}</span>}
+                            {item.workflowName && <span className="hi-wf">📋 {item.workflowName}</span>}
+                          </div>
+                          <div className="hi-result">{item.result}</div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <WorkflowPanel />
     </div>
   );
 };
