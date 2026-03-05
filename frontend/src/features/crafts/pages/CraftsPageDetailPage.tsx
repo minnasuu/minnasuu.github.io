@@ -394,8 +394,6 @@ export const CraftsPageDetailPage: React.FC = () => {
             <div className="code-main">
               <SyntaxHighlighter
                 language="html"
-                wrapLongLines
-                showLineNumbers
                 customStyle={{
                   borderRadius: "8px",
                   backgroundColor: "transparent",

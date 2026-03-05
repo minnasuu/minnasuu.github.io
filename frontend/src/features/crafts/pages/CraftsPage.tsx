@@ -26,13 +26,75 @@ interface PendingChange {
   data?: Partial<Craft>; // 对于 create 和 update，包含数据
 }
 
-// 关系类型标签
+// ========== 节点布局配置 ==========
+const LAYOUT_CONFIG = {
+  /** 边界留白（px） */
+  padding: 100,
+  /** 力导向迭代次数，越大布局越稳定 */
+  iterations: 80,
+  /** 理想节点间距（px） */
+  idealDistance: 600,
+  /** 最小节点间距（px），小于此值强排斥 */
+  minDistance: 300,
+  /** 最大节点间距（px），大于此值强吸引 */
+  maxDistance: 1000,
+  /** 强排斥力系数（距离 < minDistance 时） */
+  repulsionStrong: 3,
+  /** 轻微排斥力系数（minDistance < 距离 < idealDistance 时） */
+  repulsionWeak: 0.8,
+  /** 轻微吸引力系数（idealDistance < 距离 < maxDistance 时） */
+  attractionWeak: 0.5,
+  /** 强吸引力系数（距离 > maxDistance 时） */
+  attractionStrong: 1.5,
+  /** 关系节点间吸引力系数 */
+  relationAttraction: 0.3,
+  /** 阻尼系数（减少震荡） */
+  damping: 0.5,
+  /** 阻尼基础值 */
+  dampingBase: 0.5,
+} as const;
+
+// ========== 画布配置 ==========
+const CANVAS_CONFIG = {
+  /** 画布尺寸倍数（相对于视口） */
+  sizeMultiplier: 2,
+  /** 边界最小可见比例（画布至少有此比例在视口内） */
+  minVisibleRatio: 0.2,
+} as const;
+
+// ========== 连线样式配置 ==========
+const CONNECTION_CONFIG = {
+  /** 贝塞尔曲线弯曲系数 */
+  curvatureRatio: 0.2,
+  /** 贝塞尔曲线最大弯曲度 */
+  curvatureMax: 50,
+  /** 连线透明度 */
+  strokeOpacity: 0.6,
+  /** variant 双线宽度 */
+  variantStrokeWidth: 1,
+  /** 箭头线宽 */
+  arrowStrokeWidth: 1.5,
+  /** 箭头动画时长（秒） */
+  arrowAnimDuration: "2s",
+  /** 各关系类型连线样式 */
+  lineStyles: {
+    extends:   { strokeWidth: 2.5, dasharray: "none",  hasArrow: true },
+    variant:   { strokeWidth: 1.5, dasharray: "none",  hasArrow: false },
+    inspiredBy:{ strokeWidth: 1.5, dasharray: "6 3",   hasArrow: true },
+    uses:      { strokeWidth: 1.5, dasharray: "none",  hasArrow: true },
+    relatedTo: { strokeWidth: 1.5, dasharray: "2 4",   hasArrow: false },
+  } as Record<string, { strokeWidth: number; dasharray: string; hasArrow: boolean }>,
+  /** 默认连线样式 */
+  defaultLineStyle: { strokeWidth: 1.5, dasharray: "none", hasArrow: true },
+} as const;
+
+// ========== 关系类型标签 ==========
 const relationLabels: Record<string, { zh: string; en: string; color: string }> = {
-  extends: { zh: "扩展自", en: "Extends", color: "#8ca9ff" },    // Bright Indigo
-  inspiredBy: { zh: "灵感源于", en: "Inspired by", color: "#f875aa" }, // Bright Pink
-  variant: { zh: "同源变体", en: "Variant of", color: "#8ce4ff" },     // Bright Teal
-  uses: { zh: "使用", en: "Uses", color: "#73af6f" },         // Bright Amber
-  relatedTo: { zh: "相关概念", en: "Related to", color: "#ccc" },   // Soft Lavender
+  extends: { zh: "扩展自", en: "Extends", color: "#8ca9ff" },
+  inspiredBy: { zh: "灵感源于", en: "Inspired by", color: "#f875aa" },
+  variant: { zh: "同源变体", en: "Variant of", color: "#8ce4ff" },
+  uses: { zh: "使用", en: "Uses", color: "#73af6f" },
+  relatedTo: { zh: "相关概念", en: "Related to", color: "#ccc" },
 };
 
 
@@ -79,7 +141,9 @@ const calculateNodePositions = (
   containerHeight: number
 ) => {
   const positions: Map<string, { x: number; y: number; ring: number }> = new Map();
-  const padding = 100; // 边界留白
+  const { padding, iterations, idealDistance, minDistance, maxDistance,
+    repulsionStrong, repulsionWeak, attractionWeak, attractionStrong,
+    relationAttraction, damping, dampingBase } = LAYOUT_CONFIG;
   
   // 第一步：随机初始化位置
   crafts.forEach((craft) => {
@@ -91,15 +155,9 @@ const calculateNodePositions = (
   });
 
   // 第二步：力导向调整，保持均匀间距
-  const iterations = 80; // 增加迭代次数以达到更稳定的布局
-  const idealDistance = 800; // 理想节点间距
-  const minDistance = 800; // 最小间距（防止重叠）
-  const maxDistance = 1200; // 最大间距（防止过于分散）
-  
   for (let iter = 0; iter < iterations; iter++) {
     const forces = new Map<string, { x: number; y: number }>();
     
-    // 初始化力
     crafts.forEach((craft) => {
       forces.set(craft.id, { x: 0, y: 0 });
     });
@@ -119,21 +177,14 @@ const calculateNodePositions = (
         if (dist > 0) {
           let force = 0;
           
-          // 距离小于最小值：强排斥
           if (dist < minDistance) {
-            force = -((minDistance - dist) / minDistance) * 3;
-          }
-          // 距离在最小和理想之间：轻微排斥
-          else if (dist < idealDistance) {
-            force = -((idealDistance - dist) / idealDistance) * 0.8;
-          }
-          // 距离在理想和最大之间：轻微吸引
-          else if (dist < maxDistance) {
-            force = ((dist - idealDistance) / (maxDistance - idealDistance)) * 0.5;
-          }
-          // 距离大于最大值：强吸引
-          else {
-            force = ((dist - maxDistance) / maxDistance) * 1.5;
+            force = -((minDistance - dist) / minDistance) * repulsionStrong;
+          } else if (dist < idealDistance) {
+            force = -((idealDistance - dist) / idealDistance) * repulsionWeak;
+          } else if (dist < maxDistance) {
+            force = ((dist - idealDistance) / (maxDistance - idealDistance)) * attractionWeak;
+          } else {
+            force = ((dist - maxDistance) / maxDistance) * attractionStrong;
           }
           
           const fx = (dx / dist) * force;
@@ -163,31 +214,24 @@ const calculateNodePositions = (
         const dist = Math.sqrt(dx * dx + dy * dy);
         
         if (dist > idealDistance) {
-          // 轻微吸引，让相关节点更接近理想距离
-          const force = ((dist - idealDistance) / dist) * 0.3;
-          const fx = dx * force;
-          const fy = dy * force;
-          
+          const force = ((dist - idealDistance) / dist) * relationAttraction;
           const f1 = forces.get(craft.id)!;
-          f1.x += fx;
-          f1.y += fy;
+          f1.x += dx * force;
+          f1.y += dy * force;
         }
       });
     });
     
     // 应用力并更新位置（使用阻尼减少震荡）
-    const damping = 0.5; // 阻尼系数，随迭代次数递减
     const dampingFactor = damping * (1 - iter / iterations);
     
     crafts.forEach((craft) => {
       const pos = positions.get(craft.id)!;
       const force = forces.get(craft.id)!;
       
-      // 应用阻尼后更新位置
-      pos.x += force.x * (0.5 + dampingFactor);
-      pos.y += force.y * (0.5 + dampingFactor);
+      pos.x += force.x * (dampingBase + dampingFactor);
+      pos.y += force.y * (dampingBase + dampingFactor);
       
-      // 限制在边界内
       pos.x = Math.max(padding, Math.min(containerWidth - padding, pos.x));
       pos.y = Math.max(padding, Math.min(containerHeight - padding, pos.y));
     });
@@ -264,16 +308,16 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const minimapRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  // 画布尺寸（2倍视口）
-  const canvasWidth = dimensions.width * 2;
-  const canvasHeight = dimensions.height * 2;
+  // 画布尺寸
+  const canvasWidth = dimensions.width * CANVAS_CONFIG.sizeMultiplier;
+  const canvasHeight = dimensions.height * CANVAS_CONFIG.sizeMultiplier;
 
   // 限制画布偏移量，确保不能完全移出边界
   const clampViewOffset = useCallback((offset: { x: number; y: number }) => {
     if (dimensions.width === 0 || dimensions.height === 0) return offset;
     
-    // 边界：画布至少有 20% 在视口内
-    const minVisibleRatio = 0.2;
+    // 边界：画布至少有一定比例在视口内
+    const { minVisibleRatio } = CANVAS_CONFIG;
     const minX = -(canvasWidth - dimensions.width * minVisibleRatio);
     const maxX = dimensions.width * (1 - minVisibleRatio);
     const minY = -(canvasHeight - dimensions.height * minVisibleRatio);
@@ -1184,61 +1228,26 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
         const dx = toPos.x - fromPos.x;
         const dy = toPos.y - fromPos.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        const curvature = Math.min(dist * 0.2, 50);
+        const curvature = Math.min(dist * CONNECTION_CONFIG.curvatureRatio, CONNECTION_CONFIG.curvatureMax);
         const perpX = -dy / dist * curvature;
         const perpY = dx / dist * curvature;
 
-        // 所有类型都使用贝塞尔曲线
         const pathD = `M ${fromPos.x} ${fromPos.y} Q ${midX + perpX} ${midY + perpY} ${toPos.x} ${toPos.y}`;
 
-        // 根据关系类型设置线条样式
-        let strokeWidth: number;
-        let strokeDasharray: string;
-        let hasArrow: boolean;
-
-        switch (relation.type) {
-          case "extends":
-            strokeWidth = 2.5; // 粗实线
-            strokeDasharray = "none";
-            hasArrow = true;
-            break;
-          case "variant":
-            strokeWidth = 1.5; // 波浪线
-            strokeDasharray = "none";
-            hasArrow = false;
-            break;
-          case "inspiredBy":
-            strokeWidth = 1.5; // 虚线
-            strokeDasharray = "6 3";
-            hasArrow = true;
-            break;
-          case "uses":
-            strokeWidth = 1.5; // 实线
-            strokeDasharray = "none";
-            hasArrow = true;
-            break;
-          case "relatedTo":
-            strokeWidth = 1.5; // 点线
-            strokeDasharray = "2 4";
-            hasArrow = false;
-            break;
-          default:
-            strokeWidth = 1.5;
-            strokeDasharray = "none";
-            hasArrow = true;
-        }
+        // 从配置获取连线样式
+        const lineStyle = CONNECTION_CONFIG.lineStyles[relation.type] || CONNECTION_CONFIG.defaultLineStyle;
+        const { strokeWidth, dasharray: strokeDasharray, hasArrow } = lineStyle;
 
         lines.push(
           <g key={`${craft.id}-${relation.targetId}-${idx}`} className="connection-group">
-            {/* variant 类型使用双实线 */}
             {relation.type === "variant" ? (
               <>
                 <path
                   d={pathD}
                   fill="none"
                   stroke={relationStyle.color}
-                  strokeWidth={1}
-                  strokeOpacity={0.6}
+                  strokeWidth={CONNECTION_CONFIG.variantStrokeWidth}
+                  strokeOpacity={CONNECTION_CONFIG.strokeOpacity}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="connection-line"
@@ -1248,8 +1257,8 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   d={pathD}
                   fill="none"
                   stroke={relationStyle.color}
-                  strokeWidth={1}
-                  strokeOpacity={0.6}
+                  strokeWidth={CONNECTION_CONFIG.variantStrokeWidth}
+                  strokeOpacity={CONNECTION_CONFIG.strokeOpacity}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="connection-line"
@@ -1258,31 +1267,29 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               </>
             ) : (
               <>
-                {/* 连线 */}
                 <path
                   d={pathD}
                   fill="none"
                   stroke={relationStyle.color}
                   strokeWidth={strokeWidth}
-                  strokeOpacity={0.6}
+                  strokeOpacity={CONNECTION_CONFIG.strokeOpacity}
                   strokeDasharray={strokeDasharray}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className="connection-line"
                 />
-                {/* 流动箭头（仅在需要时显示） */}
                 {hasArrow && (
                   <path
                     d="M-6,-3 L0,0 L-6,3"
                     fill="none"
                     stroke={relationStyle.color}
-                    strokeWidth={1.5}
+                    strokeWidth={CONNECTION_CONFIG.arrowStrokeWidth}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="connection-arrow"
                   >
                     <animateMotion
-                      dur="2s"
+                      dur={CONNECTION_CONFIG.arrowAnimDuration}
                       repeatCount="indefinite"
                       path={pathD}
                       rotate="auto"
