@@ -62,10 +62,10 @@ export interface Craft {
 // 分类标签
 export const categoryLabels: Record<Craft["category"], { zh: string; en: string }> = {
   component: { zh: "组件", en: "Component" },
-  effect: { zh: "效果", en: "Effect" },
+  effect: { zh: "视觉", en: "Effect" },
   control: { zh: "控件", en: "Control" },
-  demo: { zh: "演示", en: "Demo" },
-  experiment: { zh: "实验", en: "Experiment" },
+  demo: { zh: "交互", en: "Interaction" },
+  experiment: { zh: "动画", en: "Animation" },
 };
 
 // 根据实际权重计算显示等级 (1-5)

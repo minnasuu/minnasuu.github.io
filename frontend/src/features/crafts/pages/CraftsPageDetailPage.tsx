@@ -10,10 +10,10 @@ import "../styles/CraftsDetailPage.scss";
 
 const categoryLabels: Record<Craft["category"], { zh: string; en: string }> = {
   component: { zh: "组件", en: "Component" },
-  effect: { zh: "效果", en: "Effect" },
+  effect: { zh: "视觉", en: "Effect" },
   control: { zh: "控件", en: "Control" },
-  demo: { zh: "演示", en: "Demo" },
-  experiment: { zh: "实验", en: "Experiment" },
+  demo: { zh: "交互", en: "Interaction" },
+  experiment: { zh: "动画", en: "Animation" },
 };
 
 /** 将配置值注入 HTML，通过 postMessage 传递给 iframe */
