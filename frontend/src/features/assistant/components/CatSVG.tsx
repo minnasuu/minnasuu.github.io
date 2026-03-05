@@ -1,20 +1,29 @@
 import React from 'react';
 
 interface CatColors {
-  body: string;       // 主体毛色 (#F7AC5E)
-  bodyDark: string;   // 毛色深色/斑纹 (#D3753E)
-  belly: string;      // 肚子/脸部浅色 (#FCEFD9)
-  earInner: string;   // 耳朵内侧 (#F28686)
-  eyes: string;       // 眼睛颜色 (#542615)
-  nose: string;       // 鼻子 (#542615)
-  blush: string;      // 腮红 (#F28686)
-  stroke: string;     // 描边色 (#542615)
-  apron: string;      // 围裙主色 (#BDBDBD)
-  apronLight: string; // 围裙浅色 (#FEFFFE)
-  apronLine: string;  // 围裙装饰线 (#BDBDBD)
-  desk: string;       // 桌面主色 (#EBA87A)
-  deskDark: string;   // 桌面暗部 (#B76C4F)
-  deskLeg: string;    // 桌腿 (#D38A61)
+  body: string;
+  bodyDark: string;
+  belly: string;
+  earInner: string;
+  eyes: string;
+  nose: string;
+  blush: string;
+  stroke: string;
+  apron: string;
+  apronLight: string;
+  apronLine: string;
+  desk: string;
+  deskDark: string;
+  deskLeg: string;
+  paw: string | string[];
+  tail: string;
+  faceDark: string;
+  month: string;
+  head: string;
+  bodyDarkBottom: string;
+  leg: string|string[];
+  headTopLeft: string;
+  headTopRight: string;
 }
 
 interface CatSVGProps {
@@ -24,6 +33,8 @@ interface CatSVGProps {
 
 const CatSVG: React.FC<CatSVGProps> = ({ colors, className }) => {
   const c = colors;
+  const paw = (i: number) =>
+    Array.isArray(c.paw) ? (c.paw[i] ?? c.paw[0]) : c.paw;
 
   return (
     <svg
@@ -32,107 +43,134 @@ const CatSVG: React.FC<CatSVGProps> = ({ colors, className }) => {
       viewBox="0 0 200 200"
       fill="none"
     >
-      {/* === DESK (table top) === */}
-      <path d="M 185,143.96 L 170.06,116.76 C 168.98,114.77 167.64,114.77 165.81,114.77 H 33.78 C 31.41,114.77 30.08,115.38 28.64,118.08 L 15,143.36 V 148.98 C 15,151.66 16.84,152.88 19.06,152.88 H 180.16 C 183.62,152.88 185,150.91 185,149.26 V 143.96 Z" fill={c.desk} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 184.98,144.11 C 184.47,145.97 183.11,146.63 180.16,146.63 L 19.06,146.19 C 16.84,146.19 15.63,145.61 15,144.06 V 148.98 C 15,151.66 16.84,152.88 19.06,152.88 H 180.16 C 183.62,152.88 185,150.91 185,149.26 L 184.98,144.11 Z" fill={c.deskDark} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* === TAIL (fill) === */}
+      <g className="cat-tail">
+      <path d="M144.75 114.769C148.89 112.149 150.72 106.069 149.15 94.709C147.21 80.909 155.19 69.349 165.65 68.509C170.92 68.079 173.62 72.019 173.62 74.909C173.62 78.959 170.36 80.909 166.73 83.159C161.62 86.159 161.05 88.989 161.31 98.979C161.52 106.889 154.57 119.52 152 123L144.75 114.769Z" fill={c.tail||c.body}/>
+      {/* Tail stripes */}
+      <path d="M151.07 81.1888C154.02 81.1888 160.2 84.39 162.5 86.5L167.5 82.5C165.22 80.25 157.35 75.79 154.5 75L151.07 81.1888Z" fill={c.tail==c.body ?c.bodyDark: c.tail}/>
+      <path d="M149.5 89.4992C153.06 89.0092 157.739 90.0089 160.629 91.0789L160.789 96.0889C157.839 96.0889 153.67 95.26 150 95L149.5 89.4992Z" fill={c.tail==c.body ?c.bodyDark: c.tail}/>
+      <path d="M150.5 100.5C153.34 100.5 159.25 101.97 161.19 102.81L159.09 108.58C156.81 107.59 152.66 106.13 149.5 105.5L150.5 100.5Z" fill={c.tail==c.body ?c.bodyDark: c.tail}/>
+      </g>
+      {/* === TAIL (stroke) === */}
+      <path className="cat-tail" d="M144.75 114.769C148.89 112.149 150.72 106.069 149.15 94.709C147.21 80.909 155.19 69.349 165.65 68.509C170.92 68.079 173.62 72.019 173.62 74.909C173.62 78.959 170.36 80.909 166.73 83.159C161.62 86.159 161.05 88.989 161.31 98.979C161.52 106.889 154.57 120.02 152 123.5L144.75 114.769Z" fill="none" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 
       {/* === DESK LEGS === */}
-      <path d="M 23.91,153.81 V 189.99 C 23.91,192.56 25.44,193.29 27.27,193.29 H 30.59 C 33.16,193.29 33.78,191.82 33.78,189.99 V 153.81 H 23.91 Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 24.11,153.81 L 23.91,160.07 H 33.78 V 153.81 H 24.11 Z" fill={c.deskDark}/>
-      <path d="M 39.41,153.81 V 171.66 C 39.41,173.91 40.44,174.54 42.72,174.54 H 44.91 C 47.48,174.54 47.75,172.61 47.75,170.32 L 47.91,153.81 H 39.41 Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 63.52,153.81 V 173.72 C 63.52,175.78 64.61,176.28 66.11,176.28 H 68.41 C 70.69,176.28 71.17,175.16 71.17,173.1 L 71.29,153.81 H 63.52 Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 129.09,153.81 V 173.31 C 129.09,175.56 130.11,176.19 131.79,176.19 H 133.52 C 135.77,176.19 136.09,174.85 136.09,173.02 V 153.81 H 129.09 Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 151.41,153.81 V 171.66 C 151.41,173.91 152.75,174.54 155.03,174.54 H 157.22 C 159.79,174.54 160.06,172.61 160.06,170.32 L 160.22,153.81 H 151.41 Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 166.21,153.81 V 189.41 C 166.21,191.66 167.69,193.08 169.68,193.08 H 172.73 C 175.29,193.08 175.61,190.98 175.61,189.41 V 153.81 H 166.21 Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 166.42,153.81 L 166.21,160.07 H 175.61 V 153.81 H 166.42 Z" fill={c.deskDark}/>
+      <path d="M23.9102 152.809V188.989C23.9102 191.559 25.4402 192.289 27.2702 192.289H30.5902C33.1602 192.289 33.7802 190.819 33.7802 188.989V152.809H23.9102Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M63.5195 152.809V172.719C63.5195 174.779 64.6095 175.279 66.1095 175.279H68.4095C70.6895 175.279 71.1695 174.159 71.1695 172.099L71.2895 152.809H63.5195Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M129.09 152.809V172.309C129.09 174.559 130.11 175.189 131.79 175.189H133.52C135.77 175.189 136.09 173.849 136.09 172.019V152.809H129.09Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M151.41 152.809V170.659C151.41 172.909 152.75 173.539 155.03 173.539H157.22C159.79 173.539 160.06 171.609 160.06 169.319L160.22 152.809H151.41Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M166.211 152.809V188.409C166.211 190.659 167.691 192.079 169.681 192.079H172.731C175.291 192.079 175.611 189.979 175.611 188.409V152.809H166.211Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 
-      {/* === FEET (left paw) === */}
-      <path d="M 106.02,153.81 C 106.02,159.94 106.17,167.97 112.01,172.07 C 116.21,175.07 123.47,172.51 126.83,165.44 L 130.19,153.81 H 106.02 Z" fill={c.body} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 129.02,156.19 C 128.15,158.41 120.78,158.88 118.95,157.8 C 116.22,156.24 118.11,155.92 119.94,155.92 H 129.46 L 129.02,156.19 Z" fill={c.bodyDark}/>
-      <path d="M 69.48,153.81 C 71.05,157.91 72.42,163.93 76.31,169.86 C 79.21,174.27 84.88,173.83 87.83,171.66 C 92.83,168.2 92.71,160.59 92.71,153.81 H 69.48 Z" fill={c.body} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 82.38,157.75 C 82.17,159.13 76.21,160.28 73.48,159.08 L 72.31,156.19 L 73.01,156.11 C 76.06,156.11 82.74,155.63 82.38,157.75 Z" fill={c.bodyDark}/>
+      {/* === DESK (table top) === */}
+      <path d="M185 143.96L170.06 116.76C168.98 114.77 167.64 114.77 165.81 114.77H33.78C31.41 114.77 30.08 115.38 28.64 118.08L15 143.36V148.98C15 151.66 16.84 152.88 19.06 152.88H180.16C183.62 152.88 185 150.91 185 149.26V143.96Z" fill={c.desk} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M184.98 144.109C184.47 145.969 183.11 146.629 180.16 146.629L19.06 146.189C16.84 146.189 15.63 145.609 15 144.059V148.979C15 151.659 16.84 152.879 19.06 152.879H180.16C183.62 152.879 185 150.909 185 149.259L184.98 144.109Z" fill={c.deskDark} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M39.4102 152.809V170.659C39.4102 172.909 40.4402 173.539 42.7202 173.539H44.9102C47.4802 173.539 47.7502 171.609 47.7502 169.319L47.9102 152.809H39.4102Z" fill={c.deskLeg} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+
+      {/* === FEET === */}
+      <path d="M106.02 153.809C106.02 159.939 106.17 167.969 112.01 172.069C116.21 175.069 123.47 172.509 126.83 165.439L130.19 153.809H106.02Z" fill={Array.isArray(c.leg) ?c.leg[3]: (c.leg||c.body) } stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M107.5 162C107.5 165.459 110 170.5 113.5 172C116 173.071 120.163 172.989 123.499 169C125.267 166.666 126 165.5 127 161.5C119.418 163.169 115.083 163.08 107.5 162Z" fill={paw(1)}/>
+      <path d="M69.4805 153.809C71.0505 157.909 72.4205 163.929 76.3105 169.859C79.2105 174.269 84.8805 173.829 87.8305 171.659C92.8305 168.199 92.7105 160.589 92.7105 153.809H69.4805Z" fill={Array.isArray(c.leg) ?c.leg[2]: (c.leg||c.body) } stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M91.5 161.5C91 165.5 90 169.5 86.5 171.5C84.1384 172.849 79.5 173.5 76.5009 168.5C75 165.5 74.5 165 73 161C80.1439 162.641 84.1724 162.834 91.5 161.5Z" fill={paw(0)}/>
       {/* Toe lines */}
-      <path d="M 79.53,168.09 L 79.37,170.98" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 85.65,168.09 V 171.66" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 113.35,168.09 V 171.66" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 119.19,168.09 L 118.91,171.09" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M79.5295 168.09L79.5291 172" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M85.6504 168.09V172" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M113.35 168.09L113.5 172.5" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M120.19 168.09L120 172" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 
-      {/* === TAIL === */}
-      <path d="M 144.75,114.77 C 148.89,112.15 150.72,106.07 149.15,94.71 C 147.21,80.91 155.19,69.35 165.65,68.51 C 170.92,68.08 173.62,72.02 173.62,74.91 C 173.62,78.96 170.36,80.91 166.73,83.16 C 161.62,86.16 161.05,88.99 161.31,98.98 C 161.52,106.89 158.78,111.29 156.21,114.77 H 144.75 Z" fill={c.body} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Tail stripes */}
-      <path d="M 151.07,81.19 C 154.02,81.19 158.91,83.91 161.21,86.02 C 161.81,84.36 162.93,82.97 164.41,82.08 C 162.13,79.83 157.99,76.51 155.14,75.72 C 153.41,77.28 152.02,79.21 151.07,81.19 Z" fill={c.bodyDark}/>
-      <path d="M 150.29,90.7 C 153.85,90.21 157.74,91.01 160.63,92.08 L 160.79,97.09 C 157.84,97.09 153.96,96.46 150.29,96.2 V 90.7 Z" fill={c.bodyDark}/>
-      <path d="M 150.61,101.24 C 153.45,101.24 157.48,102.21 159.42,103.05 C 158.95,105.11 158.21,107.36 157.32,108.82 C 155.04,107.83 150.39,105.69 147.23,105.06 C 147.97,103.98 149.21,101.82 150.61,101.24 Z" fill={c.bodyDark}/>
+      {/* === BODY (fill) === */}
+      <path d="M66.8107 76.0703C60.4807 86.2803 55.6407 102.03 55.2207 114.77H144.751C144.751 105.11 139.481 88.1203 133.791 76.0703H66.8107Z" fill={c.body}/>
 
-      {/* === BODY === */}
-      <path d="M 66.81,78.07 C 60.48,88.28 55.64,102.03 55.22,114.77 H 144.75 C 144.75,105.11 139.48,90.12 133.79,78.07 H 66.81 Z" fill={c.body} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
       {/* Body stripes */}
-      <path d="M 61.07,95.34 C 64.12,95.34 68.22,94.21 69.84,93.13 C 71.78,91.92 70.21,90.7 68.11,89.2 C 66.72,88.21 65.39,87.13 64.12,85.97 C 62.79,88.7 61.56,91.65 60.43,94.71 L 61.07,95.34 Z" fill={c.bodyDark}/>
-      <path d="M 57.81,102.18 C 59.75,102.18 60.92,102.61 62.14,103.24 L 60.7,106.13 L 57.08,105.11 L 57.81,102.18 Z" fill={c.bodyDark}/>
-      <path d="M 137.99,94.12 C 135.42,94.12 132.01,93.55 130.12,92.33 C 128.18,91.11 128.76,90.12 130.12,88.9 C 131.69,87.51 133.11,86.53 134.63,85.46 L 138.88,94.12 H 137.99 Z" fill={c.bodyDark}/>
-      <path d="M 136.31,102.72 C 138.69,102.72 140.11,103.84 141.84,105.06 L 140.72,108.01 L 135.14,106.07 L 136.31,102.72 Z" fill={c.bodyDark}/>
+      <path d="M60.4059 95.3387C63.6658 95.3387 68.048 94.2087 69.7794 93.1287C71.8529 91.9187 70.1749 90.6987 67.9304 89.1987C66.4447 88.2087 63.8566 87.16 62.4992 86C61.0777 88.73 59.7129 92.13 58.9355 95.3387H60.4059Z" fill={c.bodyDarkBottom||c.bodyDark}/>
+      <path d="M57.8101 102.18C59.7501 102.18 60.9201 102.61 62.1401 103.24L60.7001 106.13L57.0801 105.11L57.8101 102.18Z" fill={c.bodyDarkBottom||c.bodyDark}/>
+      <path d="M137.99 94.12C135.42 94.12 132.01 93.55 130.12 92.33C128.18 91.11 128.76 90.12 130.12 88.9C131.69 87.51 135.23 85.91 136.75 84.84L141 94.12H137.99Z" fill={c.bodyDarkBottom||c.bodyDark}/>
+      <path d="M136.311 102.719C138.691 102.719 141.27 102.78 143 104L143.5 108L135.141 106.069L136.311 102.719Z" fill={c.bodyDarkBottom||c.bodyDark}/>
 
-      {/* === HEAD === */}
-      <path d="M 145.69,52.82 C 145.38,44.91 142.81,38.83 139.86,34.32 C 141.43,26.72 140.54,7.41 134.85,6.29 C 130.17,5.36 119.19,13.71 116.35,16.27 C 111.13,14.71 105.91,13.97 99.86,13.97 C 93.53,13.97 88.31,14.71 83.37,16.27 C 80.11,13.17 71.06,5.14 64.91,6.29 C 58.26,7.51 58.11,24.05 58.84,33.71 C 55.59,38.73 53.45,44.91 53.13,51.23 C 52.39,62.74 57.92,72.95 66.71,78.07 C 72.99,81.75 75.94,82.49 75.94,82.49 H 124.81 C 124.81,82.49 127.91,81.11 132.74,77.44 C 140.12,72.02 146.01,63.41 145.69,52.82 Z" fill={c.body} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* === BODY (stroke) === */}
+      <path d="M66.8107 76.0703C60.4807 86.2803 55.6407 102.03 55.2207 114.77H144.751C144.751 105.11 139.481 88.1203 133.791 76.0703H66.8107Z" fill="none" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* === HEAD (fill) === */}
+      <path d="M145.691 52.8215C145.381 44.9115 142.811 38.8315 139.861 34.3215C141.431 26.7215 140.541 7.41148 134.851 6.29148C130.171 5.36148 119.191 13.7115 116.351 16.2715C111.131 14.7115 105.911 13.9715 99.8606 13.9715C93.5306 13.9715 88.3106 14.7115 83.3706 16.2715C80.1106 13.1715 71.0606 5.14148 64.9106 6.29148C58.2606 7.51148 58.1106 24.0515 58.8406 33.7115C55.5906 38.7315 53.4506 44.9115 53.1306 51.2315C52.3906 62.7415 57.9206 72.9515 66.7106 78.0715C72.9906 81.7515 75.9406 82.4915 75.9406 82.4915H124.811C124.811 82.4915 127.911 81.1115 132.741 77.4415C140.121 72.0215 146.011 63.4115 145.691 52.8215Z" fill={c.head || c.body}/>
+      <path xmlns="http://www.w3.org/2000/svg" d="M83.3709 16.2715C88.3109 14.7115 93.5309 13.9715 99.8609 13.9715C102 41.5 78.5 54 53.1309 51.2315C53.4509 44.9115 55.5909 38.7315 58.8409 33.7115C58.1109 24.0515 58.2609 7.51148 64.9109 6.29148C71.0609 5.14148 80.1109 13.1715 83.3709 16.2715Z" fill={c.headTopLeft||c.head} />
+      <path xmlns="http://www.w3.org/2000/svg" d="M139.86 34.3207C142.81 38.8307 145.38 44.9107 145.69 52.8207C125 56 96.5001 41.5 99.8597 13.9707C105.91 13.9707 111.13 14.7107 116.35 16.2707C119.19 13.7107 130.17 5.36067 134.85 6.29067C140.54 7.41067 141.43 26.7207 139.86 34.3207Z" fill={c.headTopRight||c.head} />
       {/* Head stripes */}
-      <path d="M 95.51,14.81 L 96.89,31.76 C 97.16,34.97 101.41,36.24 102.58,32.13 C 103.42,28.97 104.31,16.01 104.31,16.01 C 101.41,15.53 98.46,15.15 95.51,14.81 Z" fill={c.bodyDark}/>
-      <path d="M 92.15,15.49 L 92.72,27.26 C 92.88,29.98 89.36,31.81 87.98,27.61 L 85.03,17.13 C 87.31,16.39 89.88,15.86 92.15,15.49 Z" fill={c.bodyDark}/>
-      <path d="M 108.14,15.75 L 107.72,27.31 C 107.61,30.15 110.51,31.22 111.89,27.31 L 115.25,16.82 C 113.01,16.27 110.51,15.86 108.14,15.75 Z" fill={c.bodyDark}/>
-      <path d="M 55.75,44.17 L 65.78,47.74 C 68.16,48.62 67.58,51.19 63.59,51.71 C 60.92,52.08 58.07,51.71 54.71,51.19 C 54.71,48.62 55.02,46.42 55.75,44.17 Z" fill={c.bodyDark}/>
-      <path d="M 143.41,44.17 L 134.81,47.74 C 132.72,48.62 132.72,51.03 136.39,51.5 C 138.81,51.82 142.74,51.34 145.31,50.5 C 145.21,48.26 144.53,45.95 143.41,44.17 Z" fill={c.bodyDark}/>
-      <path d="M 55.75,53.84 L 63.11,56.73 C 65.78,57.75 65.16,60.32 61.53,60.74 L 54.61,61.48 L 54.18,53.84 H 55.75 Z" fill={c.bodyDark}/>
-      <path d="M 145.42,53.21 L 139.58,54.43 C 137.65,54.85 137.81,57.16 139.74,57.43 L 145.74,58.4 L 146.31,53.21 H 145.42 Z" fill={c.bodyDark}/>
+      <path d="M95 14L96.3898 30.7586C96.6598 33.9686 100.91 35.2386 102.08 31.1286C102.92 27.9686 104 14 104 14C101 14.0025 98 14.0002 95 14Z" fill={c.bodyDark}/>
+      <path d="M92.12 15L92.69 26.77C92.85 29.49 89.33 31.32 87.95 27.12L85 16.64C87.28 15.9 89.85 15.37 92.12 15Z" fill={c.bodyDark}/>
+      <path d="M108 15.5L107.72 27.31C107.61 30.15 110.51 31.22 111.89 27.31L115.25 16.82C113.01 16.27 110.37 15.61 108 15.5Z" fill={c.bodyDark}/>
+      <path d="M54.7509 44.1719L64.7809 47.7419C67.1609 48.6219 66.5809 51.1919 62.5909 51.7119C59.9209 52.0819 57.0709 51.7119 53.7109 51.1919C53.7109 48.6219 54.0209 46.4219 54.7509 44.1719Z" fill={c.bodyDark}/>
+      <path d="M143.41 44.1719L134.81 47.7419C132.72 48.6219 132.72 51.0319 136.39 51.5019C138.81 51.8219 142.74 51.3419 145.31 50.5019C145.21 48.2619 144.53 45.9519 143.41 44.1719Z" fill={c.bodyDark}/>
+      <path d="M55.7506 53.8398L63.1106 56.7298C65.7806 57.7498 65.1606 60.3198 61.5306 60.7398L54.6106 61.4798L54 53.8398H55.7506Z" fill={c.bodyDark}/>
+      <path d="M145.421 53.2109L139.581 54.4309C137.651 54.8509 137.811 57.1609 139.741 57.4309L145.741 58.4009L146.311 53.2109H145.421Z" fill={c.bodyDark}/>
+
+      {/* === HEAD (stroke) === */}
+      <path d="M75.9406 82.4915C75.9406 82.4915 72.9906 81.7515 66.7106 78.0715C57.9206 72.9515 52.3906 62.7415 53.1306 51.2315C53.4506 44.9115 55.5906 38.7315 58.8406 33.7115C58.1106 24.0515 58.2606 7.51148 64.9106 6.29148C71.0606 5.14148 80.1106 13.1715 83.3706 16.2715C88.3106 14.7115 93.5306 13.9715 99.8606 13.9715C105.911 13.9715 111.131 14.7115 116.351 16.2715C119.191 13.7115 130.171 5.36148 134.851 6.29148C140.541 7.41148 141.431 26.7215 139.861 34.3215C142.811 38.8315 145.381 44.9115 145.691 52.8215C146.011 63.4115 140.121 72.0215 132.741 77.4415C127.911 81.1115 124.811 82.4915 124.811 82.4915" fill="none" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 
       {/* === FACE (light area) === */}
-      <path d="M 143.47,64.21 C 138.75,73.01 127.34,86.16 100.18,86.16 C 77.21,86.16 63.32,75.95 57.64,66.06 C 62.75,67.45 75.89,68.98 84.94,60.11 C 89.94,55.16 90.92,49.69 98.88,49.69 C 106.84,49.69 108.62,55.61 113.02,59.75 C 120.09,66.42 130.91,67.11 143.47,64.21 Z" fill={c.belly}/>
+      <path d="M142.83 63.52C138.11 72.32 128.5 87 99.54 85.47C72 84.5 59.5 74 57 65.37C62.11 66.76 75.25 68.29 84.3 59.42C89.3 54.47 90.28 49 98.24 49C106.2 49 107.98 54.92 112.38 59.06C119.45 65.73 130.27 66.42 142.83 63.52Z" fill={c.belly}/>
+
+      {/* === FACE (dark area) === */}
+      <g xmlns="http://www.w3.org/2000/svg" filter="url(#filter0_f_2229_6777)">
+      <ellipse cx="99" cy="57.5" rx="27" ry="26.5" fill={c.faceDark} />
+      </g>
 
       {/* === BLUSH === */}
-      <path d="M 74.11,56.05 C 70.01,55.52 68.02,57.43 67.91,59.18 C 67.75,61.75 69.94,62.59 72.21,62.75 C 76.15,63.01 77.72,61.64 77.88,59.7 C 78.04,57.75 76.78,56.36 74.11,56.05 Z" fill={c.blush}/>
-      <path d="M 127.65,55.61 C 123.25,55.35 121.47,57.27 121.47,59.23 C 121.47,61.33 123.25,62.59 127.08,62.59 C 130.75,62.59 132.48,61.02 132.48,59.23 C 132.48,57.43 130.75,55.78 127.65,55.61 Z" fill={c.blush}/>
+      <path d="M74.1106 56.0509C70.0106 55.5209 68.0206 57.4309 67.9106 59.1809C67.7506 61.7509 69.9406 62.5909 72.2106 62.7509C76.1506 63.0109 77.7206 61.6409 77.8806 59.7009C78.0406 57.7509 76.7806 56.3609 74.1106 56.0509Z" fill={c.blush}/>
+      <path d="M127.651 55.6097C123.251 55.3497 121.471 57.2697 121.471 59.2297C121.471 61.3297 123.251 62.5897 127.081 62.5897C130.751 62.5897 132.481 61.0197 132.481 59.2297C132.481 57.4297 130.751 55.7797 127.651 55.6097Z" fill={c.blush}/>
 
       {/* === EYES === */}
-      <path d="M 81.24,46.16 C 77.62,46.16 76.45,49.05 76.45,50.81 C 76.45,53.64 78.44,55.61 81.24,55.61 C 84.49,55.61 85.51,52.93 85.51,50.81 C 85.51,48.3 83.89,46.16 81.24,46.16 Z" fill={c.eyes}/>
-      <path d="M 118.86,46.16 C 115.35,46.16 114.23,49.05 114.23,50.81 C 114.23,53.64 116.22,55.35 118.86,55.35 C 122.06,55.35 123.42,52.93 123.42,50.81 C 123.42,48.62 121.74,46.16 118.86,46.16 Z" fill={c.eyes}/>
+      <path d="M83.1722 48C80.7748 48 80 49.8349 80 50.9524C80 52.7492 81.3179 54 83.1722 54C85.3245 54 86 52.2984 86 50.9524C86 49.3587 84.9272 48 83.1722 48Z" fill={c.eyes}/>
+      <path d="M117.023 48C114.731 48 114 49.8868 114 51.0359C114 52.8836 115.299 54 117.023 54C119.112 54 120 52.42 120 51.0359C120 49.6061 118.903 48 117.023 48Z" fill={c.eyes}/>
 
       {/* === NOSE & MOUTH === */}
-      <path d="M 92.41,62.32 C 92.72,64.11 94.45,64.74 96.23,64.74 C 98.93,64.74 99.96,62.59 99.96,60.11 C 99.96,62.32 101.69,64.11 104.25,64.11 C 106.34,64.11 107.28,62.95 107.44,62.01" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 97.75,55.61 H 102.06 C 103.73,55.61 103.99,57.7 102.06,58.54 L 100.12,59.43 C 99.29,59.85 98.3,59.22 97.42,58.43 C 95.85,57.11 96.01,55.61 97.75,55.61 Z" fill={c.nose}/>
+      <path d="M92.4102 62.3194C92.7202 64.1094 94.4502 64.7394 96.2302 64.7394C98.9302 64.7394 100 61.98 100 59.5C100 61.71 101.761 64.7394 104.321 64.7394C106.411 64.7394 107.84 63.2594 108 62.3194" stroke={c.month||c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M97.7509 55.6094H102.061C103.731 55.6094 104 57 102 58.5L100.5 59.5C99.67 59.92 98.3009 59.2194 97.4209 58.4294C95.8509 57.1094 96.0109 55.6094 97.7509 55.6094Z" fill={c.nose}/>
 
       {/* === WHISKERS === */}
-      <path d="M 47.12,52.51 L 59.32,53.95" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 47.75,62.32 L 59.32,59.22" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 152.59,52.51 L 140.12,53.95" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 152.01,62.17 L 139.85,59.22" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M47.1191 52.5117L59.3191 53.9517" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M47 45L59.2 46.44" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M47.75 62.3187L59.32 59.2188" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M152.589 52.5117L140.119 53.9517" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M152.47 45L140 46.44" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M152.01 62.1687L139.85 59.2188" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 
       {/* === INNER EARS === */}
-      <path d="M 75.19,20.04 C 76.21,18.82 68.79,11.71 66.65,12.03 C 63.29,12.55 63.29,21.95 63.91,29.24 C 64.02,30.13 72.91,22.27 75.19,20.04 Z" fill={c.earInner}/>
-      <path d="M 124.21,20.04 C 123.19,18.82 130.61,11.71 133.12,12.03 C 136.17,12.45 136.75,22.11 135.62,29.87 C 135.47,30.85 127.19,22.81 124.21,20.04 Z" fill={c.earInner}/>
+      <path d="M75.1904 20.04C76.2104 18.82 68.7904 11.71 66.6504 12.03C63.2904 12.55 63.2904 21.95 63.9104 29.24C64.0204 30.13 72.9104 22.27 75.1904 20.04Z" fill={c.earInner}/>
+      <path d="M124.211 20.04C123.191 18.82 130.611 11.71 133.121 12.03C136.171 12.45 136.751 22.11 135.621 29.87C135.471 30.85 127.191 22.81 124.211 20.04Z" fill={c.earInner}/>
 
       {/* === APRON === */}
-      <path d="M 67.49,136.91 L 73.9,119.71 C 74.21,118.78 75.15,118.52 76.09,118.78 C 78.66,119.56 83.44,120.19 87.11,120.19 C 90.31,120.19 91.79,117.77 93.62,117.77 C 95.85,117.77 97.84,119.14 99.72,119.14 C 101.45,119.14 103.73,117.77 105.41,117.77 C 107.74,117.77 108.15,120.19 112.56,120.19 C 116.65,120.19 120.32,119.11 124.11,118.63 C 125.73,118.41 127.06,118.94 127.53,120.4 L 132.8,136.91 V 139.32 H 67.49 V 136.91 Z" fill={c.apron} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 68.38,136.12 L 73.85,119.82 C 74.16,118.89 75.15,118.52 76.09,118.78 C 78.66,119.56 82.23,120.19 86.27,120.19 C 89.84,120.19 91.89,118.94 93.62,118.94 C 95.85,118.94 97.84,120.31 99.72,120.31 C 101.45,120.31 103.73,118.94 105.41,118.94 C 107.74,118.94 108.72,120.19 112.82,120.19 C 116.91,120.19 120.85,119.11 123.95,118.63 C 125.22,118.41 126.6,118.94 127.02,120.4 L 132.01,135.69 L 129.73,136.12 H 68.38 Z" fill={c.apronLight} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M67.4902 136.91L73.9002 119.71C74.2102 118.78 75.1502 118.52 76.0902 118.78C78.6602 119.56 83.4402 120.19 87.1102 120.19C90.3102 120.19 91.7902 117.77 93.6202 117.77C95.8502 117.77 97.8402 119.14 99.7202 119.14C101.45 119.14 103.73 117.77 105.41 117.77C107.74 117.77 108.15 120.19 112.56 120.19C116.65 120.19 120.32 119.11 124.11 118.63C125.73 118.41 127.06 118.94 127.53 120.4L132.8 136.91V139.32H67.4902V136.91Z" fill={c.apron} stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M67.5 138L73.8509 119.82C74.1609 118.89 75.1509 118.52 76.0909 118.78C78.6609 119.56 82.2309 120.19 86.2709 120.19C89.8409 120.19 91.8909 118.94 93.6209 118.94C95.8509 118.94 97.8409 120.31 99.7209 120.31C101.451 120.31 103.731 118.94 105.411 118.94C107.741 118.94 108.721 120.19 112.821 120.19C116.911 120.19 120.851 119.11 123.951 118.63C125.221 118.41 126.601 118.94 127.021 120.4L132.5 138L100 139L67.5 138Z" fill={c.apronLight} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       {/* Apron lines */}
-      <path d="M 75.62,127.81 L 93.99,128.13" stroke={c.apronLine} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 75.05,131.43 L 93.99,131.75" stroke={c.apronLine} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 100.04,120.09 V 137.73" stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M75.6191 127.809L93.9891 128.129" stroke={c.apronLine} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M75.0508 131.43L93.9908 131.75" stroke={c.apronLine} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M100.039 120.09V137.73" stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       {/* Apron bottom folds */}
-      <path d="M 67.91,137.73 C 70.91,136.7 74.06,136.22 77.26,136.22 H 87.73 C 92.41,136.22 97.31,137.25 99.72,138.81 H 67.91 V 137.73 Z" fill={c.apron} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 131.64,137.73 C 128.64,136.7 125.49,136.22 122.29,136.22 H 111.83 C 107.14,136.22 102.25,137.25 99.83,138.81 H 131.64 V 137.73 Z" fill={c.apron} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M67.9102 137.729C70.9102 136.699 74.0602 136.219 77.2602 136.219H87.7302C92.4102 136.219 97.3102 137.249 99.7202 138.809H67.9102V137.729Z" fill={c.apron} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M131.64 137.729C128.64 136.699 125.49 136.219 122.29 136.219H111.83C107.14 136.219 102.25 137.249 99.8301 138.809H131.64V137.729Z" fill={c.apron} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
 
       {/* === ARMS (paws) === */}
-      <path d="M 90.15,108.82 C 84.93,107.75 78.29,111.12 77.21,115.42 C 79.25,117.77 82.81,120.72 87.11,120.72 C 90.95,120.72 93.94,118.99 94.2,115.89 C 94.41,113.32 92.94,110.22 90.15,108.82 Z" fill={c.belly}/>
-      <path d="M 108.72,108.82 C 113.94,107.75 120.58,111.12 121.66,115.42 C 119.62,117.77 116.06,120.72 111.76,120.72 C 107.93,120.72 104.93,118.99 104.67,115.89 C 104.46,113.32 105.93,110.22 108.72,108.82 Z" fill={c.belly}/>
-      <path d="M 67.38,103.66 C 70.64,110.28 75.42,118.89 84.11,121.14 C 87.94,122.16 91.73,120.72 92.81,118.15 C 94.03,115.05 92.04,110.8 88.79,106.13 C 86.65,102.92 85.71,100.67 85.51,97.83" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 85.14,117.12 L 86.71,120.19" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 90.62,115.21 L 91.79,118.1" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 132.64,103.66 C 130.07,109.94 124.86,118.1 116.91,120.61 C 113.07,121.83 109.19,121.09 107.46,118.99 C 105.23,116.16 106.11,111.6 109.21,107.25 C 111.73,103.61 113.35,100.62 114.23,97.83" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 113.61,117.12 L 112.19,120.19" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 108.72,115.21 L 107.6,117.72" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M67.3809 103.658C70.6409 110.278 75.4209 118.888 84.1109 121.138C87.9409 122.158 91.7309 120.718 92.8109 118.148C94.0309 115.048 92.0409 110.798 88.7909 106.128C86.6509 102.918 85.7109 100.668 85.5109 97.8281" fill={Array.isArray(c.leg) ?c.leg[0]: (c.leg||c.body) }/>
+      <path d="M67.3809 103.658C70.6409 110.278 75.4209 118.888 84.1109 121.138C87.9409 122.158 91.7309 120.718 92.8109 118.148C94.0309 115.048 92.0409 110.798 88.7909 106.128C86.6509 102.918 85.7109 100.668 85.5109 97.8281" fill="none" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M132.641 103.658C130.071 109.938 124.861 118.098 116.911 120.608C113.071 121.828 109.191 121.088 107.461 118.988C105.231 116.158 106.111 111.598 109.211 107.248C111.731 103.608 113.351 100.618 114.231 97.8281" fill={Array.isArray(c.leg) ?c.leg[1]: (c.leg||c.body) }/>
+      <path d="M132.641 103.658C130.071 109.938 124.861 118.098 116.911 120.608C113.071 121.828 109.191 121.088 107.461 118.988C105.231 116.158 106.111 111.598 109.211 107.248C111.731 103.608 113.351 100.618 114.231 97.8281" fill="none" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Paw pads */}
+      <path d="M88.94 108.199C83.72 107.129 77.08 110.7 76 115C78.04 117.35 81.7 120.5 86 120.5C90.3 120.5 92.24 119.1 92.5 116C92.71 113.43 91.5 110.5 88.94 108.199Z" fill={paw(2)}/>
+      <path d="M110.5 107.001C115.72 105.931 122.92 110.97 124 115.27C121.96 117.62 118.3 120.5 114 120.5C109 120.5 107.28 118.371 107.02 115.271C106.81 112.701 108.5 109.003 110.5 107.001Z" fill={paw(3)}/>
+      {/* Paw lines */}
+      <path d="M85.1406 117.121L87 120.5" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M90.6191 115.211L92 118.5" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M113.609 117.121L112 120.5" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M108.72 115.211L107 118" stroke={c.stroke} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
 
-      {/* === BROOM (right side) === */}
-      <path d="M 142.15,132.22 L 157.11,120.03 C 158.43,118.94 160.85,118.94 161.88,120.03 C 163.1,121.45 163.21,124.17 161.63,125.44 L 148.73,136.43 C 146.79,138.13 144.22,138.81 140.28,138.81 C 138.71,138.81 139.75,135.6 142.15,132.22 Z" fill={c.deskDark} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 144.38,131.1 L 157.74,120.06 L 160.43,123.63 L 147.75,134.93 L 144.38,131.1 Z" fill={c.body} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M 142.81,132.99 L 145.91,136.22" stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* === BROOM === */}
+      <path d="M142.15 132.218L157.11 120.028C158.43 118.938 160.85 118.938 161.88 120.028C163.1 121.448 163.21 124.168 161.63 125.438L148.73 136.428C146.79 138.128 144.22 138.808 140.28 138.808C138.71 138.808 139.75 135.598 142.15 132.218Z" fill={c.deskDark} stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M142.811 132.988L145.911 136.218" stroke={c.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      <defs xmlns="http://www.w3.org/2000/svg">
+<filter id="filter0_f_2229_6777" x="57" y="16" width="84" height="83" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="7.5" result="effect1_foregroundBlur_2229_6777"/>
+</filter>
+</defs>
     </svg>
   );
 };
