@@ -106,14 +106,14 @@ const assistants = [
     accent: '#A0D8B3',
     item: 'palette',
     catColors: {
-      body: '#EFEBE9',
-      bodyDark: '#A1887F',
-      belly: '#FFF8E1',
-      earInner: '#FFAB91',
-      eyes: '#542615',
-      nose: '#3E2723',
-      blush: '#FFAB91',
-      stroke: '#3E2723',
+      body: '#F5F0E8',
+      bodyDark: '#8B7355',
+      belly: '#FFFFFF',
+      earInner: '#F4B8B8',
+      eyes: '#7CB342',
+      nose: '#E8998D',
+      blush: '#F4B8B8',
+      stroke: '#5D4037',
       apron: '#A5D6A7',
       apronLight: '#E8F5E9',
       apronLine: '#A5D6A7',
@@ -127,6 +127,37 @@ const assistants = [
       '这个动画很流畅!',
       '代码已优化完毕~ ✨',
       '要做点什么创意?',
+    ]
+  },
+  {
+    id: 'image',
+    name: 'Pixel',
+    role: 'Image Gen',
+    description: '根据描述生成精美的图片。',
+    accent: '#90CAF9',
+    item: 'camera',
+    catColors: {
+      body: '#FAF3EB',
+      bodyDark: '#6D4C41',
+      belly: '#FFFFFF',
+      earInner: '#D7CCC8',
+      eyes: '#4FC3F7',
+      nose: '#5D4037',
+      blush: '#FFCCBC',
+      stroke: '#4E342E',
+      apron: '#B39DDB',
+      apronLight: '#EDE7F6',
+      apronLine: '#B39DDB',
+      desk: '#D1C4E9',
+      deskDark: '#9575CD',
+      deskLeg: '#B39DDB',
+    },
+    messages: [
+      '画面构图中... 🖼️',
+      '色彩搭配完成~',
+      '高清大图生成中!',
+      '这张图太美了! ✨',
+      '想生成什么画面?',
     ]
   }
 ];
@@ -212,6 +243,8 @@ const AssistantPage: React.FC = () => {
         navigate('/crafts');
     } else if (id === 'writer') {
         navigate('/articles');
+    } else if (id === 'image') {
+        navigate('/image-gen');
     }
   };
 
