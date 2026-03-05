@@ -29,25 +29,25 @@ interface PendingChange {
 // ========== 节点布局配置 ==========
 const LAYOUT_CONFIG = {
   /** 边界留白（px） */
-  padding: 100,
+  padding: 80,
   /** 力导向迭代次数，越大布局越稳定 */
-  iterations: 80,
+  iterations: 100,
   /** 理想节点间距（px） */
-  idealDistance: 600,
+  idealDistance: 350,
   /** 最小节点间距（px），小于此值强排斥 */
-  minDistance: 300,
+  minDistance: 200,
   /** 最大节点间距（px），大于此值强吸引 */
-  maxDistance: 1000,
+  maxDistance: 500,
   /** 强排斥力系数（距离 < minDistance 时） */
   repulsionStrong: 3,
   /** 轻微排斥力系数（minDistance < 距离 < idealDistance 时） */
   repulsionWeak: 0.8,
   /** 轻微吸引力系数（idealDistance < 距离 < maxDistance 时） */
-  attractionWeak: 0.5,
+  attractionWeak: 0.8,
   /** 强吸引力系数（距离 > maxDistance 时） */
-  attractionStrong: 1.5,
+  attractionStrong: 2.0,
   /** 关系节点间吸引力系数 */
-  relationAttraction: 0.3,
+  relationAttraction: 0.5,
   /** 阻尼系数（减少震荡） */
   damping: 0.5,
   /** 阻尼基础值 */
@@ -237,6 +237,21 @@ const calculateNodePositions = (
     });
   }
 
+  // 第三步：将节点群整体居中到画布中心
+  if (crafts.length > 0) {
+    let sumX = 0, sumY = 0;
+    positions.forEach((pos) => { sumX += pos.x; sumY += pos.y; });
+    const centerX = sumX / crafts.length;
+    const centerY = sumY / crafts.length;
+    const offsetX = containerWidth / 2 - centerX;
+    const offsetY = containerHeight / 2 - centerY;
+
+    positions.forEach((pos) => {
+      pos.x = Math.max(padding, Math.min(containerWidth - padding, pos.x + offsetX));
+      pos.y = Math.max(padding, Math.min(containerHeight - padding, pos.y + offsetY));
+    });
+  }
+
   return positions;
 };
 
@@ -419,11 +434,6 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
         
         // 首次加载时居中画布
         if (!isInitialized && width > 0 && height > 0) {
-          // 画布大小是 dimensions * 2，所以需要偏移 -width/2 和 -height/2 来居中
-          setViewOffset({
-            x: -width / 2,
-            y: -height / 2,
-          });
           setIsInitialized(true);
         }
       }
@@ -433,6 +443,23 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     window.addEventListener("resize", updateDimensions);
     return () => window.removeEventListener("resize", updateDimensions);
   }, [isInitialized]);
+
+  // 节点位置就绪后，自动居中视口到节点群中心
+  useEffect(() => {
+    if (nodePositions.size === 0 || dimensions.width === 0) return;
+
+    let sumX = 0, sumY = 0, count = 0;
+    nodePositions.forEach((pos) => { sumX += pos.x; sumY += pos.y; count++; });
+    if (count === 0) return;
+
+    const centerX = sumX / count;
+    const centerY = sumY / count;
+    const newOffset = {
+      x: dimensions.width / 2 - centerX,
+      y: dimensions.height / 2 - centerY,
+    };
+    setViewOffset(clampViewOffset(newOffset));
+  }, [nodePositions, dimensions, clampViewOffset]);
 
   // 拖拽处理 - 只在画布模式下启用
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -574,12 +601,24 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     }
   }, [searchQuery, filteredCrafts.length, layoutMode, centerToSearchResults]);
 
-  // 重置视图
+  // 重置视图 - 居中到节点群中心
   const resetView = () => {
-    setViewOffset(clampViewOffset({ 
-      x: -dimensions.width / 2, 
-      y: -dimensions.height / 2 
-    }));
+    if (nodePositions.size > 0) {
+      let sumX = 0, sumY = 0, count = 0;
+      nodePositions.forEach((pos) => { sumX += pos.x; sumY += pos.y; count++; });
+      if (count > 0) {
+        const newOffset = {
+          x: dimensions.width / 2 - sumX / count,
+          y: dimensions.height / 2 - sumY / count,
+        };
+        setViewOffset(clampViewOffset(newOffset));
+      }
+    } else {
+      setViewOffset(clampViewOffset({ 
+        x: -dimensions.width / 2, 
+        y: -dimensions.height / 2 
+      }));
+    }
     setActiveId(null);
   };
 
@@ -2020,16 +2059,10 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                 )}
 
                 <div className="panel-actions">
-                  {activeCraft.htmlCode && (
                     <Link to={`/crafts/${activeCraft.id}`} className="panel-demo-link">
-                      {language === "zh" ? "查看演示" : "View Demo"}
+                      {language === "zh" ? "查看详情" : "View Details"}
                       <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
                     </Link>
-                  )}
-                  <Link to={`/crafts/${activeCraft.id}`} className="panel-link">
-                    {language === "zh" ? "查看详情" : "View Details"}
-                    <Icon name="arrow-line" style={{transform:'rotate(-90deg)'}}/>
-                  </Link>
                 </div>
               </div>
             </>
