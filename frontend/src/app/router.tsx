@@ -8,6 +8,7 @@ import {
   ArticleDetailPage,
   ArticleEditorPage,
 } from "../features/articles";
+import { AssistantPage } from "../features/assistant";
 import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
 import { AILogPage } from '../features/ai-log';
@@ -56,6 +57,9 @@ const AppRouter: React.FC = () => {
             {/* AI LOG */}
             <Route path="/ai-log" element={<AILogPage />} />
             
+            {/* ASSISTANT */}
+            <Route path="/assistant" element={<AssistantPage />} />
+
             {/* CRAFTS DEMO */}
             {/* <Route path="/crafts/demo/dots-overlay" element={<DotsOverlayDemo/>}/> */}
 

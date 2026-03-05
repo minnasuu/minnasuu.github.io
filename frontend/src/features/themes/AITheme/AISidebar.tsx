@@ -98,6 +98,17 @@ export default function AISidebar() {
         )}
       </div>
 
+      {/* AI Assistants */}
+      <div className="ai-sidebar-section">
+        <div className="section-header">
+          <h3>
+            <Link to="/assistant" style={{ color: 'inherit', textDecoration: 'none' }}>
+              🤖 AI 助手
+            </Link>
+          </h3>
+        </div>
+      </div>
+
       {/* 技能 */}
       <div className="ai-sidebar-section">
         <div className="section-header">
