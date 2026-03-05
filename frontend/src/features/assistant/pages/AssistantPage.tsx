@@ -216,7 +216,7 @@ const assistants = [
       body: '#FAFAFA',
       bodyDark: '',
       belly: '#FFFFFF',
-      earInner: '#222',
+      earInner: '#FFB5C5',
       eyes: '#542615',
       nose: '#E8998D',
       blush: '#FFB5C5',
