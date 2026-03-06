@@ -162,6 +162,17 @@ async function getGoogleGenAI() {
   return _GoogleGenAI;
 }
 
+// 创建 Gemini AI 客户端（支持自定义代理地址）
+async function createGeminiClient(apiKey) {
+  const GoogleGenAI = await getGoogleGenAI();
+  const baseUrl = process.env.GEMINI_BASE_URL; // 可选：自定义代理地址
+  const opts = { apiKey };
+  if (baseUrl) {
+    opts.httpOptions = { baseUrl };
+  }
+  return new GoogleGenAI(opts);
+}
+
 // Skill 对应的系统提示词
 const SKILL_SYSTEM_PROMPTS = {
   'site-analyze': `你是一位专业的个人网站诊断顾问。用户会提供他们网站的现有文章和 Crafts 列表，请你：
@@ -218,14 +229,14 @@ router.post('/skill', async (req, res) => {
       return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY not set' });
     }
 
-    const ai = new GoogleGenAI({ apiKey: geminiApiKey });
+    const ai = await createGeminiClient(geminiApiKey);
 
     const systemPrompt = SKILL_SYSTEM_PROMPTS[taskId] || '你是一位专业的 AI 助手，请用中文回复用户的问题。';
 
     console.log(`[gemini/skill] taskId=${taskId}, text length=${text.length}`);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
       contents: text,
       config: {
         systemInstruction: systemPrompt,
