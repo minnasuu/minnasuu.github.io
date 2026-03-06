@@ -151,7 +151,16 @@ router.post('/generate-goal', async (req, res) => {
 
 // 通用 Skill 路由：各 skill 共用 Gemini 模型
 // POST /api/dify/skill  body: { taskId, text }
-const { GoogleGenAI } = require('@google/genai');
+
+// 延迟加载 GoogleGenAI（ESM-only 包，需用 dynamic import）
+let _GoogleGenAI = null;
+async function getGoogleGenAI() {
+  if (!_GoogleGenAI) {
+    const mod = await import('@google/genai');
+    _GoogleGenAI = mod.GoogleGenAI;
+  }
+  return _GoogleGenAI;
+}
 
 // Skill 对应的系统提示词
 const SKILL_SYSTEM_PROMPTS = {
@@ -195,6 +204,12 @@ router.post('/skill', async (req, res) => {
 
     if (!taskId || !text) {
       return res.status(400).json({ error: 'taskId and text are required' });
+    }
+
+    const GoogleGenAI = await getGoogleGenAI();
+
+    if (!GoogleGenAI) {
+      return res.status(500).json({ error: 'Server configuration error: @google/genai module not available' });
     }
 
     const geminiApiKey = process.env.GEMINI_API_KEY;

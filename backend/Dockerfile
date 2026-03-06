@@ -6,8 +6,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# 2. 安装生产依赖
-RUN npm install --production
+# 2. 安装生产依赖（使用镜像加速）
+RUN npm config set registry https://registry.npmmirror.com && npm install --production
 
 # 3. 单独安装 Prisma CLI（只在构建时需要）
 RUN npm install prisma --save-dev
