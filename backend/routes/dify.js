@@ -209,54 +209,112 @@ const SKILL_SYSTEM_PROMPTS = {
 用中文回复，简洁专业。`,
 };
 
+// Qwen (通义千问) 调用 — 兼容 OpenAI Chat Completions 格式
+async function callQwen(systemPrompt, userText) {
+  const apiKey = process.env.QWEN_API_KEY;
+  if (!apiKey) throw new Error('QWEN_API_KEY not set');
+
+  const baseUrl = process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+  const model = process.env.QWEN_MODEL || 'qwen-plus';
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userText },
+      ],
+      max_tokens: 2048,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Qwen API ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+// 可用模型列表
+const AVAILABLE_MODELS = {
+  gemini: { name: 'Gemini', provider: 'Google' },
+  qwen: { name: 'Qwen', provider: 'Alibaba' },
+};
+
+// 获取可用模型列表
+router.get('/models', (_req, res) => {
+  const models = Object.entries(AVAILABLE_MODELS).map(([id, info]) => {
+    let available = false;
+    if (id === 'gemini') available = !!process.env.GEMINI_API_KEY;
+    if (id === 'qwen') available = !!process.env.QWEN_API_KEY;
+    return { id, ...info, available };
+  });
+  res.json({ models, default: process.env.DEFAULT_AI_MODEL || 'gemini' });
+});
+
 router.post('/skill', async (req, res) => {
   try {
-    const { taskId, text } = req.body;
+    const { taskId, text, model } = req.body;
 
     if (!taskId || !text) {
       return res.status(400).json({ error: 'taskId and text are required' });
     }
 
-    const GoogleGenAI = await getGoogleGenAI();
-
-    if (!GoogleGenAI) {
-      return res.status(500).json({ error: 'Server configuration error: @google/genai module not available' });
-    }
-
-    const geminiApiKey = process.env.GEMINI_API_KEY;
-
-    if (!geminiApiKey) {
-      return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY not set' });
-    }
-
-    const ai = await createGeminiClient(geminiApiKey);
-
     const systemPrompt = SKILL_SYSTEM_PROMPTS[taskId] || '你是一位专业的 AI 助手，请用中文回复用户的问题。';
+    const selectedModel = model || process.env.DEFAULT_AI_MODEL || 'gemini';
 
-    console.log(`[gemini/skill] taskId=${taskId}, text length=${text.length}`);
+    console.log(`[ai/skill] taskId=${taskId}, model=${selectedModel}, text length=${text.length}`);
 
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-      contents: text,
-      config: {
-        systemInstruction: systemPrompt,
-        maxOutputTokens: 2048,
-        temperature: 0.7,
-      },
-    });
+    let answer = '';
 
-    const answer = response.text || '';
+    if (selectedModel === 'qwen') {
+      // --- Qwen ---
+      answer = await callQwen(systemPrompt, text);
+    } else {
+      // --- Gemini (默认) ---
+      const GoogleGenAI = await getGoogleGenAI();
+      if (!GoogleGenAI) {
+        return res.status(500).json({ error: 'Server configuration error: @google/genai module not available' });
+      }
 
-    console.log(`[gemini/skill] taskId=${taskId}, answer length=${answer.length}`);
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (!geminiApiKey) {
+        return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY not set' });
+      }
+
+      const ai = await createGeminiClient(geminiApiKey);
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+        contents: text,
+        config: {
+          systemInstruction: systemPrompt,
+          maxOutputTokens: 2048,
+          temperature: 0.7,
+        },
+      });
+
+      answer = response.text || '';
+    }
+
+    console.log(`[ai/skill] taskId=${taskId}, model=${selectedModel}, answer length=${answer.length}`);
 
     res.json({
       answer,
-      conversationId: `gemini-${taskId}-${Date.now()}`,
+      model: selectedModel,
+      conversationId: `${selectedModel}-${taskId}-${Date.now()}`,
     });
   } catch (error) {
-    console.error('[gemini/skill] Error:', error);
+    console.error('[ai/skill] Error:', error);
     res.status(500).json({
-      error: 'Gemini API error',
+      error: 'AI API error',
       message: error.message,
     });
   }

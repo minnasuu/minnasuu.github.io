@@ -1020,16 +1020,49 @@ export interface DifySkillResponse {
   error?: string;
 }
 
-/** 通用 AI Skill 调用：taskId 区分不同 skill */
-export const callDifySkill = async (taskId: string, text: string): Promise<DifySkillResponse> => {
+/** 当前选中的 AI 模型（全局状态） */
+let _currentAIModel: string = 'gemini';
+
+export const setCurrentAIModel = (model: string) => { _currentAIModel = model; };
+export const getCurrentAIModel = () => _currentAIModel;
+
+/** 获取后端可用模型列表 */
+export interface AIModelInfo {
+  id: string;
+  name: string;
+  provider: string;
+  available: boolean;
+}
+
+export const fetchAIModels = async (): Promise<{ models: AIModelInfo[]; default: string }> => {
+  const backendUrl = getBackendUrl();
+  try {
+    const response = await fetch(`${backendUrl}/api/dify/models`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  } catch {
+    // 后端不可用时返回默认
+    return {
+      models: [
+        { id: 'gemini', name: 'Gemini', provider: 'Google', available: true },
+        { id: 'qwen', name: 'Qwen', provider: 'Alibaba', available: true },
+      ],
+      default: 'gemini',
+    };
+  }
+};
+
+/** 通用 AI Skill 调用：taskId 区分不同 skill，model 可选指定模型 */
+export const callDifySkill = async (taskId: string, text: string, model?: string): Promise<DifySkillResponse> => {
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/dify/skill`;
+  const selectedModel = model || _currentAIModel;
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId, text }),
+      body: JSON.stringify({ taskId, text, model: selectedModel }),
     });
 
     const data = await response.json();
@@ -1038,7 +1071,7 @@ export const callDifySkill = async (taskId: string, text: string): Promise<DifyS
     }
     return data;
   } catch (error) {
-    console.error(`Error calling AI skill [${taskId}]:`, error);
+    console.error(`Error calling AI skill [${taskId}] (model=${selectedModel}):`, error);
     return { answer: '', error: String(error) };
   }
 };

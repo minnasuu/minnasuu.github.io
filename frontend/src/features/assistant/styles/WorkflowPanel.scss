@@ -42,6 +42,98 @@
   }
 }
 
+// --- Model Selector ---
+.model-selector-wrap {
+  position: relative;
+}
+
+.model-fab {
+  .fab-label {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.model-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1.5px solid #EAEAEA;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+  z-index: 1001;
+  animation: dropdown-in 0.2s ease;
+
+  .model-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-align: left;
+
+    &:hover:not(.disabled) {
+      background: #FFFCF7;
+    }
+
+    &.active {
+      background: #FFF8F0;
+    }
+
+    &.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .model-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #5D4037;
+    }
+
+    .model-provider {
+      font-size: 0.6rem;
+      color: #BCAAA4;
+      font-weight: 500;
+    }
+
+    .model-check {
+      margin-left: auto;
+    }
+
+    .model-unavailable {
+      margin-left: auto;
+      font-size: 0.55rem;
+      color: #E57373;
+      font-weight: 600;
+      background: #FFEBEE;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+  }
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 // --- Workflow Panel (list view) ---
 .workflow-panel {
   position: fixed;
@@ -424,6 +516,20 @@
       font-weight: 600;
       color: #5D4037;
       letter-spacing: 0.02em;
+    }
+    .stage-model-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: #8D6E63;
+      background: #F5F0EB;
+      padding: 3px 10px;
+      border-radius: 8px;
+      margin-left: 4px;
+
+      svg { opacity: 0.7; }
     }
   }
 }

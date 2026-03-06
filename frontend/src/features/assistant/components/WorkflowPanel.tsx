@@ -12,7 +12,11 @@ import {
   updateWorkflow,
   deleteWorkflow,
   seedAssistants,
+  fetchAIModels,
+  setCurrentAIModel,
+  getCurrentAIModel,
   type CreateWorkflowRequest,
+  type AIModelInfo,
 } from '../../../shared/utils/backendClient';
 
 const STEP_DURATION = 3000;
@@ -84,6 +88,9 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [seeded, setSeeded] = useState(false);
+  const [aiModels, setAiModels] = useState<AIModelInfo[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>(getCurrentAIModel());
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 从后端加载工作流，失败则使用 mock 数据
@@ -113,6 +120,23 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
       }
     };
     loadWorkflows();
+  }, []);
+
+  // 加载可用 AI 模型
+  useEffect(() => {
+    fetchAIModels().then(({ models, default: defaultModel }) => {
+      setAiModels(models);
+      if (!getCurrentAIModel() || getCurrentAIModel() === 'gemini') {
+        setSelectedModel(defaultModel);
+        setCurrentAIModel(defaultModel);
+      }
+    });
+  }, []);
+
+  const handleModelChange = useCallback((modelId: string) => {
+    setSelectedModel(modelId);
+    setCurrentAIModel(modelId);
+    setIsModelDropdownOpen(false);
   }, []);
 
   // Seed assistants to database on first editor visit
@@ -397,6 +421,45 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
     <>
       {/* FAB 按钮组 */}
       <div className="fab-group">
+        {/* 模型选择器 */}
+        <div className="model-selector-wrap">
+          <button
+            className={`workflow-fab model-fab ${isModelDropdownOpen ? 'active' : ''}`}
+            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+            title="AI 模型"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 10v2m0 4h.01M8 14a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" />
+              <circle cx="12" cy="18" r="4" />
+              <path d="M12 14v-2" />
+              <path d="M9.17 16.17L7.05 18.3" />
+              <path d="M14.83 16.17l2.12 2.12" />
+            </svg>
+            <span className="fab-label">{aiModels.find(m => m.id === selectedModel)?.name || selectedModel}</span>
+          </button>
+          {isModelDropdownOpen && (
+            <div className="model-dropdown">
+              {aiModels.map((m) => (
+                <button
+                  key={m.id}
+                  className={`model-option ${m.id === selectedModel ? 'active' : ''} ${!m.available ? 'disabled' : ''}`}
+                  onClick={() => m.available && handleModelChange(m.id)}
+                  disabled={!m.available}
+                >
+                  <span className="model-name">{m.name}</span>
+                  <span className="model-provider">{m.provider}</span>
+                  {m.id === selectedModel && (
+                    <span className="model-check">
+                      <Icon name='check' size={14} color='var(--color-green-5)'/>
+                    </span>
+                  )}
+                  {!m.available && <span className="model-unavailable">未配置</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button
           className={`workflow-fab ${isHistoryOpen ? 'active' : ''}`}
           onClick={toggleHistory}
@@ -588,6 +651,15 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               <div className="stage-title">
                 {activeWorkflow.icon&&<span className="stage-icon">{activeWorkflow.icon}</span>}
                 <span className="stage-name">{activeWorkflow.name}</span>
+                <span className="stage-model-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="18" r="4" />
+                    <path d="M12 14v-2" />
+                    <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93" />
+                    <path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                  </svg>
+                  {aiModels.find(m => m.id === selectedModel)?.name || selectedModel}
+                </span>
               </div>
               <button className="stage-close" onClick={handleBack}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
