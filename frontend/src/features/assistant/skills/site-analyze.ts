@@ -1,5 +1,5 @@
 import type { SkillHandler, SkillContext, SkillResult } from './types';
-import { fetchArticles, fetchCrafts, callSiteAnalyze } from '../../../shared/utils/backendClient';
+import { fetchArticles, fetchCrafts, callDifySkill } from '../../../shared/utils/backendClient';
 
 /** 收集现有文章标题列表 */
 async function collectArticleTitles(): Promise<string[]> {
@@ -21,7 +21,7 @@ async function collectCraftNames(): Promise<string[]> {
   }
 }
 
-/** 拼接 Dify 输入字符串 */
+/** 拼接 Dify 输入字符串（纯文本，不含 JSON 包装） */
 function buildDifyInput(articleTitles: string[], craftNames: string[]): string {
   const articlesPart = articleTitles.length > 0
     ? articleTitles.map(t => `《${t}》`).join('、')
@@ -31,10 +31,7 @@ function buildDifyInput(articleTitles: string[], craftNames: string[]): string {
     ? craftNames.join('、')
     : '暂无 Crafts';
 
-  return JSON.stringify({
-    taskId: 'site-analyze',
-    text: `现有文章：${articlesPart}。现有crafts：${craftsPart}`,
-  });
+  return `现有文章：${articlesPart}。现有crafts：${craftsPart}`;
 }
 
 /** 🔬 网站诊断 — 小白 */
@@ -55,7 +52,7 @@ const siteAnalyze: SkillHandler = {
       console.log('[site-analyze] Dify input:', difyInput);
 
       // 3. 调用 Dify 对话式 API
-      const response = await callSiteAnalyze(difyInput);
+      const response = await callDifySkill('site-analyze', difyInput);
 
       if (response.error) {
         return {

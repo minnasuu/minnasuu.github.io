@@ -143,7 +143,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
       </div>
 
       {/* AI Assistants */}
-      <div className={sectionClass}>
+      {/* <div className={sectionClass}>
         <div className="section-header">
            <LandButton.ButtonArrow 
           onClick={() => navigate('/assistant')} 
@@ -151,7 +151,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
           text={`🤖 AI 助手 / Assistants`}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* 技能 */}
       <div className={sectionClass}>

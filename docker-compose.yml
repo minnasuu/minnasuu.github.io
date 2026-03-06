@@ -28,6 +28,11 @@ services:
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/minna_blog
       - EDITOR_PASSWORD=${EDITOR_PASSWORD}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
       - TZ=Asia/Shanghai
     depends_on:
       db:
