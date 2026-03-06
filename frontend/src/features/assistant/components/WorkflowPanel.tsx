@@ -6,6 +6,14 @@ import CatSVG from './CatSVG';
 import CatMiniAvatar from './CatMiniAvatar';
 import '../styles/WorkflowPanel.scss';
 import { Icon } from '@suminhan/land-design';
+import {
+  fetchWorkflows,
+  createWorkflow,
+  updateWorkflow,
+  deleteWorkflow,
+  seedAssistants,
+  type CreateWorkflowRequest,
+} from '../../../shared/utils/backendClient';
 
 const STEP_DURATION = 3000;
 
@@ -68,22 +76,162 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [currentDialog, setCurrentDialog] = useState('');
-  const [executionLogs, setExecutionLogs] = useState<ExecutionLog[]>([]);
+  const [, setExecutionLogs] = useState<ExecutionLog[]>([]);
   const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
   const [workflowList, setWorkflowList] = useState<Workflow[]>(() => [...initialWorkflows]);
+  const [isBackendLoaded, setIsBackendLoaded] = useState(false);
+  const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [seeded, setSeeded] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const logEndRef = useRef<HTMLDivElement | null>(null);
 
-  const toggleScheduled = useCallback((wfId: string, e: React.MouseEvent) => {
+  // 从后端加载工作流，失败则使用 mock 数据
+  useEffect(() => {
+    const loadWorkflows = async () => {
+      try {
+        const dbWorkflows = await fetchWorkflows();
+        if (dbWorkflows.length > 0) {
+          const mapped: Workflow[] = dbWorkflows.map((w) => ({
+            id: w.id,
+            name: w.name,
+            icon: w.icon,
+            description: w.description,
+            steps: w.steps as Workflow['steps'],
+            startTime: w.startTime ?? undefined,
+            endTime: w.endTime ?? undefined,
+            scheduled: w.scheduled,
+            scheduledEnabled: w.scheduledEnabled,
+            cron: w.cron ?? undefined,
+            persistent: w.persistent,
+          }));
+          setWorkflowList(mapped);
+          setIsBackendLoaded(true);
+        }
+      } catch {
+        console.log('Backend unavailable, using mock workflows');
+      }
+    };
+    loadWorkflows();
+  }, []);
+
+  // Seed assistants to database on first editor visit
+  useEffect(() => {
+    if (!editorMode || seeded) return;
+    const doSeed = async () => {
+      try {
+        const seedData = assistants.map((a) => ({
+          assistantId: a.id,
+          name: a.name,
+          role: a.role,
+          description: a.description,
+          accent: a.accent,
+          systemPrompt: a.systemPrompt,
+          skills: a.skills,
+          item: a.item,
+          catColors: a.catColors,
+          messages: a.messages,
+        }));
+        await seedAssistants(seedData);
+        setSeeded(true);
+      } catch {
+        console.log('Failed to seed assistants (backend may be unavailable)');
+      }
+    };
+    doSeed();
+  }, [editorMode, seeded]);
+
+  const toggleScheduled = useCallback(async (wfId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const wf = workflowList.find((w) => w.id === wfId);
+    if (!wf) return;
+    const newValue = !wf.scheduledEnabled;
     setWorkflowList((prev) =>
-      prev.map((wf) => wf.id === wfId ? { ...wf, scheduledEnabled: !wf.scheduledEnabled } : wf)
+      prev.map((w) => w.id === wfId ? { ...w, scheduledEnabled: newValue } : w)
     );
+    if (isBackendLoaded) {
+      try { await updateWorkflow(wfId, { scheduledEnabled: newValue }); } catch { /* ignore */ }
+    }
+  }, [workflowList, isBackendLoaded]);
+
+  const removeWorkflow = useCallback(async (wfId: string) => {
+    setWorkflowList((prev) => prev.filter((wf) => wf.id !== wfId));
+    if (isBackendLoaded) {
+      try { await deleteWorkflow(wfId); } catch { /* ignore */ }
+    }
+  }, [isBackendLoaded]);
+
+  const handleAddWorkflow = useCallback(() => {
+    setEditingWorkflow({
+      id: '',
+      name: '',
+      icon: '📋',
+      description: '',
+      steps: [],
+      persistent: false,
+      scheduled: false,
+      scheduledEnabled: false,
+    });
+    setIsEditModalOpen(true);
   }, []);
 
-  const removeWorkflow = useCallback((wfId: string) => {
-    setWorkflowList((prev) => prev.filter((wf) => wf.id !== wfId));
+  const handleEditWorkflow = useCallback((wf: Workflow, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingWorkflow({ ...wf });
+    setIsEditModalOpen(true);
   }, []);
+
+  const handleDeleteWorkflow = useCallback(async (wf: Workflow, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`确定删除工作流「${wf.name}」?`)) return;
+    setWorkflowList((prev) => prev.filter((w) => w.id !== wf.id));
+    if (isBackendLoaded) {
+      try { await deleteWorkflow(wf.id); } catch { /* ignore */ }
+    }
+  }, [isBackendLoaded]);
+
+  const handleSaveWorkflow = useCallback(async (wf: Workflow) => {
+    const isNew = !wf.id;
+    const req: CreateWorkflowRequest = {
+      name: wf.name,
+      icon: wf.icon,
+      description: wf.description,
+      steps: wf.steps,
+      startTime: wf.startTime,
+      endTime: wf.endTime,
+      scheduled: wf.scheduled,
+      scheduledEnabled: wf.scheduledEnabled,
+      cron: wf.cron,
+      persistent: wf.persistent,
+    };
+
+    if (isBackendLoaded) {
+      try {
+        if (isNew) {
+          const created = await createWorkflow(req);
+          setWorkflowList((prev) => [...prev, { ...wf, id: created.id }]);
+        } else {
+          await updateWorkflow(wf.id, req);
+          setWorkflowList((prev) => prev.map((w) => w.id === wf.id ? wf : w));
+        }
+      } catch (err) {
+        console.error('Save workflow failed:', err);
+        // fallback to local
+        if (isNew) {
+          setWorkflowList((prev) => [...prev, { ...wf, id: `local-${Date.now()}` }]);
+        } else {
+          setWorkflowList((prev) => prev.map((w) => w.id === wf.id ? wf : w));
+        }
+      }
+    } else {
+      if (isNew) {
+        setWorkflowList((prev) => [...prev, { ...wf, id: `local-${Date.now()}` }]);
+      } else {
+        setWorkflowList((prev) => prev.map((w) => w.id === wf.id ? wf : w));
+      }
+    }
+    setIsEditModalOpen(false);
+    setEditingWorkflow(null);
+  }, [isBackendLoaded]);
 
   // 按日期分组历史
   const groupedHistory = useMemo(() => {
@@ -325,11 +473,18 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
       <div className={`workflow-panel ${isOpen && !activeWorkflow ? 'open' : ''}`}>
         <div className="panel-header">
           <h3 className="panel-title">协作工作流</h3>
-          <button className="close-btn" onClick={handleClose}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
+          <div className="panel-header-actions">
+            {editorMode && (
+              <button className="add-workflow-btn" onClick={handleAddWorkflow} title="新增工作流">
+                <Icon name='add' strokeWidth={4} size={18}/>
+              </button>
+            )}
+            <button className="close-btn" onClick={handleClose}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="panel-body">
           <div className="workflow-list">
@@ -338,7 +493,6 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               <div
                 key={wf.id}
                 className={`workflow-card ${wf.persistent ? 'persistent' : 'oneshot'}`}
-                style={{ '--wf-color': wf.color } as React.CSSProperties}
                 onClick={() => editorMode && handleRunWorkflow(wf)}
               >
                 <div className="wf-card-header">
@@ -349,6 +503,22 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
                     {wf.scheduled && <span className="wf-tag wf-tag-scheduled">定时</span>}
                     {!wf.persistent && !wf.scheduled && <span className="wf-tag wf-tag-oneshot">一次性</span>}
                   </div>
+                  {editorMode && (
+                    <div className="wf-card-actions">
+                      <button className="wf-action-btn" onClick={(e) => handleEditWorkflow(wf, e)} title="编辑">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                      <button className="wf-action-btn delete" onClick={(e) => handleDeleteWorkflow(wf, e)} title="删除">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                   <span className="wf-step-count">{wf.steps.length} 步</span>
                 </div>
                 <p className="wf-desc">{wf.description}</p>
@@ -531,7 +701,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
             {/* 底部状态栏 */}
             <div className="stage-footer">
               {!isRunning && completedSteps.length === 0 && editorMode && (
-                <button className="exec-btn" onClick={() => handleRunWorkflow(activeWorkflow)} style={{ borderColor: activeWorkflow.color }}>
+                <button className="exec-btn" onClick={() => handleRunWorkflow(activeWorkflow)}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="#5D4037">
                     <path d="M8 5v14l11-7z" />
                   </svg>
@@ -586,7 +756,178 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
           </div>
         </div>
       )}
+
+      {/* ======== 编辑/新增工作流弹窗 ======== */}
+      {isEditModalOpen && editingWorkflow && (
+        <WorkflowEditModal
+          workflow={editingWorkflow}
+          onSave={handleSaveWorkflow}
+          onClose={() => { setIsEditModalOpen(false); setEditingWorkflow(null); }}
+        />
+      )}
     </>
+  );
+};
+
+/** 工作流编辑弹窗 */
+
+interface EditModalProps {
+  workflow: Workflow;
+  onSave: (wf: Workflow) => void;
+  onClose: () => void;
+}
+
+const WorkflowEditModal: React.FC<EditModalProps> = ({ workflow, onSave, onClose }) => {
+  const [form, setForm] = useState<Workflow>({ ...workflow });
+
+  const isNew = !workflow.id;
+
+  const updateField = <K extends keyof Workflow>(key: K, value: Workflow[K]) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const addStep = () => {
+    setForm((prev) => ({
+      ...prev,
+      steps: [...prev.steps, { agentId: '', skillId: '', action: '' }],
+    }));
+  };
+
+  const updateStep = (index: number, field: string, value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      steps: prev.steps.map((s, i) => i === index ? { ...s, [field]: value } : s),
+    }));
+  };
+
+  const removeStep = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      steps: prev.steps.filter((_, i) => i !== index),
+    }));
+  };
+
+  return (
+    <div className="wf-edit-overlay">
+      <div className="wf-edit-backdrop" onClick={onClose} />
+      <div className="wf-edit-modal">
+        <div className="wf-edit-header">
+          <h3>{isNew ? '新增工作流' : '编辑工作流'}</h3>
+          <button className="close-btn" onClick={onClose}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="wf-edit-body">
+          {/* 基本信息 */}
+
+          <div className="wf-edit-row">
+            <label>名称</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => updateField('name', e.target.value)}
+              placeholder="工作流名称"
+            />
+          </div>
+
+          <div className="wf-edit-row">
+            <label>描述</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => updateField('description', e.target.value)}
+              placeholder="简要描述工作流程"
+              rows={2}
+            />
+          </div>
+
+          {/* 时间和定时 */}
+          <div className="wf-edit-row-group">
+            <div className="wf-edit-row half">
+              <label>开始时间</label>
+              <input type="text" value={form.startTime || ''} onChange={(e) => updateField('startTime', e.target.value)} placeholder="如 09:00" />
+            </div>
+            <div className="wf-edit-row half">
+              <label>结束时间</label>
+              <input type="text" value={form.endTime || ''} onChange={(e) => updateField('endTime', e.target.value)} placeholder="如 09:15" />
+            </div>
+          </div>
+
+          <div className="wf-edit-row-group">
+            <div className="wf-edit-row half">
+              <label className="checkbox-label">
+                <input type="checkbox" checked={!!form.scheduled} onChange={(e) => updateField('scheduled', e.target.checked)} />
+                定时任务
+              </label>
+            </div>
+            <div className="wf-edit-row half">
+              <label className="checkbox-label">
+                <input type="checkbox" checked={!!form.persistent} onChange={(e) => updateField('persistent', e.target.checked)} />
+                常驻任务
+              </label>
+            </div>
+          </div>
+
+          {form.scheduled && (
+            <div className="wf-edit-row">
+              <label>定时表达式</label>
+              <input type="text" value={form.cron || ''} onChange={(e) => updateField('cron', e.target.value)} placeholder="如: 每天 09:00" />
+            </div>
+          )}
+
+          {/* 步骤 */}
+          <div className="wf-edit-steps">
+            <div className="wf-edit-steps-header">
+              <label>步骤 ({form.steps.length})</label>
+              <button className="add-step-btn" onClick={addStep}>+ 添加步骤</button>
+            </div>
+            {form.steps.map((step, i) => (
+              <div key={i} className="wf-step-edit">
+                <div className="step-number">{i + 1}</div>
+                <div className="step-fields">
+                  <select value={step.agentId} onChange={(e) => updateStep(i, 'agentId', e.target.value)}>
+                    <option value="">选择猫猫</option>
+                    {assistants.map((a) => (
+                      <option key={a.id} value={a.id}>{a.name} ({a.role})</option>
+                    ))}
+                  </select>
+                  <select value={step.skillId} onChange={(e) => updateStep(i, 'skillId', e.target.value)}>
+                    <option value="">选择技能</option>
+                    {step.agentId && assistants.find((a) => a.id === step.agentId)?.skills.map((s) => (
+                      <option key={s.id} value={s.id}>{(s as Skill).icon} {s.name}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={step.action}
+                    onChange={(e) => updateStep(i, 'action', e.target.value)}
+                    placeholder="步骤描述"
+                  />
+                </div>
+                <button className="remove-step-btn" onClick={() => removeStep(i)}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="wf-edit-footer">
+          <button className="wf-cancel-btn" onClick={onClose}>取消</button>
+          <button
+            className="wf-save-btn"
+            onClick={() => onSave(form)}
+            disabled={!form.name.trim()}
+          >
+            {isNew ? '创建' : '保存'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

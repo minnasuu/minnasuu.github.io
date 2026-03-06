@@ -76,6 +76,38 @@ model Idea {
   updatedAt     DateTime @updatedAt
 }
 
+model Workflow {
+  id                String   @id @default(uuid())
+  name              String
+  icon              String
+  description       String   @db.Text
+  steps             Json     // [{agentId, skillId, action, inputFrom?}]
+  startTime         String?
+  endTime           String?
+  scheduled         Boolean  @default(false)
+  scheduledEnabled  Boolean  @default(false)
+  cron              String?
+  persistent        Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Assistant {
+  id                String   @id @default(uuid())
+  assistantId       String   @unique  // 业务 ID (如 'manager', 'writer')
+  name              String
+  role              String
+  description       String   @db.Text
+  accent            String
+  systemPrompt      String   @db.Text
+  skills            Json     // Skill[]
+  item              String
+  catColors         Json     // CatColors 对象
+  messages          String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
 model Goal {
   id                    String   @id @default(uuid())
   title                 String

@@ -819,3 +819,193 @@ export const removeIdeaRelation = async (ideaId: string, targetId: string): Prom
     throw error;
   }
 };
+
+// ==================== Workflows API ====================
+
+export interface WorkflowStep {
+  agentId: string;
+  skillId: string;
+  action: string;
+  inputFrom?: string;
+}
+
+export interface WorkflowDB {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  steps: WorkflowStep[];
+  startTime?: string | null;
+  endTime?: string | null;
+  scheduled: boolean;
+  scheduledEnabled: boolean;
+  cron?: string | null;
+  persistent: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateWorkflowRequest {
+  name: string;
+  icon: string;
+  description: string;
+  steps: WorkflowStep[];
+  startTime?: string;
+  endTime?: string;
+  scheduled?: boolean;
+  scheduledEnabled?: boolean;
+  cron?: string;
+  persistent?: boolean;
+}
+
+export const fetchWorkflows = async (): Promise<WorkflowDB[]> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflows`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch workflows: ${response.status}`);
+    }
+    const data: WorkflowDB[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching workflows:', error);
+    return [];
+  }
+};
+
+export const fetchWorkflowById = async (id: string): Promise<WorkflowDB> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflows/${id}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch workflow ${id}: ${response.status}`);
+    }
+    const data: WorkflowDB = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error fetching workflow ${id}:`, error);
+    throw error;
+  }
+};
+
+export const createWorkflow = async (workflow: CreateWorkflowRequest): Promise<WorkflowDB> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflows`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(workflow),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create workflow: ${response.status}`);
+    }
+    const data: WorkflowDB = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error creating workflow:', error);
+    throw error;
+  }
+};
+
+export const updateWorkflow = async (id: string, workflow: Partial<CreateWorkflowRequest>): Promise<WorkflowDB> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflows/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(workflow),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update workflow: ${response.status}`);
+    }
+    const data: WorkflowDB = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating workflow:', error);
+    throw error;
+  }
+};
+
+export const deleteWorkflow = async (id: string): Promise<void> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflows/${id}`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete workflow: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error deleting workflow:', error);
+    throw error;
+  }
+};
+
+// ==================== Assistants API ====================
+
+export interface AssistantDB {
+  id: string;
+  assistantId: string;
+  name: string;
+  role: string;
+  description: string;
+  accent: string;
+  systemPrompt: string;
+  skills: any[];
+  item: string;
+  catColors: any;
+  messages: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const fetchAssistants = async (): Promise<AssistantDB[]> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/assistants`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch assistants: ${response.status}`);
+    }
+    const data: AssistantDB[] = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching assistants:', error);
+    return [];
+  }
+};
+
+export const seedAssistants = async (assistants: any[]): Promise<any> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/assistants/seed`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assistants }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to seed assistants: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error seeding assistants:', error);
+    throw error;
+  }
+};

@@ -82,6 +82,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/dify', difyRoutes);
+app.use('/api/workflows', workflowRoutes);
+app.use('/api/assistants', assistantRoutes);
 
 // 启动服务器
 app.listen(PORT, () => {

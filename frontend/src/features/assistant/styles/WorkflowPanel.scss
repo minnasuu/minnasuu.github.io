@@ -85,7 +85,7 @@
       align-items: center;
       gap: 6px;
     }
-
+    .add-workflow-btn,
     .close-btn {
       border: none;
       background: none;
@@ -140,13 +140,13 @@
   background: #fff;
 
   &:hover {
-    border-color: var(--wf-color);
+    border-color: #FFB74D;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
     transform: translateY(-2px);
   }
 
   &.persistent {
-    border-left: 3px solid var(--wf-color);
+    border-left: 3px solid #FFB74D;
   }
 
   .wf-card-header {
@@ -195,6 +195,40 @@
       padding: 2px 8px;
       border-radius: 10px;
     }
+
+    .wf-card-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .wf-action-btn {
+      border: none;
+      background: none;
+      color: #BCAAA4;
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 6px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background: #F5F0EB;
+        color: #5D4037;
+      }
+
+      &.delete:hover {
+        background: #FFEBEE;
+        color: #E53935;
+      }
+    }
+  }
+
+  &:hover .wf-card-actions {
+    opacity: 1;
   }
 
   .wf-desc {
@@ -849,19 +883,10 @@
       gap: 6px;
     }
 
-    .close-btn {
-      border: none;
-      background: none;
-      color: #BCAAA4;
-      cursor: pointer;
-      padding: 4px;
-      border-radius: 8px;
-      transition: all 0.2s;
-
-      &:hover {
-        background: #F5F0EB;
-        color: #5D4037;
-      }
+    .panel-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
   }
 
@@ -1038,5 +1063,291 @@
   50% {
     transform: translateY(-4px);
     opacity: 1;
+  }
+}
+
+// =========================================
+// ====== 工作流编辑弹窗 ======
+// =========================================
+.wf-edit-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wf-edit-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+}
+
+.wf-edit-modal {
+  position: relative;
+  width: 520px;
+  max-height: 85vh;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modal-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modal-in {
+  from { transform: scale(0.9) translateY(20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.wf-edit-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #EAEAEA;
+
+  h3 {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 800;
+    color: #5D4037;
+    margin: 0;
+  }
+
+  .close-btn {
+    border: none;
+    background: none;
+    color: #BCAAA4;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #F5F0EB;
+      color: #5D4037;
+    }
+  }
+}
+
+.wf-edit-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: #E0D6CC; border-radius: 4px; }
+}
+
+.wf-edit-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &.half { flex: 1; }
+
+  label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #8D6E63;
+  }
+
+  input[type="text"], textarea, select {
+    padding: 8px 12px;
+    border: 1.5px solid #E0D6CC;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #5D4037;
+    background: #FFFCF7;
+    transition: border-color 0.2s;
+    outline: none;
+    font-family: inherit;
+
+    &:focus {
+      border-color: #FFB74D;
+    }
+
+    &::placeholder {
+      color: #BCAAA4;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 50px;
+  }
+}
+
+.wf-edit-row-group {
+  display: flex;
+  gap: 12px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: #5D4037 !important;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #66BB6A;
+    cursor: pointer;
+  }
+}
+
+// 步骤编辑区
+.wf-edit-steps {
+  .wf-edit-steps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #8D6E63;
+    }
+  }
+
+  .add-step-btn {
+    border: 1px dashed #DADADA;
+    background: none;
+    color: #8D6E63;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #66BB6A;
+      color: #2E7D32;
+      background: #E8F5E9;
+    }
+  }
+}
+
+.wf-step-edit {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #F0EBE6;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: #FFFCF7;
+
+  .step-number {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #F5F0EB;
+    color: #8D6E63;
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .step-fields {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    select, input {
+      padding: 6px 10px;
+      border: 1px solid #E0D6CC;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      color: #5D4037;
+      background: #fff;
+      outline: none;
+      font-family: inherit;
+
+      &:focus { border-color: #FFB74D; }
+    }
+  }
+
+  .remove-step-btn {
+    border: none;
+    background: none;
+    color: #BCAAA4;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-top: 4px;
+
+    &:hover {
+      background: #FFEBEE;
+      color: #E53935;
+    }
+  }
+}
+
+// 底部按钮
+.wf-edit-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px;
+  border-top: 1px solid #EAEAEA;
+
+  .wf-cancel-btn {
+    padding: 8px 20px;
+    border: 1.5px solid #DADADA;
+    border-radius: 10px;
+    background: #fff;
+    color: #8D6E63;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #BCAAA4;
+      background: #F5F0EB;
+    }
+  }
+
+  .wf-save-btn {
+    padding: 8px 24px;
+    border: none;
+    border-radius: 10px;
+    background: #FFB74D;
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #FFA726;
+      box-shadow: 0 3px 10px rgba(255, 183, 77, 0.3);
+    }
+
+    &:disabled {
+      background: #E0D6CC;
+      cursor: not-allowed;
+    }
   }
 }

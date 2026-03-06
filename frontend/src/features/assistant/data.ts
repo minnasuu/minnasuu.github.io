@@ -74,7 +74,6 @@ export interface Workflow {
   icon: string;
   description: string;
   steps: WorkflowStep[];
-  color: string;
   startTime?: string;       // 开始时间 (ISO 或 HH:mm)
   endTime?: string;         // 结束时间 (ISO 或 HH:mm)
   scheduled?: boolean;      // 是否为定时任务
@@ -95,7 +94,6 @@ export const workflows: Workflow[] = [
       { agentId: 'writer', skillId: 'news-to-article', action: '整理为可发布的资讯汇总 → 输出 Text', inputFrom: 'analytics' },
       { agentId: 'email', skillId: 'send-notification', action: '推送资讯摘要给主人 → 输出邮件状态', inputFrom: 'writer' },
     ],
-    color: '#96BAFF',
     startTime: '09:00',
     endTime: '09:15',
     scheduled: true,
@@ -114,7 +112,6 @@ export const workflows: Workflow[] = [
       { agentId: 'manager', skillId: 'generate-todo', action: '生成代办清单 → 输出 JSON 待办列表', inputFrom: 'manager' },
       { agentId: 'manager', skillId: 'assign-task', action: '将任务分配给对应猫猫 → 输出 JSON 任务卡片', inputFrom: 'manager' },
     ],
-    color: '#FFB74D',
     startTime: '10:00',
     endTime: '10:20',
     scheduled: true,
@@ -134,7 +131,6 @@ export const workflows: Workflow[] = [
       { agentId: 'milk', skillId: 'content-review', action: '内容质量审核 → 输出 JSON', inputFrom: 'crafts' },
       { agentId: 'email', skillId: 'send-notification', action: '推送发布通知 → 输出邮件状态', inputFrom: 'milk' },
     ],
-    color: '#E8A0BF',
     startTime: '14:00',
     endTime: '14:30',
     persistent: false,
@@ -150,7 +146,6 @@ export const workflows: Workflow[] = [
       { agentId: 'milk', skillId: 'regression-test', action: '对新组件执行回归测试 → 输出 JSON', inputFrom: 'crafts' },
       { agentId: 'email', skillId: 'send-notification', action: '推送 Crafts 更新通知 → 输出邮件状态', inputFrom: 'milk' },
     ],
-    color: '#A0D8B3',
     startTime: '15:00',
     endTime: '15:20',
     persistent: false,
@@ -167,7 +162,6 @@ export const workflows: Workflow[] = [
       { agentId: 'writer', skillId: 'generate-article', action: '撰写分析报告 → 输出 Text', inputFrom: 'image' },
       { agentId: 'email', skillId: 'send-email', action: '发送周报邮件 → 输出邮件状态', inputFrom: 'writer' },
     ],
-    color: '#96BAFF',
     startTime: '10:00',
     endTime: '10:30',
     scheduled: true,
@@ -185,7 +179,6 @@ export const workflows: Workflow[] = [
       { agentId: 'text', skillId: 'pixelate-image', action: '将图片像素化处理 → 输出 Image', inputFrom: 'image' },
       { agentId: 'milk', skillId: 'quality-check', action: '检测图片质量分数 → 输出 JSON', inputFrom: 'text' },
     ],
-    color: '#90CAF9',
     startTime: '10:30',
     endTime: '10:40',
     persistent: true,
@@ -201,7 +194,6 @@ export const workflows: Workflow[] = [
       { agentId: 'manager', skillId: 'generate-todo', action: '根据日志和纪要生成新待办 → 输出 JSON 代办清单', inputFrom: 'sing' },
       { agentId: 'manager', skillId: 'assign-task', action: '将新任务分配给对应猫猫 → 输出 JSON 任务卡片', inputFrom: 'manager' },
     ],
-    color: '#B39DDB',
     startTime: '17:00',
     endTime: '17:20',
     scheduled: true,
