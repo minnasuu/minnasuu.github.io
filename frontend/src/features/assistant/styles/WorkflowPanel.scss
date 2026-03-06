@@ -17,7 +17,7 @@
   border-radius: 14px;
   background: #fff;
   color: #5D4037;
-  font-family: 'M PLUS Rounded 1c', sans-serif;
+  // font-family: 'M PLUS Rounded 1c', sans-serif;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
@@ -181,6 +181,9 @@
     gap: 6px;
 
     .wf-agent-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
       font-size: 0.68rem;
       font-weight: 600;
       padding: 2px 10px;
@@ -266,7 +269,7 @@
     color: #8D6E63;
     font-size: 0.82rem;
     font-weight: 600;
-    font-family: 'M PLUS Rounded 1c', sans-serif;
+    // font-family: 'M PLUS Rounded 1c', sans-serif;
     cursor: pointer;
     padding: 6px 12px;
     border-radius: 10px;
@@ -284,7 +287,7 @@
     .stage-icon { font-size: 1.4rem; }
     .stage-name {
       font-size: 1.1rem;
-      font-weight: 800;
+      font-weight: 600;
       color: #5D4037;
       letter-spacing: 0.02em;
     }
@@ -626,9 +629,9 @@
     border-radius: 14px;
     background: #fff;
     color: #5D4037;
-    font-family: 'M PLUS Rounded 1c', sans-serif;
+    // font-family: 'M PLUS Rounded 1c', sans-serif;
     font-size: 0.92rem;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.25s;
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
@@ -684,9 +687,9 @@
       border: 1px solid #DADADA;
       background: #fff;
       color: #5D4037;
-      font-family: 'M PLUS Rounded 1c', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 700;
+      // font-family: 'M PLUS Rounded 1c', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
       padding: 6px 16px;
       border-radius: 10px;
       cursor: pointer;
@@ -833,6 +836,9 @@
     }
 
     .ghi-agent {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
       font-size: 0.62rem;
       font-weight: 700;
       padding: 1px 8px;

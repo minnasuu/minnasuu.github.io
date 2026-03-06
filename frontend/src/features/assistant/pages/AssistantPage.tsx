@@ -3,6 +3,7 @@ import CatSVG from '../components/CatSVG';
 import WorkflowPanel from '../components/WorkflowPanel';
 import '../styles/AssistantPage.scss';
 import { assistants, workHistory, type Skill } from '../data';
+import { Icon } from '@suminhan/land-design';
 
 const formatTime = (iso: string) => {
   const d = new Date(iso);
@@ -13,9 +14,13 @@ const formatTime = (iso: string) => {
   return `${month}/${day} ${h}:${m}`;
 };
 
-const statusIcon = (s: string) => s === 'success' ? '✅' : s === 'warning' ? '⚠️' : '❌';
+const statusIcon = (s: string) => s === 'success' ? <Icon name='check-fill' color='var(--color-green-5)'/> : s === 'warning' ? <Icon name='info-fill' color='var(--color-orange-5)'/> : <Icon name='close-fill' color='var(--color-red-5)'/>;
 
-const AssistantPage: React.FC = () => {
+interface AssistantPageProps {
+  editorMode?: boolean;
+}
+
+const AssistantPage: React.FC<AssistantPageProps> = ({ editorMode = false }) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [hoverMessage, setHoverMessage] = useState<Record<string, string>>({});
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -77,15 +82,16 @@ const AssistantPage: React.FC = () => {
               </div>
               {assistant.skills && (
                 <div className="skill-tags">
-                  {(assistant.skills as Skill[]).map((skill) => (
+                  {(assistant.skills as Skill[]).map((skill,index) => (
                     <span key={skill.id} className="skill-tag" style={{ color: assistant.accent, borderColor: assistant.accent + '60' }}>
-                      <span className="skill-icon">{skill.icon}</span>
+                      {/* <span className="skill-icon">{skill.icon}</span> */}
+                      {index >0 && <span className='text-base'>·</span>}
                       <span className="skill-name">{skill.name}</span>
-                      <span className="skill-io">
+                      {/* <span className="skill-io">
                         <span className="io-badge io-in">{skill.input}</span>
                         <span className="io-arrow">→</span>
                         <span className="io-badge io-out">{skill.output}</span>
-                      </span>
+                      </span> */}
                     </span>
                   ))}
                 </div>
@@ -98,7 +104,7 @@ const AssistantPage: React.FC = () => {
       {/* 猫猫详情 Overlay - 三栏布局 */}
       {selectedAssistant && (
         <div className="cat-detail-overlay" onClick={handleCloseDetail}>
-          <div className="cat-detail-card three-col" onClick={(e) => e.stopPropagation()} style={{ '--cat-accent': selectedAssistant.accent } as React.CSSProperties}>
+          <div className="cat-detail-card three-col" onClick={(e) => e.stopPropagation()} style={{ '--cat-accent': selectedAssistant.catColors.deskDark } as React.CSSProperties}>
             {/* 关闭按钮 */}
             <button className="detail-close" onClick={handleCloseDetail}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,7 +118,7 @@ const AssistantPage: React.FC = () => {
                 <CatSVG colors={selectedAssistant.catColors} className="detail-cat-svg" />
               </div>
               <h2 className="profile-name">{selectedAssistant.name}</h2>
-              <span className="profile-role" style={{ color: selectedAssistant.accent }}>{selectedAssistant.role}</span>
+              <span className="profile-role" style={{ color: selectedAssistant.catColors.deskDark }}>{selectedAssistant.role}</span>
               <p className="profile-desc">{selectedAssistant.description}</p>
               <div className="profile-signature">
                 <span className="signature-quote">"</span>
@@ -124,7 +130,7 @@ const AssistantPage: React.FC = () => {
             {/* 第2栏：Skills */}
             <div className="col col-skills">
               <h3 className="col-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={selectedAssistant.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={selectedAssistant.catColors.deskDark} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
                 </svg>
                 技能工具
@@ -133,7 +139,7 @@ const AssistantPage: React.FC = () => {
               <div className="col-scroll">
                 <div className="skill-detail-list">
                   {(selectedAssistant.skills as Skill[]).map((skill) => (
-                    <div key={skill.id} className="skill-detail-item" style={{ borderLeftColor: selectedAssistant.accent }}>
+                    <div key={skill.id} className="skill-detail-item" style={{ borderLeftColor: selectedAssistant.catColors.deskDark }}>
                       <div className="skill-detail-head">
                         <span className="sd-icon">{skill.icon}</span>
                         <span className="sd-name">{skill.name}</span>
@@ -157,7 +163,7 @@ const AssistantPage: React.FC = () => {
             {/* 第3栏：历史事件 */}
             <div className="col col-history">
               <h3 className="col-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={selectedAssistant.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={selectedAssistant.catColors.deskDark} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <polyline points="12 6 12 12 16 14" />
                 </svg>
@@ -194,7 +200,7 @@ const AssistantPage: React.FC = () => {
         </div>
       )}
 
-      <WorkflowPanel />
+      <WorkflowPanel editorMode={editorMode} />
     </div>
   );
 };

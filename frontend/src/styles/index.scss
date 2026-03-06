@@ -24,6 +24,10 @@ body{
   font-family: 'Momozhuanji';
   src: url('https://suminhan.cn/assets/fonts/Momozhuanji.ttf');
 }
+@font-face {
+  font-family: 'AZhuPaoPaoTi';
+  src: url('/font/AZhuPaoPaoTi-2.ttf') format('truetype');
+}
 
 /* 闪烁光标动画 */
 @keyframes blink {

@@ -13,6 +13,7 @@ import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/c
 import { AILogPage } from '../features/ai-log';
 import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
 import AssistantPage from '../features/assistant/pages/AssistantPage';
+import AssistantEditorPage from '../features/assistant/pages/AssistantEditorPage';
 // import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
 // import { IdeasPage } from '../features/ideas';
 // import IdeasEditorPage from '../features/ideas/pages/IdeasEditorPage';
@@ -59,6 +60,7 @@ const AppRouter: React.FC = () => {
             
             {/* ASSISTANT */}
             <Route path="/assistant" element={<AssistantPage />} />
+            <Route path="/assistant-editor" element={<AssistantEditorPage />} />
 
             {/* CRAFTS DEMO */}
             {/* <Route path="/crafts/demo/dots-overlay" element={<DotsOverlayDemo/>}/> */}

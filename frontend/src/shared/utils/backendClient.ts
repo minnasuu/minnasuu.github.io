@@ -378,6 +378,12 @@ export const verifyEditorPassword = async (password: string): Promise<VerifyPass
     const data: VerifyPasswordResponse = await response.json();
     return data;
   } catch (error) {
+    // 后端不可达时，使用本地环境变量验证（仅限开发环境）
+    const localPassword = import.meta.env.VITE_EDITOR_PASSWORD;
+    if (localPassword && password === localPassword) {
+      console.warn('[Auth] Backend unreachable, using local env fallback');
+      return { success: true, message: '本地验证成功' };
+    }
     console.error('Error verifying password:', error);
     throw error;
   }

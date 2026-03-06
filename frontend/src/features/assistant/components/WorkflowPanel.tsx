@@ -1,9 +1,27 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { workflows, assistants, workHistory, type Workflow, type Skill } from '../data';
+import { getSkillHandler } from '../skills';
+import type { SkillResult } from '../skills/types';
 import CatSVG from './CatSVG';
+import CatMiniAvatar from './CatMiniAvatar';
 import '../styles/WorkflowPanel.scss';
+import { Icon } from '@suminhan/land-design';
 
 const STEP_DURATION = 3000;
+
+/** 执行日志条目 */
+interface ExecutionLog {
+  stepIndex: number;
+  agentId: string;
+  agentName: string;
+  skillId: string;
+  skillName: string;
+  skillIcon: string;
+  status: 'running' | 'success' | 'warning' | 'error';
+  summary?: string;
+  timestamp: string;
+  duration?: number; // ms
+}
 
 /** 每只猫执行时的拟人化台词 */
 const workingDialogs: Record<string, string[]> = {
@@ -12,10 +30,11 @@ const workingDialogs: Record<string, string[]> = {
   writer: ['构思灵感中...', '奋笔疾书~ ✍️', '文章出炉!'],
   crafts: ['排版设计中...', '组件拼装~ 🧩', '页面搭好了!'],
   image: ['调色构图中...', '生成画面~ 🎨', '大作完成!'],
-  manager: ['规划安排中...', '统筹调度~ 📋', '安排妥当!'],
+  manager: ['统筹规划中...', '调度安排~ 📋', '一切就绪!'],
   text: ['图片处理中...', '像素运算~ 🔲', '处理完毕!'],
-  sing: ['哼曲找灵感...', '编曲制作~ 🎵', '新曲出炉!'],
+  sing: ['记录整理中...', '纪要生成~ 📝', '记录完毕!'],
   milk: ['仔细检查中...', '质量测试~ 🔎', '检测通过!'],
+  hr: ['翻阅简历中...', '面试评估~ 👥', '招募完成!'],
 };
 
 const getAgent = (agentId: string) => assistants.find((a) => a.id === agentId);
@@ -35,9 +54,13 @@ const formatTime = (iso: string) => {
   return `${month}/${day} ${h}:${m}`;
 };
 
-const statusIcon = (s: string) => s === 'success' ? '✅' : s === 'warning' ? '⚠️' : '❌';
+const statusIcon = (s: string) => s === 'success' ? <Icon name='check-fill' color='var(--color-green-5)'/> : s === 'warning' ? <Icon name='info-fill' color='var(--color-orange-5)'/> : <Icon name='close-fill' color='var(--color-red-5)'/>;
 
-const WorkflowPanel: React.FC = () => {
+interface WorkflowPanelProps {
+  editorMode?: boolean;
+}
+
+const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [activeWorkflow, setActiveWorkflow] = useState<Workflow | null>(null);
@@ -45,7 +68,10 @@ const WorkflowPanel: React.FC = () => {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [currentDialog, setCurrentDialog] = useState('');
+  const [executionLogs, setExecutionLogs] = useState<ExecutionLog[]>([]);
+  const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const logEndRef = useRef<HTMLDivElement | null>(null);
 
   // 按日期分组历史
   const groupedHistory = useMemo(() => {
@@ -64,9 +90,11 @@ const WorkflowPanel: React.FC = () => {
     setCompletedSteps([]);
     setIsRunning(true);
     setCurrentDialog('');
+    setExecutionLogs([]);
+    setStepResults(new Map());
   }, []);
 
-  // 执行步骤时更新对话
+  // 执行步骤时调用事件处理器并更新对话
   useEffect(() => {
     if (!isRunning || !activeWorkflow || runningStepIndex < 0) return;
 
@@ -78,20 +106,88 @@ const WorkflowPanel: React.FC = () => {
     }
 
     const step = activeWorkflow.steps[runningStepIndex];
+    const agent = getAgent(step.agentId);
+    const skill = getAgentSkill(step.agentId, step.skillId);
     const dialogs = workingDialogs[step.agentId] ?? ['工作中...'];
-    // 显示第一句
+    const startTime = Date.now();
+
+    // 添加 running 状态的日志
+    const runningLog: ExecutionLog = {
+      stepIndex: runningStepIndex,
+      agentId: step.agentId,
+      agentName: agent?.name ?? step.agentId,
+      skillId: step.skillId,
+      skillName: skill?.name ?? step.skillId,
+      skillIcon: skill?.icon ?? '⚙️',
+      status: 'running',
+      timestamp: new Date().toISOString(),
+    };
+    setExecutionLogs((prev) => [...prev, runningLog]);
+
+    // 显示第一句对话
     setCurrentDialog(dialogs[0]);
+
+    // 调用 skill handler
+    const handler = getSkillHandler(step.skillId);
+    const executePromise = handler
+      ? handler.execute({
+          agentId: step.agentId,
+          input: runningStepIndex > 0 ? stepResults.get(runningStepIndex - 1)?.data : undefined,
+          timestamp: new Date().toISOString(),
+        })
+      : Promise.resolve<SkillResult>({
+          success: true,
+          data: null,
+          summary: skill?.mockResult ?? '执行完成',
+          status: 'success',
+        });
+
     // 中间切换对话
     const midTimer = setTimeout(() => {
       setCurrentDialog(dialogs[1] ?? dialogs[0]);
     }, STEP_DURATION * 0.4);
+
     // 完成
     timerRef.current = setTimeout(() => {
-      setCurrentDialog(dialogs[2] ?? '完成!');
-      setTimeout(() => {
-        setCompletedSteps((prev) => [...prev, runningStepIndex]);
-        setRunningStepIndex((prev) => prev + 1);
-      }, 300);
+      executePromise.then((result) => {
+        const duration = Date.now() - startTime;
+
+        // 保存结果
+        setStepResults((prev) => {
+          const next = new Map(prev);
+          next.set(runningStepIndex, result);
+          return next;
+        });
+
+        // 更新日志为完成状态
+        setExecutionLogs((prev) =>
+          prev.map((log) =>
+            log.stepIndex === runningStepIndex && log.status === 'running'
+              ? { ...log, status: result.status, summary: result.summary, duration }
+              : log
+          )
+        );
+
+        setCurrentDialog(result.summary || dialogs[2] || '完成!');
+        setTimeout(() => {
+          setCompletedSteps((prev) => [...prev, runningStepIndex]);
+          setRunningStepIndex((prev) => prev + 1);
+        }, 500);
+      }).catch((err) => {
+        const duration = Date.now() - startTime;
+        setExecutionLogs((prev) =>
+          prev.map((log) =>
+            log.stepIndex === runningStepIndex && log.status === 'running'
+              ? { ...log, status: 'error', summary: `执行出错: ${err.message}`, duration }
+              : log
+          )
+        );
+        setCurrentDialog('出错了...');
+        setTimeout(() => {
+          setCompletedSteps((prev) => [...prev, runningStepIndex]);
+          setRunningStepIndex((prev) => prev + 1);
+        }, 500);
+      });
     }, STEP_DURATION);
 
     return () => {
@@ -106,6 +202,8 @@ const WorkflowPanel: React.FC = () => {
     setCompletedSteps([]);
     setIsRunning(false);
     setCurrentDialog('');
+    setExecutionLogs([]);
+    setStepResults(new Map());
   };
 
   const handleClose = () => {
@@ -144,20 +242,22 @@ const WorkflowPanel: React.FC = () => {
           </svg>
           <span className="fab-label">历史</span>
         </button>
-        <button
-          className={`workflow-fab ${isOpen ? 'active' : ''}`}
-          onClick={toggleWorkflow}
-          title="协作工作流"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="6" cy="6" r="3" />
-            <circle cx="18" cy="6" r="3" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="18" r="3" />
-            <path d="M9 6h6M6 9v6M18 9v6M9 18h6" />
-          </svg>
-          <span className="fab-label">协作</span>
-        </button>
+        {editorMode && (
+          <button
+            className={`workflow-fab ${isOpen ? 'active' : ''}`}
+            onClick={toggleWorkflow}
+            title="协作工作流"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="6" cy="6" r="3" />
+              <circle cx="18" cy="6" r="3" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="18" r="3" />
+              <path d="M9 6h6M6 9v6M18 9v6M9 18h6" />
+            </svg>
+            <span className="fab-label">协作</span>
+          </button>
+        )}
       </div>
 
       {/* 历史面板 */}
@@ -192,6 +292,7 @@ const WorkflowPanel: React.FC = () => {
                     <div className="ghi-body">
                       <div className="ghi-top">
                         <span className="ghi-agent" style={{ backgroundColor: (agent?.accent ?? '#999') + '25', color: agent?.accent }}>
+                          {agent && <CatMiniAvatar colors={agent.catColors} size={14} />}
                           {agent?.name ?? item.agentId}
                         </span>
                         {skill && <span className="ghi-skill">{skill.icon} {skill.name}</span>}
@@ -226,7 +327,7 @@ const WorkflowPanel: React.FC = () => {
                 key={wf.id}
                 className="workflow-card"
                 style={{ '--wf-color': wf.color } as React.CSSProperties}
-                onClick={() => handleRunWorkflow(wf)}
+                onClick={() => editorMode && handleRunWorkflow(wf)}
               >
                 <div className="wf-card-header">
                   <span className="wf-icon">{wf.icon}</span>
@@ -244,7 +345,10 @@ const WorkflowPanel: React.FC = () => {
                         className="wf-agent-tag"
                         style={{ backgroundColor: (agent?.accent ?? '#999') + '30', color: agent?.accent ?? '#999' }}
                       >
-                        {skill?.icon ?? '⚙️'} {agent?.name ?? step.agentId}
+                        {agent && <CatMiniAvatar colors={agent.catColors} size={16} />}
+                        {agent?.name ?? step.agentId}
+                        <div className='w-px h-3 bg-black/5 mx-1'></div>
+                        {skill?.icon ?? '⚙️'}
                       </span>
                     );
                   })}
@@ -383,13 +487,24 @@ const WorkflowPanel: React.FC = () => {
 
             {/* 底部状态栏 */}
             <div className="stage-footer">
-              {!isRunning && completedSteps.length === 0 && (
+              {!isRunning && completedSteps.length === 0 && editorMode && (
                 <button className="exec-btn" onClick={() => handleRunWorkflow(activeWorkflow)} style={{ borderColor: activeWorkflow.color }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="#5D4037">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                   开始执行
                 </button>
+              )}
+              {!isRunning && completedSteps.length === 0 && !editorMode && (
+                <div className="exec-status">
+                  <span className="exec-label" style={{ opacity: 0.6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 6 }}>
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0110 0v4" />
+                    </svg>
+                    访问 /assistant-editor 解锁执行
+                  </span>
+                </div>
               )}
               {isRunning && (
                 <div className="exec-status">
@@ -405,9 +520,11 @@ const WorkflowPanel: React.FC = () => {
                 <div className="exec-done">
                   <span className="done-icon">🎉</span>
                   <span className="done-text">全部完成！所有猫猫辛苦了～</span>
-                  <button className="replay-btn" onClick={() => handleRunWorkflow(activeWorkflow)}>
-                    再来一次
-                  </button>
+                  {editorMode && (
+                    <button className="replay-btn" onClick={() => handleRunWorkflow(activeWorkflow)}>
+                      再来一次
+                    </button>
+                  )}
                 </div>
               )}
             </div>
