@@ -1,53 +1,76 @@
 import type { SkillHandler, SkillContext, SkillResult } from './types';
-import { createWorkflow } from '../../../shared/utils/backendClient';
+import { createWorkflow, callDifySkill } from '../../../shared/utils/backendClient';
 import type { CreateWorkflowRequest } from '../../../shared/utils/backendClient';
 
-/** 从 generate-todo 的输出中解析任务条目 */
-function parseTodos(input: unknown): { category: string; title: string; description: string }[] {
-  const todos: { category: string; title: string; description: string }[] = [];
+interface TodoItem {
+  category: string;
+  title: string;
+  description: string;
+}
 
-  if (!input) return todos;
-
-  // 如果是字符串（Dify 返回的文本），按行解析
-  const text = typeof input === 'string'
-    ? input
-    : (input as any).todos || (input as any).summary || '';
-
-  if (typeof text === 'string' && text.trim()) {
-    const lines = text.split('\n').filter(l => l.trim());
-
-    let currentCategory = '其他';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-
-      // 检测分类标题行
-      if (/文章/.test(trimmed) && !/^[-*\d]/.test(trimmed)) {
-        currentCategory = '文章';
-        continue;
-      }
-      if (/[Cc]raft/.test(trimmed) && !/^[-*\d]/.test(trimmed)) {
-        currentCategory = 'Crafts';
-        continue;
-      }
-      if (/功能|扩展|feature/i.test(trimmed) && !/^[-*\d]/.test(trimmed)) {
-        currentCategory = '功能扩展';
-        continue;
-      }
-
-      // 匹配任务行（以 -、*、数字. 开头）
-      const match = trimmed.match(/^[-*•]\s*(.+)$/) || trimmed.match(/^\d+[.)]\s*(.+)$/);
-      if (match) {
-        todos.push({
-          category: currentCategory,
-          title: match[1].replace(/[【】《》]/g, '').trim(),
-          description: match[1].trim(),
-        });
-      }
+/** 从 AI 返回的 JSON 中解析任务列表，限制 0-5 个 */
+function parseAITodos(answer: string): TodoItem[] {
+  try {
+    // 去掉可能的 markdown 代码块包裹
+    let json = answer.trim();
+    const codeBlockMatch = json.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+    if (codeBlockMatch) {
+      json = codeBlockMatch[1].trim();
     }
+
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+
+    // 过滤有效条目并限制 5 个
+    const validCategories = ['文章', 'Crafts', '功能扩展'];
+    return parsed
+      .filter(
+        (item: any) =>
+          item &&
+          typeof item.title === 'string' &&
+          item.title.trim() &&
+          typeof item.category === 'string' &&
+          validCategories.includes(item.category)
+      )
+      .slice(0, 5)
+      .map((item: any) => ({
+        category: item.category,
+        title: item.title.trim(),
+        description: (item.description || item.title).trim(),
+      }));
+  } catch {
+    console.warn('[assign-task] Failed to parse AI response as JSON, trying fallback');
+    return [];
+  }
+}
+
+/** 从上游 input 构建发送给 AI 的文本 */
+function buildPromptText(input: unknown): string {
+  if (!input) return '';
+
+  if (typeof input === 'string') return input;
+
+  if (typeof input === 'object' && input !== null) {
+    const obj = input as Record<string, unknown>;
+    const parts: string[] = [];
+
+    if (obj.todos && typeof obj.todos === 'string') {
+      parts.push(`代办清单：\n${obj.todos}`);
+    }
+    if (obj.analysis && typeof obj.analysis === 'string') {
+      parts.push(`网站诊断：\n${obj.analysis}`);
+    }
+    if (obj.summary && typeof obj.summary === 'string') {
+      parts.push(`产出统计：\n${obj.summary}`);
+    }
+
+    if (parts.length > 0) return parts.join('\n\n');
+
+    // fallback: 序列化整个对象
+    return JSON.stringify(obj, null, 2);
   }
 
-  return todos;
+  return '';
 }
 
 /** 根据分类决定负责的猫猫和 skill */
@@ -71,20 +94,44 @@ const CATEGORY_ICONS: Record<string, string> = {
   '其他': '📌',
 };
 
-/** 📌 任务分配 — 花椒 */
+/** 📌 任务分配 — 花椒（AI 辅助拆解） */
 const assignTask: SkillHandler = {
   id: 'assign-task',
   async execute(ctx: SkillContext): Promise<SkillResult> {
     console.log(`[assign-task] agent=${ctx.agentId} @${ctx.timestamp}`);
 
     try {
-      const todos = parseTodos(ctx.input);
+      // 构建发给 AI 的文本
+      const promptText = buildPromptText(ctx.input);
+
+      if (!promptText) {
+        return {
+          success: true,
+          data: { workflows: [], message: '上游无内容可供分析' },
+          summary: '上游未产出可执行的任务条目，跳过分配',
+          status: 'warning',
+        };
+      }
+
+      // 调用 AI 提取任务
+      const response = await callDifySkill('assign-task', promptText);
+
+      if (response.error) {
+        return {
+          success: false,
+          data: { error: response.error },
+          summary: `AI 任务拆解失败: ${response.error}`,
+          status: 'error',
+        };
+      }
+
+      const todos = parseAITodos(response.answer);
 
       if (todos.length === 0) {
         return {
           success: true,
-          data: { workflows: [], message: '没有解析到可分配的任务' },
-          summary: '上游未产出可执行的任务条目，跳过分配',
+          data: { workflows: [], message: 'AI 判断当前无需分配任务' },
+          summary: 'AI 分析后认为当前无明确可执行任务，跳过分配',
           status: 'warning',
         };
       }
@@ -123,13 +170,16 @@ const assignTask: SkillHandler = {
 
       // 生成摘要
       const parts: string[] = [];
-      parts.push(`📌 任务分配完成：共 ${todos.length} 项，成功 ${created.length} 项`);
+      parts.push(`📌 AI 任务分配完成：共 ${todos.length} 项，成功 ${created.length} 项`);
       if (created.length > 0) {
         parts.push('');
-        const grouped = created.reduce((acc, c) => {
-          (acc[c.category] = acc[c.category] || []).push(c.name);
-          return acc;
-        }, {} as Record<string, string[]>);
+        const grouped = created.reduce(
+          (acc, c) => {
+            (acc[c.category] = acc[c.category] || []).push(c.name);
+            return acc;
+          },
+          {} as Record<string, string[]>
+        );
         for (const [cat, names] of Object.entries(grouped)) {
           const icon = CATEGORY_ICONS[cat] || '📌';
           parts.push(`${icon} ${cat}：${names.join('、')}`);
@@ -137,12 +187,12 @@ const assignTask: SkillHandler = {
       }
       if (failed.length > 0) {
         parts.push('');
-        parts.push(`⚠️ 失败 ${failed.length} 项：${failed.map(f => f.name).join('、')}`);
+        parts.push(`⚠️ 失败 ${failed.length} 项：${failed.map((f) => f.name).join('、')}`);
       }
 
       return {
         success: failed.length === 0,
-        data: { created, failed },
+        data: { created, failed, conversationId: response.conversationId },
         summary: parts.join('\n'),
         status: failed.length === 0 ? 'success' : 'warning',
       };
