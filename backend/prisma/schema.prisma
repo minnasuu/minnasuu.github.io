@@ -108,6 +108,21 @@ model Assistant {
   updatedAt         DateTime @updatedAt
 }
 
+model WorkflowRun {
+  id                String   @id @default(uuid())
+  workflowId        String?  // 关联的 Workflow ID（可选，一次性任务可能无关联）
+  workflowName      String
+  agentId           String
+  skillId           String
+  stepIndex         Int      @default(0)
+  summary           String   @db.Text
+  result            String   @db.Text
+  status            String   // success, warning, error
+  executedAt        DateTime @default(now())
+  duration          Int?     // 执行耗时（毫秒）
+  createdAt         DateTime @default(now())
+}
+
 model Goal {
   id                    String   @id @default(uuid())
   title                 String

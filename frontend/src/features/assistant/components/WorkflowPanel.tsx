@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { workflows as initialWorkflows, assistants, workHistory, type Workflow, type Skill } from '../data';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { assistants, workHistory, type Workflow, type Skill } from '../data';
 import { getSkillHandler } from '../skills';
 import type { SkillResult } from '../skills/types';
 import CatSVG from './CatSVG';
@@ -83,7 +85,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [, setExecutionLogs] = useState<ExecutionLog[]>([]);
   const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
   const stepResultsRef = useRef<Map<number, SkillResult>>(new Map());
-  const [workflowList, setWorkflowList] = useState<Workflow[]>(() => [...initialWorkflows]);
+  const [workflowList, setWorkflowList] = useState<Workflow[]>(() => []);
   const [isBackendLoaded, setIsBackendLoaded] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -422,19 +424,12 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
       {/* FAB 按钮组 */}
       <div className="fab-group">
         {/* 模型选择器 */}
-        <div className="model-selector-wrap">
+        {editorMode && <div className="model-selector-wrap">
           <button
             className={`workflow-fab model-fab ${isModelDropdownOpen ? 'active' : ''}`}
             onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
             title="AI 模型"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5D4037" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 10v2m0 4h.01M8 14a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" />
-              <circle cx="12" cy="18" r="4" />
-              <path d="M12 14v-2" />
-              <path d="M9.17 16.17L7.05 18.3" />
-              <path d="M14.83 16.17l2.12 2.12" />
-            </svg>
             <span className="fab-label">{aiModels.find(m => m.id === selectedModel)?.name || selectedModel}</span>
           </button>
           {isModelDropdownOpen && (
@@ -458,7 +453,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               ))}
             </div>
           )}
-        </div>
+        </div>}
 
         <button
           className={`workflow-fab ${isHistoryOpen ? 'active' : ''}`}
@@ -732,7 +727,11 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
                               </span>
                             </div>
                             {result.summary && (
-                              <div className="node-result-summary">{result.summary}</div>
+                              <div className="node-result-summary markdown-body">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {result.summary}
+                                </ReactMarkdown>
+                              </div>
                             )}
                           </div>
                         )}

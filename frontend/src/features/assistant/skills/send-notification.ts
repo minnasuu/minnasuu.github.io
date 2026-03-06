@@ -1,7 +1,13 @@
 import type { SkillHandler, SkillContext, SkillResult } from './types';
 import { sendEmail } from '../../../shared/utils/backendClient';
+import { marked } from 'marked';
 
 const DEFAULT_TO = 'minhansu508@gmail.com';
+
+/** 将 markdown 文本转为邮件友好的 HTML */
+function markdownToEmailHtml(md: string): string {
+  return marked.parse(md, { async: false }) as string;
+}
 
 /** 🔔 推送通知 — 年年（通过邮件发送） */
 const sendNotification: SkillHandler = {
@@ -25,15 +31,18 @@ const sendNotification: SkillHandler = {
       body = '<p>这是一封来自 Minna 猫猫团队的测试通知 🐱✨</p>';
     }
 
+    // 将 markdown 内容转为 HTML
+    const bodyHtml = body.startsWith('<') ? body : markdownToEmailHtml(body);
+
     // 包装为 HTML 邮件
     const html = `
-      <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
         <div style="background: linear-gradient(135deg, #FFF3E0, #E8F5E9); border-radius: 16px; padding: 24px; margin-bottom: 16px;">
           <h2 style="margin: 0 0 8px; color: #5D4037;">🐱 ${subject}</h2>
           <p style="margin: 0; color: #8D6E63; font-size: 13px;">${new Date().toLocaleString('zh-CN')}</p>
         </div>
         <div style="background: #fff; border: 1px solid #E0D6CC; border-radius: 12px; padding: 20px; line-height: 1.8; color: #333;">
-          ${body}
+          ${bodyHtml}
         </div>
         <p style="text-align: center; color: #BCAAA4; font-size: 12px; margin-top: 16px;">
           由年年 🐱 从 Minna 个站发出 — I'm Minna ✨
