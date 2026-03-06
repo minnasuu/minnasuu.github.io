@@ -89,7 +89,7 @@ $bg-color: #fff;
 
     // --- The Cat (SVG, includes desk & feet) ---
     .cat-worker {
-      width: 160px;
+      width: 150px;
 
       .cat-svg {
         width: 100%;
@@ -121,7 +121,6 @@ $bg-color: #fff;
     //   flex-direction: column;
       gap: 3px;
       margin-top: 6px;
-      max-width: 220px;
 
       .skill-tag {
         display: flex;
@@ -129,12 +128,9 @@ $bg-color: #fff;
         gap: 4px;
         font-size: 0.58rem;
         font-weight: 600;
-        // padding: 2px 8px;
-        // border-radius: 10px;
-        // border: 1px solid;
         background: #fff;
-        letter-spacing: 0.02em;
         white-space: nowrap;
+        letter-spacing: 0.02em;
         transition: all 0.2s ease;
 
         .skill-icon {
@@ -471,11 +467,35 @@ $bg-color: #fff;
   flex-direction: column;
   gap: 6px;
 
-  .history-empty {
-    font-size: 0.78rem;
-    color: #BCAAA4;
+  .history-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
     text-align: center;
-    padding: 20px 0;
+    animation: empty-fade-in 0.5s ease forwards;
+
+    .empty-cat {
+      margin-bottom: 14px;
+      opacity: 0.35;
+      filter: grayscale(0.4);
+      animation: empty-cat-breathe 3s ease-in-out infinite;
+    }
+
+    .empty-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #8D6E63;
+      margin: 0 0 6px;
+    }
+
+    .empty-desc {
+      font-size: 0.68rem;
+      color: #BCAAA4;
+      line-height: 1.6;
+      margin: 0;
+    }
   }
 }
 
@@ -553,6 +573,22 @@ $bg-color: #fff;
     background: #FFF3E0;
     border-color: #FFE0B2;
   }
+}
+
+@keyframes empty-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes empty-cat-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 @keyframes wag-tail {

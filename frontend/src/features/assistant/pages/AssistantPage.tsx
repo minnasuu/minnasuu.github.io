@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import CatSVG from '../components/CatSVG';
+import CatMiniAvatar from '../components/CatMiniAvatar';
 import WorkflowPanel from '../components/WorkflowPanel';
 import '../styles/AssistantPage.scss';
-import { assistants, workHistory, type Skill } from '../data';
+import { assistants, type HistoryItem, type Skill } from '../data';
 import { Icon } from '@suminhan/land-design';
 
 const formatTime = (iso: string) => {
@@ -30,9 +31,12 @@ const AssistantPage: React.FC<AssistantPageProps> = ({ editorMode = false }) => 
     [selectedId]
   );
 
+  // 历史日志（未来接入后端 API，目前为空）
+  const [historyItems] = useState<HistoryItem[]>([]);
+
   const selectedHistory = useMemo(
-    () => selectedId ? workHistory.filter((h) => h.agentId === selectedId) : [],
-    [selectedId]
+    () => selectedId ? historyItems.filter((h) => h.agentId === selectedId) : [],
+    [selectedId, historyItems]
   );
 
   const handleMouseEnter = useCallback((id: string) => {
@@ -81,19 +85,23 @@ const AssistantPage: React.FC<AssistantPageProps> = ({ editorMode = false }) => 
                 <span className="name-text">{assistant.name}</span>
               </div>
               {assistant.skills && (
-                <div className="skill-tags">
-                  {(assistant.skills as Skill[]).map((skill,index) => (
+                <div className='flex flex-col items-center'>
+                    <div className="skill-tags">
+                  {(assistant.skills as Skill[]).slice(0,4).map((skill,index) => (
                     <span key={skill.id} className="skill-tag" style={{ color: assistant.accent, borderColor: assistant.accent + '60' }}>
-                      {/* <span className="skill-icon">{skill.icon}</span> */}
                       {index >0 && <span className='text-base'>·</span>}
                       <span className="skill-name">{skill.name}</span>
-                      {/* <span className="skill-io">
-                        <span className="io-badge io-in">{skill.input}</span>
-                        <span className="io-arrow">→</span>
-                        <span className="io-badge io-out">{skill.output}</span>
-                      </span> */}
                     </span>
                   ))}
+                </div>
+                <div className="skill-tags">
+                  {(assistant.skills as Skill[]).slice(4).map((skill,index) => (
+                    <span key={skill.id} className="skill-tag" style={{ color: assistant.accent, borderColor: assistant.accent + '60' }}>
+                      {index >0 && <span className='text-base'>·</span>}
+                      <span className="skill-name">{skill.name}</span>
+                    </span>
+                  ))}
+                </div>
                 </div>
               )}
             </div>
@@ -173,7 +181,16 @@ const AssistantPage: React.FC<AssistantPageProps> = ({ editorMode = false }) => 
               <div className="col-scroll">
                 <div className="history-list">
                   {selectedHistory.length === 0 ? (
-                    <p className="history-empty">暂无历史记录</p>
+                    <div className="history-empty-state">
+                      <div className="empty-cat">
+                        <CatMiniAvatar colors={selectedAssistant.catColors} size={48} />
+                      </div>
+                      <p className="empty-title">还没有工作记录</p>
+                      <p className="empty-desc">
+                        {selectedAssistant.name}还在等待第一个任务<br/>
+                        运行工作流后记录会出现在这里
+                      </p>
+                    </div>
                   ) : (
                     selectedHistory.map((item) => {
                       const skill = (selectedAssistant.skills as Skill[]).find((s) => s.id === item.skillId);

@@ -77,7 +77,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [isRunning, setIsRunning] = useState(false);
   const [currentDialog, setCurrentDialog] = useState('');
   const [, setExecutionLogs] = useState<ExecutionLog[]>([]);
-  const [, setStepResults] = useState<Map<number, SkillResult>>(new Map());
+  const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
   const stepResultsRef = useRef<Map<number, SkillResult>>(new Map());
   const [workflowList, setWorkflowList] = useState<Workflow[]>(() => [...initialWorkflows]);
   const [isBackendLoaded, setIsBackendLoaded] = useState(false);
@@ -367,7 +367,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
     setIsRunning(false);
     setCurrentDialog('');
     setExecutionLogs([]);
-    const emptyMap = new Map<number, SkillResult>();
+    const emptyMap: Map<number, SkillResult> = new Map();
     setStepResults(emptyMap);
     stepResultsRef.current = emptyMap;
   };
@@ -436,8 +436,8 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
             </svg>
             历史事项
           </h3>
-          <button className="close-btn" onClick={() => setIsHistoryOpen(false)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button className="stage-close" onClick={() => setIsHistoryOpen(false)}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -585,17 +585,11 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
           <div className="execution-stage">
             {/* 顶部标题栏 */}
             <div className="stage-header">
-              <button className="stage-back" onClick={handleBack}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-                返回
-              </button>
               <div className="stage-title">
-                <span className="stage-icon">{activeWorkflow.icon}</span>
+                {activeWorkflow.icon&&<span className="stage-icon">{activeWorkflow.icon}</span>}
                 <span className="stage-name">{activeWorkflow.name}</span>
               </div>
-              <button className="stage-close" onClick={handleClose}>
+              <button className="stage-close" onClick={handleBack}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
@@ -614,17 +608,19 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
                   const isPending = !isCompleted && !isCurrent;
                   const statusClass = isCompleted ? 'done' : isCurrent ? 'active' : 'waiting';
 
+                  const result = stepResults.get(i);
+                  const resultStatus = result?.status ?? 'success';
+
                   return (
                     <React.Fragment key={i}>
                       {/* 单个节点 */}
                       <div className={`pipeline-node ${statusClass}`}>
-                        {/* 对话气泡 */}
-                        <div className={`cat-bubble ${isCurrent ? 'show' : isCompleted ? 'show-done' : ''}`}>
-                          {isCurrent && <span className="bubble-text">{currentDialog}</span>}
-                          {isCompleted && skill?.mockResult && (
-                            <span className="bubble-text result">{skill.mockResult}</span>
-                          )}
-                        </div>
+                        {/* 对话气泡 - 仅在执行中时显示 */}
+                        {isCurrent && (
+                          <div className="cat-bubble show">
+                            <span className="bubble-text">{currentDialog}</span>
+                          </div>
+                        )}
 
                         {/* 猫猫 */}
                         <div className={`cat-avatar ${isCurrent ? 'working' : ''}`}>
@@ -645,8 +641,32 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
                           )}
                         </div>
 
-                        {/* IO 信息 */}
-                        {skill && (
+                        {/* 进度条 */}
+                        {isCurrent && (
+                          <div className="node-progress">
+                            <div className="node-progress-bar" style={{ animationDuration: `${STEP_DURATION}ms` }} />
+                          </div>
+                        )}
+
+                        {/* 真实执行结果 - 完成后展示在猫猫下方 */}
+                        {isCompleted && result && (
+                          <div className={`node-result status-${resultStatus}`}>
+                            <div className="node-result-header">
+                              {resultStatus === 'success' && <Icon name='check-fill' color='var(--color-green-5)' size={13}/>}
+                              {resultStatus === 'warning' && <Icon name='attention-fill' color='var(--color-orange-5)' size={13}/>}
+                              {resultStatus === 'error' && <Icon name='error-fill' color='var(--color-red-5)' size={13}/>}
+                              <span className="node-result-status">
+                                {resultStatus === 'success' ? '完成' : resultStatus === 'warning' ? '警告' : '失败'}
+                              </span>
+                            </div>
+                            {result.summary && (
+                              <div className="node-result-summary">{result.summary}</div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* IO 信息 - 未执行时展示 */}
+                        {!isCompleted && skill && (
                           <div className="node-io">
                             <span className="io-tag io-in">{skill.input}</span>
                             <span className="io-arrow">→</span>
@@ -655,24 +675,8 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
                         )}
 
                         {/* provider */}
-                        {skill?.provider && (
+                        {!isCompleted && skill?.provider && (
                           <span className="node-provider">via {skill.provider}</span>
-                        )}
-
-                        {/* 进度条 */}
-                        {isCurrent && (
-                          <div className="node-progress">
-                            <div className="node-progress-bar" style={{ animationDuration: `${STEP_DURATION}ms` }} />
-                          </div>
-                        )}
-
-                        {/* 完成勾 */}
-                        {isCompleted && (
-                          <div className="node-check">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M20 6L9 17l-5-5" />
-                            </svg>
-                          </div>
                         )}
 
                         {/* pending遮罩 */}
