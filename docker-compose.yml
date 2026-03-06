@@ -26,6 +26,10 @@ services:
       - DIFY_API_URL=${DIFY_API_URL:-https://api.dify.ai/v1}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_BASE_URL=${GEMINI_BASE_URL:-}
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - QWEN_BASE_URL=${QWEN_BASE_URL:-}
+      - QWEN_MODEL=${QWEN_MODEL:-qwen2.5-coder-7b-instruct}
+      - DEFAULT_AI_MODEL=${DEFAULT_AI_MODEL:qwen}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/minna_blog
       - EDITOR_PASSWORD=${EDITOR_PASSWORD}
