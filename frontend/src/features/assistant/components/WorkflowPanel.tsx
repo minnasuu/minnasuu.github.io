@@ -348,10 +348,26 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
 
     // 调用 skill handler
     const handler = getSkillHandler(step.skillId);
+    // 构建 input：合并所有前序步骤的结果，让下游 skill 能访问完整上下文
+    let skillInput: unknown = undefined;
+    if (runningStepIndex > 0) {
+      const merged: Record<string, unknown> = {};
+      for (let i = 0; i < runningStepIndex; i++) {
+        const prev = stepResultsRef.current.get(i)?.data;
+        if (prev && typeof prev === 'object') {
+          Object.assign(merged, prev);
+        }
+      }
+      // 注入参会猫猫列表
+      if (activeWorkflow) {
+        merged._attendees = activeWorkflow.steps.map((s) => s.agentId);
+      }
+      skillInput = Object.keys(merged).length > 0 ? merged : undefined;
+    }
     const executePromise = handler
       ? handler.execute({
           agentId: step.agentId,
-          input: runningStepIndex > 0 ? stepResultsRef.current.get(runningStepIndex - 1)?.data : undefined,
+          input: skillInput,
           timestamp: new Date().toISOString(),
         })
       : Promise.resolve<SkillResult>({
