@@ -77,7 +77,8 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [isRunning, setIsRunning] = useState(false);
   const [currentDialog, setCurrentDialog] = useState('');
   const [, setExecutionLogs] = useState<ExecutionLog[]>([]);
-  const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
+  const [, setStepResults] = useState<Map<number, SkillResult>>(new Map());
+  const stepResultsRef = useRef<Map<number, SkillResult>>(new Map());
   const [workflowList, setWorkflowList] = useState<Workflow[]>(() => [...initialWorkflows]);
   const [isBackendLoaded, setIsBackendLoaded] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
@@ -251,7 +252,9 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
     setIsRunning(true);
     setCurrentDialog('');
     setExecutionLogs([]);
-    setStepResults(new Map());
+    const emptyMap = new Map<number, SkillResult>();
+    setStepResults(emptyMap);
+    stepResultsRef.current = emptyMap;
   }, []);
 
   // 执行步骤时调用事件处理器并更新对话
@@ -292,7 +295,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
     const executePromise = handler
       ? handler.execute({
           agentId: step.agentId,
-          input: runningStepIndex > 0 ? stepResults.get(runningStepIndex - 1)?.data : undefined,
+          input: runningStepIndex > 0 ? stepResultsRef.current.get(runningStepIndex - 1)?.data : undefined,
           timestamp: new Date().toISOString(),
         })
       : Promise.resolve<SkillResult>({
@@ -312,10 +315,11 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
       executePromise.then((result) => {
         const duration = Date.now() - startTime;
 
-        // 保存结果
+        // 保存结果（同步 ref + state）
         setStepResults((prev) => {
           const next = new Map(prev);
           next.set(runningStepIndex, result);
+          stepResultsRef.current = next;
           return next;
         });
 
@@ -363,7 +367,9 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
     setIsRunning(false);
     setCurrentDialog('');
     setExecutionLogs([]);
-    setStepResults(new Map());
+    const emptyMap = new Map<number, SkillResult>();
+    setStepResults(emptyMap);
+    stepResultsRef.current = emptyMap;
   };
 
   const handleClose = () => {
