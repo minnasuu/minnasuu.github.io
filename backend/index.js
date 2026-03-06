@@ -15,6 +15,8 @@ const authRoutes = require('./routes/auth');
 const goalRoutes = require('./routes/goals');
 const difyRoutes = require('./routes/dify');
 const emailRoutes = require('./routes/email');
+const workflowRoutes = require('./routes/workflows');
+const assistantRoutes = require('./routes/assistants');
 
 // 加载环境变量 - 尝试多个可能的位置
 const possibleEnvPaths = [
