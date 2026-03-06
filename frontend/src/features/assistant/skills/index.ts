@@ -14,9 +14,8 @@ import trendAnalysis from './trend-analysis';
 // --- 年年 (email) ---
 import sendEmail from './send-email';
 import sendNotification from './send-notification';
-import manageSubscribers from './manage-subscribers';
 
-// --- 发发 (writer) ---
+// --- 阿蓝 (writer) ---
 import generateArticle from './generate-article';
 import polishText from './polish-text';
 import generateOutline from './generate-outline';
@@ -55,7 +54,7 @@ import qualityCheck from './quality-check';
 import contentReview from './content-review';
 import regressionTest from './regression-test';
 
-// --- 蓝蓝 (hr) ---
+// --- 发发 (hr) ---
 import recruitCat from './recruit-cat';
 import teamReview from './team-review';
 import catTraining from './cat-training';
@@ -63,7 +62,7 @@ import catTraining from './cat-training';
 /** skillId → SkillHandler 映射表 */
 const handlers: SkillHandler[] = [
   crawlNews, summarizeNews, queryDashboard, trendAnalysis,
-  sendEmail, sendNotification, manageSubscribers,
+  sendEmail, sendNotification,
   generateArticle, polishText, generateOutline, newsToArticle,
   generateComponent, updateCrafts, layoutDesign, cssGenerate,
   generateImage, generateChart, imageEnhance,

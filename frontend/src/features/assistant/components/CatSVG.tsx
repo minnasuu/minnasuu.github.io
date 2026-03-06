@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface CatColors {
+export interface CatColors {
   body: string;
   bodyDark: string;
   belly: string;

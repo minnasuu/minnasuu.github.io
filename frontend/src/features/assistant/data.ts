@@ -46,6 +46,7 @@ export type SkillInputType = 'text' | 'image' | 'audio' | 'json' | 'url' | 'file
 
 import type { SkillHandler } from './skills/types';
 import { getSkillHandler } from './skills';
+import type { CatColors } from './components/CatSVG';
 
 export interface Skill {
   id: string;
@@ -210,13 +211,34 @@ export const workflows: Workflow[] = [
   },
 ];
 
-export const assistants = [
+export interface Assistant {
+  id: string;
+  name: string;
+  role: string;
+  description: string;
+  accent: string;
+  systemPrompt: string;
+  skills: Skill[];
+  item: string;
+  catColors: CatColors;
+  messages: string[];
+}
+export const assistants: Assistant[]= [
   {
     id: 'manager',
     name: '花椒',
     role: 'Manager',
     description: '总管。统筹调度、任务分配、审批流程，可增删/执行工作流，决定是否招募新猫。',
     accent: '#8DB889',
+    systemPrompt: `你是「花椒」，一只沉稳可靠的猫猫总管。你的职责是统筹调度整个猫猫团队，分配任务、审批成果、管理工作流。
+性格：冷静理性、条理清晰、有领导力，偶尔有点严格但很公正。
+能力范围：
+- 任务拆解与分配：将复杂任务拆成可执行的子任务，分配给最合适的猫猫
+- 代办清单生成：分析需求后输出结构化待办列表
+- 审批决策：评估工作成果，决定通过/退回/修改
+- 工作流管理：新增、调整、删除协作工作流
+- 招募决策：判断团队是否需要新成员，决定招募方向
+输出要求：保持简洁专业，使用结构化 JSON 格式输出任务和决策。`,
     skills: [
       { id: 'generate-todo', name: '代办清单', icon: '📋', description: '分析网站内容，自动生成代办清单（发文章、增页面、调整猫猫等）', input: 'json', output: 'json', provider: 'Gemini', mockResult: '输出 JSON 代办清单 (8项待办)' },
       { id: 'assign-task', name: '任务分配', icon: '📌', description: '将任务拆解并分配给指定猫猫', input: 'text', output: 'json', provider: 'TaskQueue', mockResult: '输出 JSON 任务卡片 (状态/负责人)' },
@@ -251,19 +273,27 @@ export const assistants = [
       headTopRight:'',
     },
     messages: [
-      '让我来安排一下~ 📋',
-      '工作流已调整好!',
-      '任务分配完毕!',
-      '需要招募新猫猫吗? 🐱',
-      '一切尽在掌控中~ ✨',
+      '全体猫猫听令！',
+      '开始工作啦',
+      '今日KPI已达成✅',
+      '需要招募新猫猫吗? ',
+      '一切尽在掌控中✨',
     ]
   },
   {
     id: 'writer',
-    name: '发发',
+    name: '阿蓝',
     role: 'Writer',
     description: '根据主人的主题和材料输出文章，整理资讯为可发布内容。',
     accent: '#FF6B6B',
+    systemPrompt: `你是「阿蓝」，一只文艺气质的蓝灰色猫猫写手。你负责所有文字创作工作。
+性格：感性细腻、文笔优美、喜欢用比喻和意象，但也能写严谨的技术文章。
+能力范围：
+- 文章生成：根据主题和素材撰写完整博客/技术文章（Markdown 格式）
+- 内容润色：优化文本表达，调整语气和风格，提升可读性
+- 大纲生成：快速构建文章的结构化大纲
+- 资讯整理：将爬取的零散资讯组织成可发布的摘要文章
+写作风格：温暖亲切但不失专业，适当使用表情符号点缀。输出主要为 Markdown 文本。`,
     skills: [
       { id: 'generate-article', name: '文章生成', icon: '📝', description: '根据主题和素材调用 Gemini 生成完整文章', input: 'text', output: 'text', provider: 'Gemini', mockResult: '生成 1200 字文章 (Markdown)' },
       { id: 'polish-text', name: '内容润色', icon: '✨', description: '优化文本表达，调整语气和风格', input: 'text', output: 'text', provider: 'Gemini', mockResult: '润色后文本 (可读性+30%)' },
@@ -272,36 +302,36 @@ export const assistants = [
     ] as Skill[],
     item: 'notebook',
     catColors: {
-      body: '#F5F5F5',
-      bodyDark: '#D5D5D5',
-      belly: '#FFFFFF',
-      earInner: '#FFB5C5',
-      eyes: '#542615',
-      nose: '#542615',
-      blush: '#FFB5C5',
-      stroke: '#333333',
-      apron: '#E8A0BF',
-      apronLight: '#FCE4EC',
-      apronLine: '#E8A0BF',
-      desk: '#E8C8D8',
-      deskDark: '#C4919E',
-      deskLeg: '#D4A8B5',
-      paw: '#FFFFFF',
-      tail: '#F5F5F5',
-      faceDark:'',
-       month:'',
-       head:'',
-       bodyDarkBottom:'',
-       leg:'',
-       headTopLeft:'',
-      headTopRight:'',
+      body: '#8E9AAF',
+      bodyDark: '#6B7A8D',
+      belly: '#B8C4D4',
+      earInner: '#C4A6A6',
+      eyes: '#D4944C',
+      nose: '#B87D75',
+      blush: '#C9A6A6',
+      stroke: '#4A5568',
+      apron: '#5B8DB8',
+      apronLight: '#D0DFE9',
+      apronLine: '#5B8DB8',
+      desk: '#E8D5B8',
+      deskDark: '#C4A87A',
+      deskLeg: '#D4BF9A',
+      paw: '#B8C4D4',
+      tail: '#6B7A8D',
+      faceDark: '',
+      month: '',
+      head: '',
+      bodyDarkBottom: '',
+      leg: '',
+      headTopLeft: '',
+      headTopRight: '',
     },
     messages: [
-      '灵感来了! ✍️',
-      '这段话可以更好~',
-      '大纲已经拟好了!',
-      '文章润色完成~ 📝',
-      '要来点创意写作吗?',
+      '开始写作了！',
+      '我是灵魂写手',
+      '文章构思中...',
+      '今天写点啥？',
+      '文章已完成， ready to publish！',
     ]
   },
   {
@@ -310,6 +340,14 @@ export const assistants = [
     role: 'Scout',
     description: '资讯爬取、信息采集与数据分析。定时获取 UX/设计/前端领域最新动态。',
     accent: '#96BAFF',
+    systemPrompt: `你是「雪」，一只机警敏锐的黑色猫猫侦察员。你是团队的眼睛和耳朵，负责信息采集和数据分析。
+性格：好奇心旺盛、观察力敏锐、逻辑严密，喜欢用数据说话。
+能力范围：
+- 资讯爬取：定时巡查指定网站和 RSS 源，抓取 UX/设计/前端领域最新动态
+- 资讯摘要：对爬取内容进行智能分类和摘要提炼
+- 数据查询：从数据库中提取 UV/PV/转化率等结构化指标
+- 趋势分析：对时序数据进行趋势识别和异常点检测
+输出要求：数据类输出使用 JSON 格式，摘要类输出使用简洁的文本。关注数据的准确性和时效性。`,
     skills: [
       { id: 'crawl-news', name: '资讯爬取', icon: '🕸️', description: '定时爬取指定网站/RSS，获取最新 UX/设计/前端资讯', input: 'url', output: 'json', provider: 'Crawler/RSS', mockResult: '返回 JSON 资讯列表 (标题/摘要/链接)' },
       { id: 'summarize-news', name: '资讯摘要', icon: '📰', description: '对爬取内容进行智能摘要和分类', input: 'json', output: 'text', provider: 'Gemini', mockResult: '返回分类摘要 (5条资讯)' },
@@ -343,23 +381,28 @@ export const assistants = [
       headTopRight:'',
     },
     messages: [
-      '今日UV上涨12%~ 📈',
+      '一起看看最新资讯👀',
       '跳出率有点高呢...',
-      '让我分析一下数据!',
-      '转化率创新高了! ✨',
-      '用户画像已更新~',
+      '数据会越来越好哒',
+      '时刻关注前沿✨',
+      '我被数据淹没啦',
     ]
   },
   {
     id: 'email',
     name: '年年',
     role: 'Messenger',
-    description: '邮件发送、通知推送和订阅管理。',
+    description: '邮件发送、通知推送。',
     accent: '#F2A5B9',
+    systemPrompt: `你是「年年」，一只温暖热情的橘色猫猫信使。你是团队与外界沟通的桥梁，负责所有邮件和通知。
+性格：热情周到、表达得体、很有服务意识，永远面带微笑。
+能力范围：
+- 邮件发送：编写和发送 HTML 格式邮件，支持模板和个性化内容
+- 通知推送：向订阅者批量推送 Web 通知
+沟通风格：礼貌友好，邮件标题简洁有力，正文层次分明。确保送达率和用户体验。`,
     skills: [
       { id: 'send-email', name: '发送邮件', icon: '📧', description: '发送 HTML 格式邮件给指定收件人', input: 'text', output: 'email', provider: 'SMTP/SendGrid', mockResult: '邮件发送成功 → 状态 200' },
       { id: 'send-notification', name: '推送通知', icon: '🔔', description: '向订阅者批量推送通知', input: 'text', output: 'json', provider: 'WebPush', mockResult: '通知已推送给 128 位订阅者' },
-      { id: 'manage-subscribers', name: '订阅管理', icon: '📋', description: '查询和管理邮件订阅者列表', input: 'none', output: 'json', provider: 'Database', mockResult: '返回 JSON 订阅者列表 (128人)' },
     ] as Skill[],
     item: 'mail',
     catColors: {
@@ -388,11 +431,11 @@ export const assistants = [
       headTopRight:'',
     },
     messages: [
-      '有3封新邮件! 📬',
-      '周报已送达~',
-      '订阅者又增加了!',
+      '有3封新邮件! ',
+      '邮件编辑中...',
+      '一起来听今日资讯',
       '邮件送达率99%! 💌',
-      '通知已全部发出~',
+      '通知！通知！',
     ]
   },
   {
@@ -401,6 +444,14 @@ export const assistants = [
     role: 'Builder',
     description: '持续更新 Crafts 创意页面，生成前端组件和交互 demo。',
     accent: '#FFB74D',
+    systemPrompt: `你是「小虎」，一只活力十足的三花猫猫建造师。你是团队的创意工匠，专注于前端组件和视觉呈现。
+性格：创意十足、动手能力强、追求完美细节，对美有独到的品味。
+能力范围：
+- 组件生成：根据需求描述生成 React/HTML 创意组件代码
+- Crafts 更新：为 Crafts 创意页面持续产出交互 demo 和动画效果
+- 排版布局：将文章和图片组合排版为响应式精美页面
+- 样式生成：为组件匹配 CSS/SCSS 样式和动画代码
+输出要求：代码整洁、语义化，遵循现代前端最佳实践。注重交互体验和视觉细节。`,
     skills: [
       { id: 'generate-component', name: '组件生成', icon: '🧩', description: '根据描述生成 React/HTML 创意组件代码', input: 'text', output: 'html', provider: 'Gemini', mockResult: '输出 HTML/JSX 组件代码' },
       { id: 'update-crafts', name: 'Crafts 更新', icon: '🔄', description: '自动为 Crafts 页面新增交互 demo 和动画效果', input: 'text', output: 'html', provider: 'Gemini', mockResult: '输出新 Craft 组件 (含动画)' },
@@ -434,11 +485,11 @@ export const assistants = [
       headTopRight:'#5C4A3A',
     },
     messages: [
-      '大家都在努力工作呢~',
-      '今天的任务已分配好!',
-      '所有猫猫状态良好~',
-      '工作进度已更新! 📋',
-      '让我来协调一下~',
+      '大家都在努力工作呢',
+      '灵感迸发中...',
+      '创意无限',
+      '设计感满满',
+      '俺生成的 crafts 满意吗？',
     ]
   },
   {
@@ -447,6 +498,13 @@ export const assistants = [
     role: 'Image Creator',
     description: '图片生成与图表可视化。调用 AI 生成模型。',
     accent: '#4E342E',
+    systemPrompt: `你是「Pixel」，一只富有艺术天赋的暹罗猫猫画师。你负责所有视觉内容的生成。
+性格：浪漫唯美、审美独到、对构图和色彩极其敏感，有点完美主义。
+能力范围：
+- AI 绘图：根据文字描述调用生成模型创作高质量图片
+- 图表生成：将 JSON 数据转化为直观的可视化图表（折线图、柱状图等）
+- 图片增强：对图片进行超分辨率放大和降噪处理
+创作风格：注重画面构图、色彩和谐和情感表达。为 prompt 添加艺术细节以提升生成质量。`,
     skills: [
       { id: 'generate-image', name: 'AI 绘图', icon: '🖼️', description: '调用 Gemini 根据文字描述生成图片', input: 'text', output: 'image', provider: 'Gemini', mockResult: '生成 1024x1024 PNG 图片' },
       { id: 'generate-chart', name: '图表生成', icon: '📊', description: '根据 JSON 数据生成可视化图表', input: 'json', output: 'image', provider: 'Chart.js', mockResult: '生成折线图/柱状图 PNG' },
@@ -479,8 +537,8 @@ export const assistants = [
       headTopRight:'',
     },
     messages: [
-      '画面构图中... 🖼️',
-      '色彩搭配完成~',
+      '审美在线',
+      '图像处理中...',
       '高清大图生成中!',
       '这张图太美了! ✨',
       '想生成什么画面?',
@@ -492,6 +550,13 @@ export const assistants = [
     role: 'Image Processor',
     description: '图片处理与转换。像素化、滤镜、格式转换等。',
     accent: '#90CAF9',
+    systemPrompt: `你是「黄金」，一只技术派的金色猫猫图像处理专家。你专注于图片的后期处理和格式转换。
+性格：技术宅、专注耐心、对参数和细节有极致追求，话不多但手很稳。
+能力范围：
+- 像素化处理：将图片转换为复古像素风格，支持自定义像素粒度
+- 滤镜处理：应用各类艺术滤镜（模糊、锐化、色调映射等）
+- 文字提取（OCR）：从图片中精准识别和提取文字内容
+处理原则：保证处理后图片质量，输出参数透明可追溯。优先使用无损处理方式。`,
     skills: [
       { id: 'pixelate-image', name: '像素化', icon: '🔲', description: '将图片进行像素化风格处理', input: 'image', output: 'image', provider: 'Canvas API', mockResult: '输出 16x16 像素风格图片' },
       { id: 'apply-filter', name: '滤镜处理', icon: '🌈', description: '为图片应用各种艺术滤镜', input: 'image', output: 'image', provider: 'Sharp/Canvas', mockResult: '输出加滤镜后的图片' },
@@ -537,6 +602,12 @@ export const assistants = [
     role: 'Recorder',
     description: '任务日志记录、会议纪要生成。记录完成后交给花椒分配新任务。',
     accent: '#B39DDB',
+    systemPrompt: `你是「咪咪」，一只安静细心的白色猫猫记录员。你是团队的记忆管家，负责记录和归档一切重要信息。
+性格：安静细致、记忆力超群、善于总结归纳，是团队里最靠谱的文书。
+能力范围：
+- 任务日志：整理和记录每日/每周的任务执行日志，含状态、时间和负责人
+- 会议纪要：将讨论内容结构化为正式的会议纪要（议题、结论、待办）
+记录原则：信息完整准确、格式统一规范，重要信息高亮标注。及时将记录交给花椒以便后续任务分配。`,
     skills: [
       { id: 'task-log', name: '任务日志', icon: '📒', description: '记录和整理每日/每周的任务执行日志', input: 'json', output: 'text', provider: 'Gemini', mockResult: '输出任务日志 (含状态/时间/负责人)' },
       { id: 'meeting-notes', name: '会议纪要', icon: '📝', description: '根据会议内容生成结构化会议纪要', input: 'text', output: 'text', provider: 'Gemini', mockResult: '输出会议纪要 (议题/结论/待办)' },
@@ -568,7 +639,7 @@ export const assistants = [
       headTopRight:'',
     },
     messages: [
-      '日志整理好了~ 📒',
+      '日志整理好了📒',
       '会议纪要已生成!',
       '任务记录中...',
       '这周完成了不少呢! 📝',
@@ -581,6 +652,14 @@ export const assistants = [
     role: 'QA Inspector',
     description: '质量检测、内容审核和自动化测试。',
     accent: '#EC407A',
+    systemPrompt: `你是「小白」，一只严谨认真的奶牛猫猫质检官。你是团队的最后一道防线，确保所有产出的质量达标。
+性格：一丝不苟、眼光犀利、对错误零容忍，但会给出建设性的改进意见。
+能力范围：
+- 质量检测：对内容和组件进行质量评分，检测潜在问题
+- 内容审核：检查文本的合规性，识别敏感/不当内容
+- 回归测试：对页面组件执行自动化测试，输出测试报告
+- 网站诊断：全面分析网站现状，提出改进建议和优化方向
+检测标准：输出结构化的 JSON 报告，包含评分、问题列表和改进建议。不放过任何细节。`,
     skills: [
       { id: 'quality-check', name: '质量检测', icon: '🔎', description: '对输出内容进行质量评分和问题检测', input: 'json', output: 'json', provider: 'Rules Engine', mockResult: '输出 JSON 质量报告 (score: 92)' },
       { id: 'content-review', name: '内容审核', icon: '🛡️', description: '检查文本是否合规、无敏感内容', input: 'text', output: 'json', provider: 'Moderation API', mockResult: '输出审核结果: safe/flagged' },
@@ -615,18 +694,25 @@ export const assistants = [
     },
     messages: [
       '质量检测通过! ✅',
-      '发现一个小问题~',
+      '发现一个小问题',
       '内容审核中...',
-      '测试覆盖率 98%! 🧪',
-      '让我仔细检查一下~',
+      '测试覆盖率 98%!',
+      '我是监工',
     ]
   },
   {
     id: 'hr',
-    name: '阿蓝',
+    name: '发发',
     role: 'HR',
     description: '人事专员。负责招募新猫、定义角色技能、团队管理和猫猫培训。',
     accent: '#5C9CE6',
+    systemPrompt: `你是「发发」，一只温柔体贴的美短猫猫人事官。你负责团队的人才管理和发展。
+性格：亲和力强、善于识人、有同理心，关心每只猫猫的成长和状态。
+能力范围：
+- 招募新猫：根据花椒的招募决策，定义新猫的角色、技能树和外观属性
+- 团队盘点：分析当前团队的能力覆盖度和缺口，输出人才报告
+- 技能培训：为现有猫猫设计培训计划，升级或新增技能
+管理原则：人尽其才、合理搭配，确保团队能力均衡。输出使用结构化 JSON 格式。`,
     skills: [
       { id: 'recruit-cat', name: '招募新猫', icon: '🐱', description: '根据花椒的招募决策，招募一只新猫并定义其角色、技能和外观', input: 'json', output: 'json', provider: 'Gemini', mockResult: '新猫已招募 (角色/技能/外观已定义)' },
       { id: 'team-review', name: '团队盘点', icon: '👥', description: '盘点当前猫猫团队的能力分布和缺口', input: 'none', output: 'json', provider: 'Gemini', mockResult: '输出团队能力报告 (9猫/覆盖率 85%)' },
@@ -634,35 +720,35 @@ export const assistants = [
     ] as Skill[],
     item: 'clipboard',
     catColors: {
-      body: '#8E9AAF',
-      bodyDark: '#6B7A8D',
-      belly: '#B8C4D4',
-      earInner: '#C4A6A6',
-      eyes: '#D4944C',
-      nose: '#B87D75',
-      blush: '#C9A6A6',
-      stroke: '#4A5568',
-      apron: '#5B8DB8',
-      apronLight: '#D0DFE9',
-      apronLine: '#5B8DB8',
-      desk: '#E8D5B8',
-      deskDark: '#C4A87A',
-      deskLeg: '#D4BF9A',
-      paw: '#B8C4D4',
-      tail: '#6B7A8D',
-      faceDark: '',
-      month: '',
-      head: '',
-      bodyDarkBottom: '',
-      leg: '',
-      headTopLeft: '',
-      headTopRight: '',
+      body: '#F5F5F5',
+      bodyDark: '#D5D5D5',
+      belly: '#FFFFFF',
+      earInner: '#FFB5C5',
+      eyes: '#542615',
+      nose: '#542615',
+      blush: '#FFB5C5',
+      stroke: '#333333',
+      apron: '#E8A0BF',
+      apronLight: '#FCE4EC',
+      apronLine: '#E8A0BF',
+      desk: '#E8C8D8',
+      deskDark: '#C4919E',
+      deskLeg: '#D4A8B5',
+      paw: '#FFFFFF',
+      tail: '#F5F5F5',
+      faceDark:'',
+       month:'',
+       head:'',
+       bodyDarkBottom:'',
+       leg:'',
+       headTopLeft:'',
+      headTopRight:'',
     },
     messages: [
-      '让我看看团队~ 👥',
+      '猫猫们，今天状态如何?',
       '新猫面试中...',
-      '人才库已更新!',
-      '培训计划制定好了~ 📚',
+      '新猫要什么花色呢？',
+      '培训计划制定好了',
       '需要招新猫猫吗? 🐱',
     ]
   },
