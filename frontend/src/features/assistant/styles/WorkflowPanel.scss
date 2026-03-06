@@ -145,6 +145,10 @@
     transform: translateY(-2px);
   }
 
+  &.persistent {
+    border-left: 3px solid var(--wf-color);
+  }
+
   .wf-card-header {
     display: flex;
     align-items: center;
@@ -157,6 +161,31 @@
       font-weight: 800;
       color: #5D4037;
       flex: 1;
+    }
+    .wf-tags {
+      display: flex;
+      gap: 4px;
+    }
+    .wf-tag {
+      font-size: 0.56rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+      line-height: 1.6;
+
+      &.wf-tag-persistent {
+        background: #E8F5E9;
+        color: #2E7D32;
+      }
+      &.wf-tag-scheduled {
+        background: #E3F2FD;
+        color: #1565C0;
+      }
+      &.wf-tag-oneshot {
+        background: #FFF3E0;
+        color: #E65100;
+      }
     }
     .wf-step-count {
       font-size: 0.7rem;
@@ -171,8 +200,79 @@
   .wf-desc {
     font-size: 0.75rem;
     color: #8D6E63;
-    margin: 0 0 10px;
+    margin: 0 0 8px;
     line-height: 1.5;
+  }
+
+  .wf-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+
+    .wf-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.66rem;
+      font-weight: 600;
+      color: #8D6E63;
+      background: #F5F0EB;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .wf-cron {
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: #1565C0;
+      background: #E3F2FD;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .wf-schedule-toggle {
+      display: inline-flex;
+      align-items: center;
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+
+      .toggle-track {
+        position: relative;
+        width: 28px;
+        height: 16px;
+        border-radius: 8px;
+        background: #E0D6CC;
+        transition: background 0.25s ease;
+      }
+
+      .toggle-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        transition: transform 0.25s ease;
+      }
+
+      &.on .toggle-track {
+        background: #66BB6A;
+      }
+
+      &.on .toggle-thumb {
+        transform: translateX(12px);
+      }
+
+      &.off .toggle-track {
+        background: #D0D0D0;
+      }
+    }
   }
 
   .wf-agents {

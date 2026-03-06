@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { workflows, assistants, workHistory, type Workflow, type Skill } from '../data';
+import { workflows as initialWorkflows, assistants, workHistory, type Workflow, type Skill } from '../data';
 import { getSkillHandler } from '../skills';
 import type { SkillResult } from '../skills/types';
 import CatSVG from './CatSVG';
@@ -70,8 +70,20 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [currentDialog, setCurrentDialog] = useState('');
   const [executionLogs, setExecutionLogs] = useState<ExecutionLog[]>([]);
   const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
+  const [workflowList, setWorkflowList] = useState<Workflow[]>(() => [...initialWorkflows]);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const logEndRef = useRef<HTMLDivElement | null>(null);
+
+  const toggleScheduled = useCallback((wfId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setWorkflowList((prev) =>
+      prev.map((wf) => wf.id === wfId ? { ...wf, scheduledEnabled: !wf.scheduledEnabled } : wf)
+    );
+  }, []);
+
+  const removeWorkflow = useCallback((wfId: string) => {
+    setWorkflowList((prev) => prev.filter((wf) => wf.id !== wfId));
+  }, []);
 
   // 按日期分组历史
   const groupedHistory = useMemo(() => {
@@ -322,19 +334,50 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
         <div className="panel-body">
           <div className="workflow-list">
             <p className="panel-desc">每只小猫各司其职，组合协作完成复杂任务</p>
-            {workflows.map((wf) => (
+            {workflowList.map((wf) => (
               <div
                 key={wf.id}
-                className="workflow-card"
+                className={`workflow-card ${wf.persistent ? 'persistent' : 'oneshot'}`}
                 style={{ '--wf-color': wf.color } as React.CSSProperties}
                 onClick={() => editorMode && handleRunWorkflow(wf)}
               >
                 <div className="wf-card-header">
                   <span className="wf-icon">{wf.icon}</span>
                   <span className="wf-name">{wf.name}</span>
+                  <div className="wf-tags">
+                    {wf.persistent && <span className="wf-tag wf-tag-persistent">常驻</span>}
+                    {wf.scheduled && <span className="wf-tag wf-tag-scheduled">定时</span>}
+                    {!wf.persistent && !wf.scheduled && <span className="wf-tag wf-tag-oneshot">一次性</span>}
+                  </div>
                   <span className="wf-step-count">{wf.steps.length} 步</span>
                 </div>
                 <p className="wf-desc">{wf.description}</p>
+                {/* 时间和定时信息 */}
+                <div className="wf-meta">
+                  {wf.startTime && (
+                    <span className="wf-time">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      {wf.startTime}{wf.endTime ? ` - ${wf.endTime}` : ''}
+                    </span>
+                  )}
+                  {wf.cron && (
+                    <span className="wf-cron">{wf.cron}</span>
+                  )}
+                  {wf.scheduled && editorMode && (
+                    <button
+                      className={`wf-schedule-toggle ${wf.scheduledEnabled ? 'on' : 'off'}`}
+                      onClick={(e) => toggleScheduled(wf.id, e)}
+                      title={wf.scheduledEnabled ? '关闭定时' : '开启定时'}
+                    >
+                      <span className="toggle-track">
+                        <span className="toggle-thumb" />
+                      </span>
+                    </button>
+                  )}
+                </div>
                 <div className="wf-agents">
                   {wf.steps.map((step, i) => {
                     const agent = getAgent(step.agentId);
@@ -519,10 +562,22 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               {allDone && (
                 <div className="exec-done">
                   <span className="done-icon">🎉</span>
-                  <span className="done-text">全部完成！所有猫猫辛苦了～</span>
-                  {editorMode && (
+                  <span className="done-text">
+                    {activeWorkflow.persistent
+                      ? '全部完成！常驻任务已保留～'
+                      : '全部完成！任务已归档～'}
+                  </span>
+                  {editorMode && activeWorkflow.persistent && (
                     <button className="replay-btn" onClick={() => handleRunWorkflow(activeWorkflow)}>
                       再来一次
+                    </button>
+                  )}
+                  {editorMode && !activeWorkflow.persistent && (
+                    <button className="replay-btn" onClick={() => {
+                      removeWorkflow(activeWorkflow.id);
+                      handleBack();
+                    }}>
+                      确认归档
                     </button>
                   )}
                 </div>

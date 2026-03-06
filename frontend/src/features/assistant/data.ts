@@ -74,6 +74,12 @@ export interface Workflow {
   description: string;
   steps: WorkflowStep[];
   color: string;
+  startTime?: string;       // 开始时间 (ISO 或 HH:mm)
+  endTime?: string;         // 结束时间 (ISO 或 HH:mm)
+  scheduled?: boolean;      // 是否为定时任务
+  scheduledEnabled?: boolean; // 定时任务开关（仅 scheduled=true 时有效）
+  cron?: string;            // 定时表达式描述，如 "每天 09:00" "每周一 10:00"
+  persistent?: boolean;     // 是否为常驻任务（执行后不删除）
 }
 
 export const workflows: Workflow[] = [
@@ -89,6 +95,12 @@ export const workflows: Workflow[] = [
       { agentId: 'email', skillId: 'send-notification', action: '推送资讯摘要给主人 → 输出邮件状态', inputFrom: 'writer' },
     ],
     color: '#96BAFF',
+    startTime: '09:00',
+    endTime: '09:15',
+    scheduled: true,
+    scheduledEnabled: true,
+    cron: '每天 09:00',
+    persistent: true,
   },
   {
     id: 'site-todo',
@@ -102,6 +114,12 @@ export const workflows: Workflow[] = [
       { agentId: 'manager', skillId: 'assign-task', action: '将任务分配给对应猫猫 → 输出 JSON 任务卡片', inputFrom: 'manager' },
     ],
     color: '#FFB74D',
+    startTime: '10:00',
+    endTime: '10:20',
+    scheduled: true,
+    scheduledEnabled: true,
+    cron: '每周一 10:00',
+    persistent: false,
   },
   {
     id: 'content-publish',
@@ -116,6 +134,9 @@ export const workflows: Workflow[] = [
       { agentId: 'email', skillId: 'send-notification', action: '推送发布通知 → 输出邮件状态', inputFrom: 'milk' },
     ],
     color: '#E8A0BF',
+    startTime: '14:00',
+    endTime: '14:30',
+    persistent: false,
   },
   {
     id: 'crafts-update',
@@ -129,6 +150,9 @@ export const workflows: Workflow[] = [
       { agentId: 'email', skillId: 'send-notification', action: '推送 Crafts 更新通知 → 输出邮件状态', inputFrom: 'milk' },
     ],
     color: '#A0D8B3',
+    startTime: '15:00',
+    endTime: '15:20',
+    persistent: false,
   },
   {
     id: 'data-report',
@@ -143,18 +167,27 @@ export const workflows: Workflow[] = [
       { agentId: 'email', skillId: 'send-email', action: '发送周报邮件 → 输出邮件状态', inputFrom: 'writer' },
     ],
     color: '#96BAFF',
+    startTime: '10:00',
+    endTime: '10:30',
+    scheduled: true,
+    scheduledEnabled: true,
+    cron: '每周五 10:00',
+    persistent: true,
   },
   {
     id: 'image-pipeline',
     name: '图片处理流水线',
     icon: '🖼️',
-    description: 'Pixel 生成图 → 墨墨处理 → 小白检测质量',
+    description: 'Pixel 生成图 → 黄金处理 → 小白检测质量',
     steps: [
       { agentId: 'image', skillId: 'generate-image', action: '调用 Gemini 生成原始图片 → 输出 Image' },
       { agentId: 'text', skillId: 'pixelate-image', action: '将图片像素化处理 → 输出 Image', inputFrom: 'image' },
       { agentId: 'milk', skillId: 'quality-check', action: '检测图片质量分数 → 输出 JSON', inputFrom: 'text' },
     ],
     color: '#90CAF9',
+    startTime: '10:30',
+    endTime: '10:40',
+    persistent: true,
   },
   {
     id: 'task-log-assign',
@@ -168,6 +201,12 @@ export const workflows: Workflow[] = [
       { agentId: 'manager', skillId: 'assign-task', action: '将新任务分配给对应猫猫 → 输出 JSON 任务卡片', inputFrom: 'manager' },
     ],
     color: '#B39DDB',
+    startTime: '17:00',
+    endTime: '17:20',
+    scheduled: true,
+    scheduledEnabled: false,
+    cron: '每天 17:00',
+    persistent: false,
   },
 ];
 
