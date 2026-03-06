@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { assistants, workHistory, type Workflow, type Skill } from '../data';
+import { assistants, workHistory as mockWorkHistory, type Workflow, type Skill } from '../data';
+import type { HistoryItem } from '../data';
 import { getSkillHandler } from '../skills';
 import type { SkillResult } from '../skills/types';
 import CatSVG from './CatSVG';
@@ -17,8 +18,11 @@ import {
   fetchAIModels,
   setCurrentAIModel,
   getCurrentAIModel,
+  fetchWorkflowRuns,
+  createWorkflowRun,
   type CreateWorkflowRequest,
   type AIModelInfo,
+  type WorkflowRunDB,
 } from '../../../shared/utils/backendClient';
 
 const STEP_DURATION = 3000;
@@ -93,6 +97,7 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [aiModels, setAiModels] = useState<AIModelInfo[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>(getCurrentAIModel());
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [workHistory, setWorkHistory] = useState<HistoryItem[]>(mockWorkHistory);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 从后端加载工作流，失败则使用 mock 数据
@@ -122,6 +127,31 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
       }
     };
     loadWorkflows();
+  }, []);
+
+  // 从后端加载执行历史，失败则使用 mock 数据
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const { runs } = await fetchWorkflowRuns({ limit: 100 });
+        if (runs.length > 0) {
+          const mapped: HistoryItem[] = runs.map((r: WorkflowRunDB) => ({
+            id: r.id,
+            agentId: r.agentId,
+            skillId: r.skillId,
+            timestamp: r.executedAt,
+            summary: r.summary,
+            result: r.result,
+            workflowName: r.workflowName || undefined,
+            status: r.status as HistoryItem['status'],
+          }));
+          setWorkHistory(mapped);
+        }
+      } catch {
+        console.log('Backend unavailable, using mock history');
+      }
+    };
+    loadHistory();
   }, []);
 
   // 加载可用 AI 模型
@@ -262,14 +292,14 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
 
   // 按日期分组历史
   const groupedHistory = useMemo(() => {
-    const groups: Record<string, typeof workHistory> = {};
+    const groups: Record<string, HistoryItem[]> = {};
     workHistory.forEach((item) => {
       const dateKey = item.timestamp.slice(0, 10);
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(item);
     });
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, []);
+  }, [workHistory]);
 
   const handleRunWorkflow = useCallback((workflow: Workflow) => {
     setActiveWorkflow(workflow);
@@ -358,6 +388,33 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
           )
         );
 
+        // 写入后端执行记录
+        const runRecord = {
+          workflowId: activeWorkflow?.id,
+          workflowName: activeWorkflow?.name ?? '',
+          agentId: step.agentId,
+          skillId: step.skillId,
+          stepIndex: runningStepIndex,
+          summary: result.summary || '',
+          result: typeof result.data === 'string' ? result.data : JSON.stringify(result.data ?? ''),
+          status: result.status,
+          duration,
+        };
+        createWorkflowRun(runRecord).then((saved) => {
+          if (saved) {
+            setWorkHistory((prev) => [{
+              id: saved.id,
+              agentId: saved.agentId,
+              skillId: saved.skillId,
+              timestamp: saved.executedAt,
+              summary: saved.summary,
+              result: saved.result,
+              workflowName: saved.workflowName || undefined,
+              status: saved.status as HistoryItem['status'],
+            }, ...prev]);
+          }
+        }).catch(() => {});
+
         setCurrentDialog(result.summary || dialogs[2] || '完成!');
         setTimeout(() => {
           setCompletedSteps((prev) => [...prev, runningStepIndex]);
@@ -372,6 +429,20 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               : log
           )
         );
+
+        // 写入失败记录到后端
+        createWorkflowRun({
+          workflowId: activeWorkflow?.id,
+          workflowName: activeWorkflow?.name ?? '',
+          agentId: step.agentId,
+          skillId: step.skillId,
+          stepIndex: runningStepIndex,
+          summary: `执行出错: ${err.message}`,
+          result: '',
+          status: 'error',
+          duration,
+        }).catch(() => {});
+
         setCurrentDialog('出错了...');
         setTimeout(() => {
           setCompletedSteps((prev) => [...prev, runningStepIndex]);

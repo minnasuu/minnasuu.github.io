@@ -87,6 +87,7 @@ app.use('/api/goals', goalRoutes);
 app.use('/api/dify', difyRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/workflows', workflowRoutes);
+app.use('/api/workflow-runs', workflowRunRoutes);
 app.use('/api/assistants', assistantRoutes);
 
 // 启动服务器
