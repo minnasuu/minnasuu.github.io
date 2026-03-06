@@ -24,7 +24,7 @@ services:
       - DIFY_API_KEY=${DIFY_API_KEY}
       - DIFY_GOAL_API_KEY=${DIFY_GOAL_API_KEY}
       - DIFY_API_URL=${DIFY_API_URL:-https://api.dify.ai/v1}
-      - DIFY_SITE_ANALYZE_API_KEY=${DIFY_SITE_ANALYZE_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost}
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/minna_blog
       - EDITOR_PASSWORD=${EDITOR_PASSWORD}

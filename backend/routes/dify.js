@@ -149,8 +149,46 @@ router.post('/generate-goal', async (req, res) => {
   }
 });
 
-// 通用 Skill 对话式 Dify 路由：各 skill 共用同一个 Dify app
+// 通用 Skill 路由：各 skill 共用 Gemini 模型
 // POST /api/dify/skill  body: { taskId, text }
+const { GoogleGenAI } = require('@google/genai');
+
+// Skill 对应的系统提示词
+const SKILL_SYSTEM_PROMPTS = {
+  'site-analyze': `你是一位专业的个人网站诊断顾问。用户会提供他们网站的现有文章和 Crafts 列表，请你：
+1. 分析网站内容的完整性和丰富度
+2. 指出内容上的不足和改进方向
+3. 给出具体、可操作的建议（包括文章选题、Crafts 创意、功能扩展）
+4. 用简洁友好的语气回复，适当使用 emoji
+请用中文回复，控制在 300-500 字。`,
+
+  'generate-todo': `你是一位项目管理助手，擅长为个人网站制定下周工作计划。根据用户提供的网站现状和诊断结论，生成下周代办清单。
+请严格按以下格式输出，每个分类 2-3 项：
+
+**文章选题**
+- 具体文章标题和简短描述
+- ...
+
+**Crafts 计划**
+- 具体 Craft 名称和简短描述
+- ...
+
+**功能扩展**
+- 具体功能名称和简短描述
+- ...
+
+用中文回复，每项简明扼要。`,
+
+  'meeting-notes': `你是一位会议纪要撰写助手。根据用户提供的周会内容（包括产出统计、网站诊断、代办清单、任务分配等），生成结构化的会议纪要。
+格式要求：
+1. 标题和日期
+2. 本周回顾（关键产出）
+3. 问题与改进
+4. 下周计划
+5. 行动项（具体责任人和截止日期）
+用中文回复，简洁专业。`,
+};
+
 router.post('/skill', async (req, res) => {
   try {
     const { taskId, text } = req.body;
@@ -159,61 +197,43 @@ router.post('/skill', async (req, res) => {
       return res.status(400).json({ error: 'taskId and text are required' });
     }
 
-    const difyApiKey = process.env.DIFY_SITE_ANALYZE_API_KEY;
-    const difyApiUrl = process.env.DIFY_API_URL || 'https://api.dify.ai/v1';
+    const geminiApiKey = process.env.GEMINI_API_KEY;
 
-    if (!difyApiKey) {
-      return res.status(500).json({ error: 'Server configuration error: DIFY_SITE_ANALYZE_API_KEY not set' });
+    if (!geminiApiKey) {
+      return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY not set' });
     }
 
-    // 将 taskId + text 作为 query 发给 Dify
-    const query = JSON.stringify({ taskId, text });
+    const ai = new GoogleGenAI({ apiKey: geminiApiKey });
 
-    const response = await fetch(`${difyApiUrl}/chat-messages`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${difyApiKey}`,
+    const systemPrompt = SKILL_SYSTEM_PROMPTS[taskId] || '你是一位专业的 AI 助手，请用中文回复用户的问题。';
+
+    console.log(`[gemini/skill] taskId=${taskId}, text length=${text.length}`);
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: text,
+      config: {
+        systemInstruction: systemPrompt,
+        maxOutputTokens: 2048,
+        temperature: 0.7,
       },
-      body: JSON.stringify({
-        inputs: {},
-        query,
-        response_mode: 'blocking',
-        user: `${taskId}-${Date.now()}`,
-      }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[${taskId}] Dify API error:`, errorText);
-      return res.status(response.status).json({
-        error: 'Dify API error',
-        details: errorText,
-        status: response.status,
-      });
-    }
+    const answer = response.text || '';
 
-    const data = await response.json();
+    console.log(`[gemini/skill] taskId=${taskId}, answer length=${answer.length}`);
 
     res.json({
-      answer: data.answer,
-      conversationId: data.conversation_id,
+      answer,
+      conversationId: `gemini-${taskId}-${Date.now()}`,
     });
   } catch (error) {
-    console.error('[dify/skill] Error:', error);
+    console.error('[gemini/skill] Error:', error);
     res.status(500).json({
-      error: 'Internal server error',
+      error: 'Gemini API error',
       message: error.message,
     });
   }
-});
-
-// 兼容：/site-analyze 转发到通用路由
-router.post('/site-analyze', (req, res, next) => {
-  req.body.taskId = req.body.taskId || 'site-analyze';
-  req.body.text = req.body.text || req.body.text;
-  req.url = '/skill';
-  router.handle(req, res, next);
 });
 
 module.exports = router;

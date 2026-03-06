@@ -1020,7 +1020,7 @@ export interface DifySkillResponse {
   error?: string;
 }
 
-/** 通用 Dify Skill 调用：taskId 区分不同 skill */
+/** 通用 AI Skill 调用：taskId 区分不同 skill */
 export const callDifySkill = async (taskId: string, text: string): Promise<DifySkillResponse> => {
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/dify/skill`;
@@ -1038,13 +1038,10 @@ export const callDifySkill = async (taskId: string, text: string): Promise<DifyS
     }
     return data;
   } catch (error) {
-    console.error(`Error calling dify skill [${taskId}]:`, error);
+    console.error(`Error calling AI skill [${taskId}]:`, error);
     return { answer: '', error: String(error) };
   }
 };
-
-/** 兼容：site-analyze 快捷方法 */
-export const callSiteAnalyze = (text: string) => callDifySkill('site-analyze', text);
 
 // --- 邮件发送 ---
 
