@@ -149,4 +149,71 @@ router.post('/generate-goal', async (req, res) => {
   }
 });
 
+// 通用 Skill 对话式 Dify 路由：各 skill 共用同一个 Dify app
+// POST /api/dify/skill  body: { taskId, text }
+router.post('/skill', async (req, res) => {
+  try {
+    const { taskId, text } = req.body;
+
+    if (!taskId || !text) {
+      return res.status(400).json({ error: 'taskId and text are required' });
+    }
+
+    const difyApiKey = process.env.DIFY_SITE_ANALYZE_API_KEY;
+    const difyApiUrl = process.env.DIFY_API_URL || 'https://api.dify.ai/v1';
+
+    if (!difyApiKey) {
+      return res.status(500).json({ error: 'Server configuration error: DIFY_SITE_ANALYZE_API_KEY not set' });
+    }
+
+    // 将 taskId + text 作为 query 发给 Dify
+    const query = JSON.stringify({ taskId, text });
+
+    const response = await fetch(`${difyApiUrl}/chat-messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${difyApiKey}`,
+      },
+      body: JSON.stringify({
+        inputs: {},
+        query,
+        response_mode: 'blocking',
+        user: `${taskId}-${Date.now()}`,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[${taskId}] Dify API error:`, errorText);
+      return res.status(response.status).json({
+        error: 'Dify API error',
+        details: errorText,
+        status: response.status,
+      });
+    }
+
+    const data = await response.json();
+
+    res.json({
+      answer: data.answer,
+      conversationId: data.conversation_id,
+    });
+  } catch (error) {
+    console.error('[dify/skill] Error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: error.message,
+    });
+  }
+});
+
+// 兼容：/site-analyze 转发到通用路由
+router.post('/site-analyze', (req, res, next) => {
+  req.body.taskId = req.body.taskId || 'site-analyze';
+  req.body.text = req.body.text || req.body.text;
+  req.url = '/skill';
+  router.handle(req, res, next);
+});
+
 module.exports = router;

@@ -14,6 +14,7 @@ const uploadRoutes = require('./routes/upload');
 const authRoutes = require('./routes/auth');
 const goalRoutes = require('./routes/goals');
 const difyRoutes = require('./routes/dify');
+const emailRoutes = require('./routes/email');
 
 // 加载环境变量 - 尝试多个可能的位置
 const possibleEnvPaths = [
@@ -82,6 +83,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/dify', difyRoutes);
+app.use('/api/email', emailRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/assistants', assistantRoutes);
 

@@ -1009,3 +1009,78 @@ export const seedAssistants = async (assistants: any[]): Promise<any> => {
     throw error;
   }
 };
+
+// --- 邮件发送 ---
+
+// --- Dify Skill 通用调用 ---
+
+export interface DifySkillResponse {
+  answer: string;
+  conversationId?: string;
+  error?: string;
+}
+
+/** 通用 Dify Skill 调用：taskId 区分不同 skill */
+export const callDifySkill = async (taskId: string, text: string): Promise<DifySkillResponse> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/dify/skill`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, text }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { answer: '', error: data.error || `HTTP ${response.status}` };
+    }
+    return data;
+  } catch (error) {
+    console.error(`Error calling dify skill [${taskId}]:`, error);
+    return { answer: '', error: String(error) };
+  }
+};
+
+/** 兼容：site-analyze 快捷方法 */
+export const callSiteAnalyze = (text: string) => callDifySkill('site-analyze', text);
+
+// --- 邮件发送 ---
+
+export interface SendEmailRequest {
+  to: string;
+  subject: string;
+  html?: string;
+  text?: string;
+}
+
+export interface SendEmailResponse {
+  success: boolean;
+  messageId?: string;
+  to?: string;
+  subject?: string;
+  error?: string;
+}
+
+export const sendEmail = async (req: SendEmailRequest): Promise<SendEmailResponse> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/email/send`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return { success: false, error: data.error || `HTTP ${response.status}` };
+    }
+    return data;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return { success: false, error: String(error) };
+  }
+};

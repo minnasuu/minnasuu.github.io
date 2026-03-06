@@ -84,6 +84,26 @@ export interface Workflow {
 
 export const workflows: Workflow[] = [
   {
+    id: 'weekly-meeting',
+    name: '开周会',
+    icon: '🗓️',
+    description: '数据复盘 → 产出回顾 → 网站诊断 → 生成下周产出计划（文章/Crafts/功能扩展）→ 分配任务 → 输出纪要',
+    steps: [
+      { agentId: 'sing', skillId: 'task-log', action: '统计本周产出：发了几篇文章、上了几个 Crafts、修了哪些功能 → 输出 Text 日志' },
+      { agentId: 'milk', skillId: 'site-analyze', action: '诊断个站缺口：可以写的文章主题、可以增加的crafts主题 → 输出 JSON 报告', inputFrom: 'sing' },
+      { agentId: 'manager', skillId: 'generate-todo', action: '生成下周产出计划：文章选题 × N / 新 Crafts × N / 功能扩展 × N → 输出 JSON 代办清单', inputFrom: 'milk' },
+      { agentId: 'manager', skillId: 'assign-task', action: '文章→阿蓝+Pixel，Crafts→小虎，功能→对应猫猫 → 输出 JSON 任务卡片', inputFrom: 'manager' },
+      { agentId: 'sing', skillId: 'meeting-notes', action: '输出周会纪要，核心为下周产出承诺表 → 输出 Text 纪要', inputFrom: 'manager' },
+      { agentId: 'email', skillId: 'send-notification', action: '推送周会纪要和任务分配给主人 → 输出推送状态', inputFrom: 'sing' },
+    ],
+    startTime: '09:00',
+    endTime: '09:30',
+    scheduled: true,
+    scheduledEnabled: true,
+    cron: '每周五 18:00',
+    persistent: true,
+  },
+  {
     id: 'news-crawl',
     name: '资讯采集与推送',
     icon: '📰',
