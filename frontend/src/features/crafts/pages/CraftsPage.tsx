@@ -1614,7 +1614,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   </div>
                   <div className="grid-card-content">
                     <span className="grid-card-category">
-                      {categoryLabels[craft.category][language]}
+                      {categoryLabels[craft.category]?.[language] || craft.category}
                     </span>
                     <h3 className="grid-card-name">{craft.name}</h3>
                     <p className="grid-card-description">{craft.description}</p>
@@ -2139,7 +2139,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   ) : null}
                   <div className="node-overlay">
                     <span className="node-category">
-                      {categoryLabels[addNodeState.sourceCraft.category][language]}
+                      {categoryLabels[addNodeState.sourceCraft.category]?.[language] || addNodeState.sourceCraft.category}
                     </span>
                   </div>
                 </div>

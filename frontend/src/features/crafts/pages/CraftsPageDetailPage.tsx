@@ -227,7 +227,7 @@ export const CraftsPageDetailPage: React.FC = () => {
           <div className="preview-info-bar">
             <div className="preview-info-left">
               <span className="preview-category">
-                {categoryLabels[craft.category][language]}
+                {categoryLabels[craft.category]?.[language] || craft.category}
               </span>
               <h2 className="preview-title">{craft.name}</h2>
             </div>
@@ -479,7 +479,7 @@ export const CraftsPageDetailPage: React.FC = () => {
           <div className="info-only-content">
             <div className="info-only-meta">
               <span className="info-category">
-                {categoryLabels[craft.category][language]}
+                {categoryLabels[craft.category]?.[language] || craft.category}
               </span>
               {craft.featured && (
                 <span className="info-featured">
