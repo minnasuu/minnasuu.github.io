@@ -56,17 +56,20 @@ app.use(cors({
       return callback(null, true);
     }
 
-    // 检查 ALLOWED_ORIGINS 环境变量（逗号分隔的域名列表）
+    // 检查 ALLOWED_ORIGINS 环境变量（逗号分隔的域名列表，忽略端口差异）
     const allowedOrigins = process.env.ALLOWED_ORIGINS;
     if (allowedOrigins) {
-      const origins = allowedOrigins.split(',').map(o => o.trim());
-      if (origins.includes(origin)) {
+      const origins = allowedOrigins.split(',').map(o => o.trim()).filter(Boolean);
+      // 提取 origin 的 协议+主机名（去掉端口）
+      const getHost = (u) => { try { const url = new URL(u); return url.protocol + '//' + url.hostname; } catch { return u; } };
+      const originHost = getHost(origin);
+      if (origins.some(o => o === origin || getHost(o) === originHost)) {
         return callback(null, true);
       }
     }
 
-    // console.log('Blocked CORS for:', origin);
-    callback(new Error('Not allowed by CORS'));
+    console.log('Blocked CORS for:', origin, '| FRONTEND_URL:', allowedOrigin, '| ALLOWED_ORIGINS:', allowedOrigins);
+    callback(null, false);
   },
   credentials: true
 }));
