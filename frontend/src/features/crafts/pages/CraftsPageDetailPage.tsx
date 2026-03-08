@@ -433,7 +433,7 @@ export const CraftsPageDetailPage: React.FC = () => {
                 <div className="sidebar-meta">
                   <div className="meta-row">
                     <span className="meta-label">{language === "zh" ? "分类" : "Category"}</span>
-                    <span className="meta-value">{categoryLabels[craft.category][language]}</span>
+                    <span className="meta-value">{categoryLabels[craft.category]?.[language] || craft.category}</span>
                   </div>
                   <div className="meta-row">
                     <span className="meta-label">{language === "zh" ? "创建时间" : "Created"}</span>
