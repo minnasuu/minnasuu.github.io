@@ -56,7 +56,15 @@ app.use(cors({
       return callback(null, true);
     }
 
-    // 开发环境如果需要更宽松，可以在这里添加逻辑
+    // 检查 ALLOWED_ORIGINS 环境变量（逗号分隔的域名列表）
+    const allowedOrigins = process.env.ALLOWED_ORIGINS;
+    if (allowedOrigins) {
+      const origins = allowedOrigins.split(',').map(o => o.trim());
+      if (origins.includes(origin)) {
+        return callback(null, true);
+      }
+    }
+
     // console.log('Blocked CORS for:', origin);
     callback(new Error('Not allowed by CORS'));
   },
