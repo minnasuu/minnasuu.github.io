@@ -157,7 +157,7 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
         ) : null}
         <div className="node-overlay">
           <span className="node-category">
-            {categoryLabels[craft.category][language]}
+            {categoryLabels[craft.category]?.[language] || craft.category}
           </span>
         </div>
         {hasRelations && (

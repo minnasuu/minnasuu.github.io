@@ -227,7 +227,7 @@ export const CraftsPageDetailPage: React.FC = () => {
           <div className="preview-info-bar">
             <div className="preview-info-left">
               <span className="preview-category">
-                {categoryLabels[craft.category][language]}
+                {categoryLabels[craft.category]?.[language] || craft.category}
               </span>
               <h2 className="preview-title">{craft.name}</h2>
             </div>
@@ -433,7 +433,7 @@ export const CraftsPageDetailPage: React.FC = () => {
                 <div className="sidebar-meta">
                   <div className="meta-row">
                     <span className="meta-label">{language === "zh" ? "分类" : "Category"}</span>
-                    <span className="meta-value">{categoryLabels[craft.category][language]}</span>
+                    <span className="meta-value">{categoryLabels[craft.category]?.[language] || craft.category}</span>
                   </div>
                   <div className="meta-row">
                     <span className="meta-label">{language === "zh" ? "创建时间" : "Created"}</span>
@@ -479,7 +479,7 @@ export const CraftsPageDetailPage: React.FC = () => {
           <div className="info-only-content">
             <div className="info-only-meta">
               <span className="info-category">
-                {categoryLabels[craft.category][language]}
+                {categoryLabels[craft.category]?.[language] || craft.category}
               </span>
               {craft.featured && (
                 <span className="info-featured">

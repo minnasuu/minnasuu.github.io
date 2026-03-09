@@ -200,63 +200,141 @@ const SKILL_SYSTEM_PROMPTS = {
 用中文回复，每项简明扼要。`,
 
   'meeting-notes': `你是一位会议纪要撰写助手。根据用户提供的周会内容（包括产出统计、网站诊断、代办清单、任务分配等），生成结构化的会议纪要。
-格式要求：
-1. 标题和日期
-2. 本周回顾（关键产出）
-3. 问题与改进
-4. 下周计划
-5. 行动项（具体责任人和截止日期）
-用中文回复，简洁专业。`,
+
+格式要求（Markdown）：
+1. **标题**：根据本次会议实际讨论的核心内容，由你总结一个简洁有力的会议标题（不要写成"周会纪要"之类的泛称，而是提炼出重点）
+2. **会议信息**：日期、主持人、参会人 — 这些信息会由系统在输入中提供，请直接使用
+3. **本周回顾**（关键产出）
+4. **问题与改进**
+5. **下周计划**
+6. **行动项**（具体责任人和截止日期）
+
+用中文回复，简洁专业，适当使用 emoji。`,
+
+  'assign-task': `你是一位项目任务拆解助手。用户会提供前序步骤的输出内容（可能包含代办清单、网站诊断、产出统计等），你需要从中提取出**最重要、最可执行**的任务，分配到对应分类。
+
+规则：
+1. 输出 0-5 个任务，宁缺毋滥，只保留有明确可执行动作的条目
+2. 每个任务必须属于以下三个分类之一：文章、Crafts、功能扩展
+3. title 简明扼要（10字以内），description 说明具体要做什么
+4. 如果前序内容中没有可执行的任务，返回空数组即可
+
+请严格返回 JSON 格式（不要 markdown 代码块包裹），示例：
+[
+  { "category": "文章", "title": "React 状态管理对比", "description": "撰写一篇 React 状态管理方案对比文章" },
+  { "category": "Crafts", "title": "代码雨动效", "description": "开发一个 Matrix 风格的代码雨视觉组件" },
+  { "category": "功能扩展", "title": "深色模式", "description": "为个站添加深色模式切换功能" }
+]
+
+只返回 JSON 数组，不要添加任何额外文字。`,
 };
+
+// Qwen (通义千问) 调用 — 兼容 OpenAI Chat Completions 格式
+async function callQwen(systemPrompt, userText) {
+  const apiKey = process.env.QWEN_API_KEY;
+  if (!apiKey) throw new Error('QWEN_API_KEY not set');
+
+  const baseUrl = process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/compatible-mode/v1';
+  const model = process.env.QWEN_MODEL || 'qwen-plus';
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userText },
+      ],
+      max_tokens: 2048,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Qwen API ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
+// 可用模型列表
+const AVAILABLE_MODELS = {
+  gemini: { name: 'Gemini', provider: 'Google' },
+  qwen: { name: 'Qwen', provider: 'Alibaba' },
+};
+
+// 获取可用模型列表
+router.get('/models', (_req, res) => {
+  const models = Object.entries(AVAILABLE_MODELS).map(([id, info]) => {
+    let available = false;
+    if (id === 'gemini') available = !!process.env.GEMINI_API_KEY;
+    if (id === 'qwen') available = !!process.env.QWEN_API_KEY;
+    return { id, ...info, available };
+  });
+  res.json({ models, default: process.env.DEFAULT_AI_MODEL || 'gemini' });
+});
 
 router.post('/skill', async (req, res) => {
   try {
-    const { taskId, text } = req.body;
+    const { taskId, text, model } = req.body;
 
     if (!taskId || !text) {
       return res.status(400).json({ error: 'taskId and text are required' });
     }
 
-    const GoogleGenAI = await getGoogleGenAI();
-
-    if (!GoogleGenAI) {
-      return res.status(500).json({ error: 'Server configuration error: @google/genai module not available' });
-    }
-
-    const geminiApiKey = process.env.GEMINI_API_KEY;
-
-    if (!geminiApiKey) {
-      return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY not set' });
-    }
-
-    const ai = await createGeminiClient(geminiApiKey);
-
     const systemPrompt = SKILL_SYSTEM_PROMPTS[taskId] || '你是一位专业的 AI 助手，请用中文回复用户的问题。';
+    const selectedModel = model || process.env.DEFAULT_AI_MODEL || 'gemini';
 
-    console.log(`[gemini/skill] taskId=${taskId}, text length=${text.length}`);
+    console.log(`[ai/skill] taskId=${taskId}, model=${selectedModel}, text length=${text.length}`);
 
-    const response = await ai.models.generateContent({
-      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
-      contents: text,
-      config: {
-        systemInstruction: systemPrompt,
-        maxOutputTokens: 2048,
-        temperature: 0.7,
-      },
-    });
+    let answer = '';
 
-    const answer = response.text || '';
+    if (selectedModel === 'qwen') {
+      // --- Qwen ---
+      answer = await callQwen(systemPrompt, text);
+    } else {
+      // --- Gemini (默认) ---
+      const GoogleGenAI = await getGoogleGenAI();
+      if (!GoogleGenAI) {
+        return res.status(500).json({ error: 'Server configuration error: @google/genai module not available' });
+      }
 
-    console.log(`[gemini/skill] taskId=${taskId}, answer length=${answer.length}`);
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (!geminiApiKey) {
+        return res.status(500).json({ error: 'Server configuration error: GEMINI_API_KEY not set' });
+      }
+
+      const ai = await createGeminiClient(geminiApiKey);
+      const response = await ai.models.generateContent({
+        model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+        contents: text,
+        config: {
+          systemInstruction: systemPrompt,
+          maxOutputTokens: 2048,
+          temperature: 0.7,
+        },
+      });
+
+      answer = response.text || '';
+    }
+
+    console.log(`[ai/skill] taskId=${taskId}, model=${selectedModel}, answer length=${answer.length}`);
 
     res.json({
       answer,
-      conversationId: `gemini-${taskId}-${Date.now()}`,
+      model: selectedModel,
+      conversationId: `${selectedModel}-${taskId}-${Date.now()}`,
     });
   } catch (error) {
-    console.error('[gemini/skill] Error:', error);
+    console.error('[ai/skill] Error:', error);
     res.status(500).json({
-      error: 'Gemini API error',
+      error: 'AI API error',
       message: error.message,
     });
   }

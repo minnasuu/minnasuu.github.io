@@ -372,8 +372,8 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       craft.name.toLowerCase().includes(query) ||
       craft.description.toLowerCase().includes(query) ||
       craft.technologies.some(tech => tech.toLowerCase().includes(query)) ||
-      categoryLabels[craft.category].zh.toLowerCase().includes(query) ||
-      categoryLabels[craft.category].en.toLowerCase().includes(query)
+      (categoryLabels[craft.category]?.zh || craft.category).toLowerCase().includes(query) ||
+      (categoryLabels[craft.category]?.en || craft.category).toLowerCase().includes(query)
     );
   }, [crafts, searchQuery]);
 
@@ -1614,7 +1614,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   </div>
                   <div className="grid-card-content">
                     <span className="grid-card-category">
-                      {categoryLabels[craft.category][language]}
+                      {categoryLabels[craft.category]?.[language] || craft.category}
                     </span>
                     <h3 className="grid-card-name">{craft.name}</h3>
                     <p className="grid-card-description">{craft.description}</p>
@@ -2006,7 +2006,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
               <div className="panel-content">
                 <div className="panel-header-row">
                   <span className="panel-category">
-                    {categoryLabels[activeCraft.category][language]}
+                    {categoryLabels[activeCraft.category]?.[language] || activeCraft.category}
                   </span>
                   {activeCraft.createdAt && (
                     <span className="panel-date">
@@ -2139,7 +2139,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   ) : null}
                   <div className="node-overlay">
                     <span className="node-category">
-                      {categoryLabels[addNodeState.sourceCraft.category][language]}
+                      {categoryLabels[addNodeState.sourceCraft.category]?.[language] || addNodeState.sourceCraft.category}
                     </span>
                   </div>
                 </div>

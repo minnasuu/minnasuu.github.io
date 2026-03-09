@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { workflows as initialWorkflows, assistants, workHistory, type Workflow, type Skill } from '../data';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { assistants, workHistory as mockWorkHistory, type Workflow, type Skill } from '../data';
+import type { HistoryItem } from '../data';
 import { getSkillHandler } from '../skills';
 import type { SkillResult } from '../skills/types';
 import CatSVG from './CatSVG';
@@ -12,7 +15,14 @@ import {
   updateWorkflow,
   deleteWorkflow,
   seedAssistants,
+  fetchAIModels,
+  setCurrentAIModel,
+  getCurrentAIModel,
+  fetchWorkflowRuns,
+  createWorkflowRun,
   type CreateWorkflowRequest,
+  type AIModelInfo,
+  type WorkflowRunDB,
 } from '../../../shared/utils/backendClient';
 
 const STEP_DURATION = 3000;
@@ -79,11 +89,15 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
   const [, setExecutionLogs] = useState<ExecutionLog[]>([]);
   const [stepResults, setStepResults] = useState<Map<number, SkillResult>>(new Map());
   const stepResultsRef = useRef<Map<number, SkillResult>>(new Map());
-  const [workflowList, setWorkflowList] = useState<Workflow[]>(() => [...initialWorkflows]);
+  const [workflowList, setWorkflowList] = useState<Workflow[]>(() => []);
   const [isBackendLoaded, setIsBackendLoaded] = useState(false);
   const [editingWorkflow, setEditingWorkflow] = useState<Workflow | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [seeded, setSeeded] = useState(false);
+  const [aiModels, setAiModels] = useState<AIModelInfo[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>(getCurrentAIModel());
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  const [workHistory, setWorkHistory] = useState<HistoryItem[]>(mockWorkHistory);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 从后端加载工作流，失败则使用 mock 数据
@@ -113,6 +127,48 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
       }
     };
     loadWorkflows();
+  }, []);
+
+  // 从后端加载执行历史，失败则使用 mock 数据
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const { runs } = await fetchWorkflowRuns({ limit: 100 });
+        if (runs.length > 0) {
+          const mapped: HistoryItem[] = runs.map((r: WorkflowRunDB) => ({
+            id: r.id,
+            agentId: r.agentId,
+            skillId: r.skillId,
+            timestamp: r.executedAt,
+            summary: r.summary,
+            result: r.result,
+            workflowName: r.workflowName || undefined,
+            status: r.status as HistoryItem['status'],
+          }));
+          setWorkHistory(mapped);
+        }
+      } catch {
+        console.log('Backend unavailable, using mock history');
+      }
+    };
+    loadHistory();
+  }, []);
+
+  // 加载可用 AI 模型
+  useEffect(() => {
+    fetchAIModels().then(({ models, default: defaultModel }) => {
+      setAiModels(models);
+      if (!getCurrentAIModel() || getCurrentAIModel() === 'gemini') {
+        setSelectedModel(defaultModel);
+        setCurrentAIModel(defaultModel);
+      }
+    });
+  }, []);
+
+  const handleModelChange = useCallback((modelId: string) => {
+    setSelectedModel(modelId);
+    setCurrentAIModel(modelId);
+    setIsModelDropdownOpen(false);
   }, []);
 
   // Seed assistants to database on first editor visit
@@ -236,14 +292,14 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
 
   // 按日期分组历史
   const groupedHistory = useMemo(() => {
-    const groups: Record<string, typeof workHistory> = {};
+    const groups: Record<string, HistoryItem[]> = {};
     workHistory.forEach((item) => {
       const dateKey = item.timestamp.slice(0, 10);
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(item);
     });
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, []);
+  }, [workHistory]);
 
   const handleRunWorkflow = useCallback((workflow: Workflow) => {
     setActiveWorkflow(workflow);
@@ -292,10 +348,26 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
 
     // 调用 skill handler
     const handler = getSkillHandler(step.skillId);
+    // 构建 input：合并所有前序步骤的结果，让下游 skill 能访问完整上下文
+    let skillInput: unknown = undefined;
+    if (runningStepIndex > 0) {
+      const merged: Record<string, unknown> = {};
+      for (let i = 0; i < runningStepIndex; i++) {
+        const prev = stepResultsRef.current.get(i)?.data;
+        if (prev && typeof prev === 'object') {
+          Object.assign(merged, prev);
+        }
+      }
+      // 注入参会猫猫列表
+      if (activeWorkflow) {
+        merged._attendees = activeWorkflow.steps.map((s) => s.agentId);
+      }
+      skillInput = Object.keys(merged).length > 0 ? merged : undefined;
+    }
     const executePromise = handler
       ? handler.execute({
           agentId: step.agentId,
-          input: runningStepIndex > 0 ? stepResultsRef.current.get(runningStepIndex - 1)?.data : undefined,
+          input: skillInput,
           timestamp: new Date().toISOString(),
         })
       : Promise.resolve<SkillResult>({
@@ -332,6 +404,33 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
           )
         );
 
+        // 写入后端执行记录
+        const runRecord = {
+          workflowId: activeWorkflow?.id,
+          workflowName: activeWorkflow?.name ?? '',
+          agentId: step.agentId,
+          skillId: step.skillId,
+          stepIndex: runningStepIndex,
+          summary: result.summary || '',
+          result: typeof result.data === 'string' ? result.data : JSON.stringify(result.data ?? ''),
+          status: result.status,
+          duration,
+        };
+        createWorkflowRun(runRecord).then((saved) => {
+          if (saved) {
+            setWorkHistory((prev) => [{
+              id: saved.id,
+              agentId: saved.agentId,
+              skillId: saved.skillId,
+              timestamp: saved.executedAt,
+              summary: saved.summary,
+              result: saved.result,
+              workflowName: saved.workflowName || undefined,
+              status: saved.status as HistoryItem['status'],
+            }, ...prev]);
+          }
+        }).catch(() => {});
+
         setCurrentDialog(result.summary || dialogs[2] || '完成!');
         setTimeout(() => {
           setCompletedSteps((prev) => [...prev, runningStepIndex]);
@@ -346,6 +445,20 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               : log
           )
         );
+
+        // 写入失败记录到后端
+        createWorkflowRun({
+          workflowId: activeWorkflow?.id,
+          workflowName: activeWorkflow?.name ?? '',
+          agentId: step.agentId,
+          skillId: step.skillId,
+          stepIndex: runningStepIndex,
+          summary: `执行出错: ${err.message}`,
+          result: '',
+          status: 'error',
+          duration,
+        }).catch(() => {});
+
         setCurrentDialog('出错了...');
         setTimeout(() => {
           setCompletedSteps((prev) => [...prev, runningStepIndex]);
@@ -397,6 +510,38 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
     <>
       {/* FAB 按钮组 */}
       <div className="fab-group">
+        {/* 模型选择器 */}
+        {editorMode && <div className="model-selector-wrap">
+          <button
+            className={`workflow-fab model-fab ${isModelDropdownOpen ? 'active' : ''}`}
+            onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+            title="AI 模型"
+          >
+            <span className="fab-label">{aiModels.find(m => m.id === selectedModel)?.name || selectedModel}</span>
+          </button>
+          {isModelDropdownOpen && (
+            <div className="model-dropdown">
+              {aiModels.map((m) => (
+                <button
+                  key={m.id}
+                  className={`model-option ${m.id === selectedModel ? 'active' : ''} ${!m.available ? 'disabled' : ''}`}
+                  onClick={() => m.available && handleModelChange(m.id)}
+                  disabled={!m.available}
+                >
+                  <span className="model-name">{m.name}</span>
+                  <span className="model-provider">{m.provider}</span>
+                  {m.id === selectedModel && (
+                    <span className="model-check">
+                      <Icon name='check' size={14} color='var(--color-green-5)'/>
+                    </span>
+                  )}
+                  {!m.available && <span className="model-unavailable">未配置</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>}
+
         <button
           className={`workflow-fab ${isHistoryOpen ? 'active' : ''}`}
           onClick={toggleHistory}
@@ -588,6 +733,15 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
               <div className="stage-title">
                 {activeWorkflow.icon&&<span className="stage-icon">{activeWorkflow.icon}</span>}
                 <span className="stage-name">{activeWorkflow.name}</span>
+                <span className="stage-model-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="18" r="4" />
+                    <path d="M12 14v-2" />
+                    <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93" />
+                    <path d="M12 2a4 4 0 0 0-4 4c0 1.95 1.4 3.58 3.25 3.93" />
+                  </svg>
+                  {aiModels.find(m => m.id === selectedModel)?.name || selectedModel}
+                </span>
               </div>
               <button className="stage-close" onClick={handleBack}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -660,7 +814,11 @@ const WorkflowPanel: React.FC<WorkflowPanelProps> = ({ editorMode = false }) => 
                               </span>
                             </div>
                             {result.summary && (
-                              <div className="node-result-summary">{result.summary}</div>
+                              <div className="node-result-summary markdown-body">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {result.summary}
+                                </ReactMarkdown>
+                              </div>
                             )}
                           </div>
                         )}

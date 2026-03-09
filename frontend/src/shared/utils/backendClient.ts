@@ -1020,16 +1020,49 @@ export interface DifySkillResponse {
   error?: string;
 }
 
-/** 通用 AI Skill 调用：taskId 区分不同 skill */
-export const callDifySkill = async (taskId: string, text: string): Promise<DifySkillResponse> => {
+/** 当前选中的 AI 模型（全局状态） */
+let _currentAIModel: string = 'gemini';
+
+export const setCurrentAIModel = (model: string) => { _currentAIModel = model; };
+export const getCurrentAIModel = () => _currentAIModel;
+
+/** 获取后端可用模型列表 */
+export interface AIModelInfo {
+  id: string;
+  name: string;
+  provider: string;
+  available: boolean;
+}
+
+export const fetchAIModels = async (): Promise<{ models: AIModelInfo[]; default: string }> => {
+  const backendUrl = getBackendUrl();
+  try {
+    const response = await fetch(`${backendUrl}/api/dify/models`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  } catch {
+    // 后端不可用时返回默认
+    return {
+      models: [
+        { id: 'gemini', name: 'Gemini', provider: 'Google', available: true },
+        { id: 'qwen', name: 'Qwen', provider: 'Alibaba', available: true },
+      ],
+      default: 'gemini',
+    };
+  }
+};
+
+/** 通用 AI Skill 调用：taskId 区分不同 skill，model 可选指定模型 */
+export const callDifySkill = async (taskId: string, text: string, model?: string): Promise<DifySkillResponse> => {
   const backendUrl = getBackendUrl();
   const url = `${backendUrl}/api/dify/skill`;
+  const selectedModel = model || _currentAIModel;
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId, text }),
+      body: JSON.stringify({ taskId, text, model: selectedModel }),
     });
 
     const data = await response.json();
@@ -1038,7 +1071,7 @@ export const callDifySkill = async (taskId: string, text: string): Promise<DifyS
     }
     return data;
   } catch (error) {
-    console.error(`Error calling AI skill [${taskId}]:`, error);
+    console.error(`Error calling AI skill [${taskId}] (model=${selectedModel}):`, error);
     return { answer: '', error: String(error) };
   }
 };
@@ -1079,5 +1112,109 @@ export const sendEmail = async (req: SendEmailRequest): Promise<SendEmailRespons
   } catch (error) {
     console.error('Error sending email:', error);
     return { success: false, error: String(error) };
+  }
+};
+
+// ==================== Workflow Runs API ====================
+
+export interface WorkflowRunDB {
+  id: string;
+  workflowId?: string | null;
+  workflowName: string;
+  agentId: string;
+  skillId: string;
+  stepIndex: number;
+  summary: string;
+  result: string;
+  status: string;
+  executedAt: string;
+  duration?: number | null;
+  createdAt: string;
+}
+
+export interface CreateWorkflowRunRequest {
+  workflowId?: string | null;
+  workflowName: string;
+  agentId: string;
+  skillId: string;
+  stepIndex?: number;
+  summary: string;
+  result: string;
+  status: string;
+  duration?: number | null;
+  executedAt?: string;
+}
+
+export interface FetchWorkflowRunsResponse {
+  runs: WorkflowRunDB[];
+  total: number;
+}
+
+export const fetchWorkflowRuns = async (params?: {
+  limit?: number;
+  offset?: number;
+  agentId?: string;
+  workflowId?: string;
+  status?: string;
+}): Promise<FetchWorkflowRunsResponse> => {
+  const backendUrl = getBackendUrl();
+  const query = new URLSearchParams();
+  if (params?.limit) query.set('limit', String(params.limit));
+  if (params?.offset) query.set('offset', String(params.offset));
+  if (params?.agentId) query.set('agentId', params.agentId);
+  if (params?.workflowId) query.set('workflowId', params.workflowId);
+  if (params?.status) query.set('status', params.status);
+  const url = `${backendUrl}/api/workflow-runs?${query.toString()}`;
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch workflow runs: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching workflow runs:', error);
+    return { runs: [], total: 0 };
+  }
+};
+
+export const createWorkflowRun = async (run: CreateWorkflowRunRequest): Promise<WorkflowRunDB | null> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflow-runs`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(run),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to create workflow run: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating workflow run:', error);
+    return null;
+  }
+};
+
+export const batchCreateWorkflowRuns = async (runs: CreateWorkflowRunRequest[]): Promise<number> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/workflow-runs/batch`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ runs }),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to batch create workflow runs: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.count;
+  } catch (error) {
+    console.error('Error batch creating workflow runs:', error);
+    return 0;
   }
 };

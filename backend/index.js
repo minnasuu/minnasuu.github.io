@@ -16,6 +16,7 @@ const goalRoutes = require('./routes/goals');
 const difyRoutes = require('./routes/dify');
 const emailRoutes = require('./routes/email');
 const workflowRoutes = require('./routes/workflows');
+const workflowRunRoutes = require('./routes/workflowRuns');
 const assistantRoutes = require('./routes/assistants');
 
 // 加载环境变量 - 尝试多个可能的位置
@@ -55,9 +56,20 @@ app.use(cors({
       return callback(null, true);
     }
 
-    // 开发环境如果需要更宽松，可以在这里添加逻辑
-    // console.log('Blocked CORS for:', origin);
-    callback(new Error('Not allowed by CORS'));
+    // 检查 ALLOWED_ORIGINS 环境变量（逗号分隔的域名列表，忽略端口差异）
+    const allowedOrigins = process.env.ALLOWED_ORIGINS;
+    if (allowedOrigins) {
+      const origins = allowedOrigins.split(',').map(o => o.trim()).filter(Boolean);
+      // 提取 origin 的 协议+主机名（去掉端口）
+      const getHost = (u) => { try { const url = new URL(u); return url.protocol + '//' + url.hostname; } catch { return u; } };
+      const originHost = getHost(origin);
+      if (origins.some(o => o === origin || getHost(o) === originHost)) {
+        return callback(null, true);
+      }
+    }
+
+    console.log('Blocked CORS for:', origin, '| FRONTEND_URL:', allowedOrigin, '| ALLOWED_ORIGINS:', allowedOrigins);
+    callback(null, false);
   },
   credentials: true
 }));
@@ -87,6 +99,7 @@ app.use('/api/goals', goalRoutes);
 app.use('/api/dify', difyRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/workflows', workflowRoutes);
+app.use('/api/workflow-runs', workflowRunRoutes);
 app.use('/api/assistants', assistantRoutes);
 
 // 启动服务器

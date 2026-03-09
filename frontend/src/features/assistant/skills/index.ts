@@ -41,9 +41,6 @@ import manageWorkflow from './manage-workflow';
 import runWorkflow from './run-workflow';
 
 // --- 黄金 (text) ---
-import pixelateImage from './pixelate-image';
-import applyFilter from './apply-filter';
-import ocrExtract from './ocr-extract';
 
 // --- 咪咪 (sing) ---
 import taskLog from './task-log';
@@ -67,7 +64,7 @@ const handlers: SkillHandler[] = [
   generateComponent, updateCrafts, layoutDesign, cssGenerate,
   generateImage, generateChart, imageEnhance,
   generateTodo, assignTask, reviewApprove, siteAnalyze, manageWorkflow, runWorkflow, 
-  pixelateImage, applyFilter, ocrExtract,
+
   taskLog, meetingNotes,
   qualityCheck, contentReview, regressionTest,
   recruitCat, teamReview, catTraining,
