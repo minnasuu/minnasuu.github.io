@@ -16,7 +16,8 @@ RUN npm config set registry https://registry.npmmirror.com && npm install
 COPY . .
 
 # 5. 生成 Prisma Client（必须在 COPY 之后，否则会被覆盖）
-RUN npx prisma generate
+#    DATABASE_URL 仅作占位，generate 不会真的连接数据库
+RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npx prisma generate
 
 # 6. 确保启动脚本有执行权限
 RUN chmod +x docker-entrypoint.sh
