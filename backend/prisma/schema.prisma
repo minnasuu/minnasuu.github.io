@@ -56,6 +56,7 @@ model Craft {
   githubUrl     String?
   content       String?  @db.Text
   relations     Json?    // 存储关系数组 [{targetId, type}]
+  isAI          Boolean  @default(false) // 是否为 AI 生成
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

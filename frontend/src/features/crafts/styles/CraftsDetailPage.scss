@@ -222,6 +222,20 @@ $header-height: 56px;
       padding: 4px 10px;
       border-radius: 5px;
     }
+
+    .preview-ai-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #fff;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      padding: 3px 8px;
+      border-radius: 5px;
+      white-space: nowrap;
+    }
     
     .preview-title {
       font-size: 1rem;
@@ -708,6 +722,13 @@ $header-height: 56px;
           gap: 4px;
           color: #b8860b;
         }
+
+        &.ai-generated {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: #7c3aed;
+        }
       }
     }
     
@@ -776,6 +797,19 @@ $header-height: 56px;
     color: #b8860b;
     background: linear-gradient(135deg, #fff8dc, #ffeaa7);
     padding: 4px 10px;
+    border-radius: 5px;
+  }
+
+  .info-ai-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    padding: 3px 8px;
     border-radius: 5px;
   }
   
@@ -1090,7 +1124,9 @@ $header-height: 56px;
       
       .sidebar-meta {
         .meta-label { color: rgba(255, 255, 255, 0.4); }
-        .meta-value { color: #fff; }
+        .meta-value { color: #fff; 
+          &.ai-generated { color: #c084fc; }
+        }
       }
       
       .sidebar-link {

@@ -229,6 +229,12 @@ export const CraftsPageDetailPage: React.FC = () => {
               <span className="preview-category">
                 {categoryLabels[craft.category]?.[language] || craft.category}
               </span>
+              {craft.isAI && (
+                <span className="preview-ai-tag">
+                  <Icon name="star" size={11} />
+                  AI
+                </span>
+              )}
               <h2 className="preview-title">{craft.name}</h2>
             </div>
             <div className="preview-info-right">
@@ -453,6 +459,15 @@ export const CraftsPageDetailPage: React.FC = () => {
                       </span>
                     </div>
                   )}
+                  {craft.isAI && (
+                    <div className="meta-row">
+                      <span className="meta-label">{language === "zh" ? "来源" : "Source"}</span>
+                      <span className="meta-value ai-generated">
+                        <Icon name="star" size={12} />
+                        {language === "zh" ? "AI 生成" : "AI Generated"}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -481,6 +496,12 @@ export const CraftsPageDetailPage: React.FC = () => {
               <span className="info-category">
                 {categoryLabels[craft.category]?.[language] || craft.category}
               </span>
+              {craft.isAI && (
+                <span className="info-ai-tag">
+                  <Icon name="star" size={11} />
+                  AI
+                </span>
+              )}
               {craft.featured && (
                 <span className="info-featured">
                   <Icon name="star-fill" size={12} />

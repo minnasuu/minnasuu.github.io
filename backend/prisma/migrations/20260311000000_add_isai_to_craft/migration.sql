@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Craft" ADD COLUMN "isAI" BOOLEAN NOT NULL DEFAULT false;

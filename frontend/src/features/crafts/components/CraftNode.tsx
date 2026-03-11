@@ -44,6 +44,8 @@ export interface Craft {
     targetId: string;
     type: "extends" | "inspiredBy" | "variant" | "uses" | "relatedTo";
   }[];
+  /** 是否为AI生成 */
+  isAI?: boolean;
   
   /** demo封面图 */
   coverImage?: string;
@@ -90,6 +92,7 @@ interface CraftNodeProps {
   isDimmed: boolean;
   language: "zh" | "en";
   editorMode?: boolean; // 是否为编辑模式
+  animIndex?: number; // 动画索引，用于错落有致的浮动效果
   onAddNode?: (craftId: string, direction: 'top' | 'right' | 'bottom' | 'left') => void;
   onDelete?: (craftId: string) => void; // 删除节点回调
   onClick: () => void;
@@ -108,6 +111,7 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
   isDimmed,
   language,
   editorMode = false,
+  animIndex = 0,
   onAddNode,
   onDelete,
   onClick,
@@ -116,6 +120,12 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
 }) => {
   const hasRelations = craft.relations && craft.relations.length > 0;
   const weightLevel = getWeightLevel(effectiveWeight, maxWeight);
+
+  // 基于 animIndex 确定性计算差异化动画参数
+  const floatVariant = (animIndex % 3) + 1; // 1, 2, 3 三组运动轨迹
+  const floatDelay = -((animIndex * 1.7) % 6); // 错开的负延迟，0~-6s
+  const floatDuration = 5 + (animIndex * 0.7) % 3; // 5s~8s 不同周期
+  const floatAmplitude = 12 + (animIndex * 3.1) % 16; // 12px~28px 不同幅度
 
   const handleAddClick = (e: React.MouseEvent, direction: 'top' | 'right' | 'bottom' | 'left') => {
     e.stopPropagation();
@@ -133,12 +143,15 @@ export const CraftNode: React.FC<CraftNodeProps> = ({
 
   return (
     <div
-      className={`craft-node ${isActive ? "active" : ""} ${isRelated ? "related" : ""} ${isHovered ? "hovered" : ""} weight-${weightLevel}`}
+      className={`craft-node float-variant-${floatVariant} ${isActive ? "active" : ""} ${isRelated ? "related" : ""} ${isHovered ? "hovered" : ""} weight-${weightLevel}`}
       style={{
         left: position.x,
         top: position.y,
         opacity: isDimmed ? 0.3 : 1,
-      }}
+        '--float-delay': `${floatDelay}s`,
+        '--float-duration': `${floatDuration}s`,
+        '--float-y': `${floatAmplitude}px`,
+      } as React.CSSProperties}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

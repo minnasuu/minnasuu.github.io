@@ -54,7 +54,8 @@ router.post('/', async (req, res) => {
       useCase,
       githubUrl,
       content,
-      relations 
+      relations,
+      isAI
     } = req.body;
     
     const craft = await prisma.craft.create({
@@ -71,7 +72,8 @@ router.post('/', async (req, res) => {
         useCase,
         githubUrl,
         content,
-        relations: relations || null
+        relations: relations || null,
+        isAI: isAI || false
       }
     });
     console.log(`API Request: POST /api/crafts - Created craft ${craft.id}`);
@@ -99,7 +101,8 @@ router.put('/:id', async (req, res) => {
       useCase,
       githubUrl,
       content,
-      relations 
+      relations,
+      isAI
     } = req.body;
     
     // 先检查是否存在
@@ -127,7 +130,8 @@ router.put('/:id', async (req, res) => {
         useCase,
         githubUrl,
         content,
-        relations: relations || null
+        relations: relations || null,
+        isAI: isAI === undefined ? undefined : (isAI || false)
       }
     });
     console.log(`API Request: PUT /api/crafts/${req.params.id} - Updated`);

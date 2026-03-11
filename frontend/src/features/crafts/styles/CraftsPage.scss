@@ -319,7 +319,6 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   position: absolute;
   inset: 0;
   transform-origin: center center;
-  transition: transform 0.1s ease-out;
   z-index: 1;
   
   .canvas-bg {
@@ -380,10 +379,25 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   transition: all 0.4s $transition-smooth;
   z-index: 10;
-  animation: float 6s ease-in-out infinite;
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+  
+  // CSS 自定义属性默认值
+  --float-delay: 0s;
+  --float-duration: 6s;
+  --float-y: 20px;
+  
+  // 变体 1：纯 Y 轴上下浮动
+  &.float-variant-1 {
+    animation: floatY var(--float-duration) ease-in-out var(--float-delay) infinite;
+  }
+  
+  // 变体 2：椭圆轨迹（Y + 微 X）
+  &.float-variant-2 {
+    animation: floatEllipse var(--float-duration) ease-in-out var(--float-delay) infinite;
+  }
+  
+  // 变体 3：Y 轴 + 微旋转
+  &.float-variant-3 {
+    animation: floatRotate var(--float-duration) ease-in-out var(--float-delay) infinite;
   }
   
   &:hover {
@@ -440,6 +454,26 @@ $transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   &.weight-5 .node-inner { width: 164px; height: 164px; border-radius: 32px;
     iframe, .node-inner-iframe { transform: scale(0.164); }
   }
+}
+
+// 三组差异化浮动 keyframes
+@keyframes floatY {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(calc(var(--float-y) * -1)); }
+}
+
+@keyframes floatEllipse {
+  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
+  25% { transform: translate(-50%, -50%) translate(calc(var(--float-y) * 0.3), calc(var(--float-y) * -0.6)); }
+  50% { transform: translate(-50%, -50%) translate(0, calc(var(--float-y) * -1)); }
+  75% { transform: translate(-50%, -50%) translate(calc(var(--float-y) * -0.3), calc(var(--float-y) * -0.6)); }
+}
+
+@keyframes floatRotate {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) translateY(calc(var(--float-y) * -0.5)) rotate(0.8deg); }
+  50% { transform: translate(-50%, -50%) translateY(calc(var(--float-y) * -1)) rotate(0deg); }
+  75% { transform: translate(-50%, -50%) translateY(calc(var(--float-y) * -0.5)) rotate(-0.8deg); }
 }
 
 .node-inner {

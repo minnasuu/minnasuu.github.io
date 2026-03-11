@@ -507,6 +507,7 @@ export interface CreateCraftRequest {
   githubUrl?: string;
   content?: string;
   relations?: { targetId: string; type: string }[];
+  isAI?: boolean;
 }
 
 export const fetchCrafts = async (): Promise<Craft[]> => {

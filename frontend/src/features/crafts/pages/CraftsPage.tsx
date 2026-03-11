@@ -35,9 +35,9 @@ const LAYOUT_CONFIG = {
   /** 理想节点间距（px） */
   idealDistance: 350,
   /** 最小节点间距（px），小于此值强排斥 */
-  minDistance: 200,
+  minDistance: 300,
   /** 最大节点间距（px），大于此值强吸引 */
-  maxDistance: 500,
+  maxDistance: 900,
   /** 强排斥力系数（距离 < minDistance 时） */
   repulsionStrong: 3,
   /** 轻微排斥力系数（minDistance < 距离 < idealDistance 时） */
@@ -322,10 +322,31 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const canvasRef = useRef<HTMLDivElement>(null);
   const minimapRef = useRef<HTMLDivElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
+  
+  // 惯性动画相关 refs
+  const inertiaRafRef = useRef<number | null>(null);
+  const velocityRef = useRef({ x: 0, y: 0 });
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
+  const lastMouseTimeRef = useRef(0);
+  const viewOffsetRef = useRef({ x: 0, y: 0 });
 
   // 画布尺寸
   const canvasWidth = dimensions.width * CANVAS_CONFIG.sizeMultiplier;
   const canvasHeight = dimensions.height * CANVAS_CONFIG.sizeMultiplier;
+
+  // 同步 viewOffset 到 ref（供 rAF 回调读取最新值）
+  useEffect(() => {
+    viewOffsetRef.current = viewOffset;
+  }, [viewOffset]);
+
+  // 停止惯性动画
+  const stopInertia = useCallback(() => {
+    if (inertiaRafRef.current !== null) {
+      cancelAnimationFrame(inertiaRafRef.current);
+      inertiaRafRef.current = null;
+    }
+    velocityRef.current = { x: 0, y: 0 };
+  }, []);
 
   // 限制画布偏移量，确保不能完全移出边界
   const clampViewOffset = useCallback((offset: { x: number; y: number }) => {
@@ -343,6 +364,46 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       y: Math.max(minY, Math.min(maxY, offset.y)),
     };
   }, [dimensions, canvasWidth, canvasHeight]);
+
+  // 启动惯性滑动动画
+  const startInertia = useCallback(() => {
+    const DECAY = 0.92; // 衰减系数
+    const MIN_VELOCITY = 0.5; // 速度阈值（px/frame）
+
+    const tick = () => {
+      const vx = velocityRef.current.x * DECAY;
+      const vy = velocityRef.current.y * DECAY;
+
+      // 速度低于阈值时停止
+      if (Math.abs(vx) < MIN_VELOCITY && Math.abs(vy) < MIN_VELOCITY) {
+        velocityRef.current = { x: 0, y: 0 };
+        inertiaRafRef.current = null;
+        return;
+      }
+
+      velocityRef.current = { x: vx, y: vy };
+
+      const current = viewOffsetRef.current;
+      const newOffset = clampViewOffset({
+        x: current.x + vx,
+        y: current.y + vy,
+      });
+
+      setViewOffset(newOffset);
+      inertiaRafRef.current = requestAnimationFrame(tick);
+    };
+
+    inertiaRafRef.current = requestAnimationFrame(tick);
+  }, [clampViewOffset]);
+
+  // 组件卸载时清理惯性动画
+  useEffect(() => {
+    return () => {
+      if (inertiaRafRef.current !== null) {
+        cancelAnimationFrame(inertiaRafRef.current);
+      }
+    };
+  }, []);
 
   // 加载 crafts 数据
   const [crafts, setCrafts] = useState<Craft[]>([]);
@@ -465,8 +526,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
   const handleMouseDown = (e: React.MouseEvent) => {
     if (layoutMode !== "canvas") return;
     if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains("canvas-bg")) {
+      // 中断正在进行的惯性动画
+      stopInertia();
       setIsDragging(true);
       setDragStart({ x: e.clientX - viewOffset.x, y: e.clientY - viewOffset.y });
+      // 初始化速度追踪
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+      lastMouseTimeRef.current = performance.now();
     }
   };
 
@@ -477,11 +543,34 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
       y: e.clientY - dragStart.y,
     };
     setViewOffset(clampViewOffset(newOffset));
+
+    // 记录速度追踪数据
+    const now = performance.now();
+    const dt = now - lastMouseTimeRef.current;
+    if (dt > 0) {
+      velocityRef.current = {
+        x: (e.clientX - lastMousePosRef.current.x),
+        y: (e.clientY - lastMousePosRef.current.y),
+      };
+    }
+    lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+    lastMouseTimeRef.current = now;
   };
 
   const handleMouseUp = () => {
     if (layoutMode !== "canvas") return;
     setIsDragging(false);
+
+    // 检查松手时的速度，如果足够大则启动惯性
+    const vx = velocityRef.current.x;
+    const vy = velocityRef.current.y;
+    const speed = Math.sqrt(vx * vx + vy * vy);
+    
+    if (speed > 1) {
+      startInertia();
+    } else {
+      velocityRef.current = { x: 0, y: 0 };
+    }
   };
 
   // 滚轮/触控板处理 - 只在画布模式下移动画布
@@ -491,11 +580,13 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
     const target = e.target as HTMLElement;
     if (target.closest('.add-node-panel') || target.closest('.detail-panel')) return;
     e.preventDefault();
+    // 中断惯性动画
+    stopInertia();
     setViewOffset(prev => clampViewOffset({
       x: prev.x - e.deltaX,
       y: prev.y - e.deltaY,
     }));
-  }, [clampViewOffset, layoutMode]);
+  }, [clampViewOffset, layoutMode, stopInertia]);
 
   // 迷你地图拖拽处理
   const handleMinimapMouseDown = (e: React.MouseEvent) => {
@@ -1537,7 +1628,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
 
           {/* 节点层 */}
           <div className="nodes-layer">
-            {crafts.map((craft) => {
+            {crafts.map((craft, index) => {
               const pos = nodePositions.get(craft.id);
               if (!pos) return null;
 
@@ -1561,6 +1652,7 @@ export const CraftsPage: React.FC<CraftsPageProps> = ({ editorMode = false }) =>
                   isDimmed={isDimmed}
                   language={language}
                   editorMode={editorMode}
+                  animIndex={index}
                   onAddNode={editorMode ? handleAddNode : undefined}
                   onDelete={editorMode ? handleRequestDelete : undefined}
                   onClick={() => handleNodeClick(craft.id)}
