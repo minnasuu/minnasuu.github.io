@@ -21,6 +21,6 @@ COPY . .
 # 6. 暴露端口
 EXPOSE 8001
 
-# 7. 使用 db push 同步数据库结构（迁移链不完整，db push 更可靠）
-#    然后运行数据迁移脚本（处理 Draft -> Article 合并等）
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node migrate-data.js && node index.js"]
+# 7. 先运行数据迁移脚本（在 db push 前迁移 Draft 数据，避免被 db push 删掉）
+#    然后用 db push 同步数据库结构（--accept-data-loss 允许非交互式环境中的破坏性变更）
+CMD ["sh", "-c", "node migrate-data.js && npx prisma db push --skip-generate --accept-data-loss && node index.js"]
