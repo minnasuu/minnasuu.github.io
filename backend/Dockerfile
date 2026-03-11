@@ -21,5 +21,6 @@ COPY . .
 # 6. 暴露端口
 EXPOSE 8001
 
-# 7. 使用 migrate deploy 执行迁移（生产环境推荐，会运行 migration.sql 中的数据迁移逻辑）
-CMD ["sh", "-c", "npx prisma migrate deploy && node index.js"]
+# 7. 使用 db push 同步数据库结构（迁移链不完整，db push 更可靠）
+#    然后运行数据迁移脚本（处理 Draft -> Article 合并等）
+CMD ["sh", "-c", "npx prisma db push --skip-generate && node migrate-data.js && node index.js"]
