@@ -5,7 +5,7 @@ import 'react-markdown-editor-lite/lib/index.css';
 import { useNavigate, useParams } from 'react-router-dom';
 import ReactDOM from 'react-dom/client';
 import { createArticle, updateArticle, fetchArticles, fetchArticleById, deleteArticle, uploadImage, uploadVideo, verifyEditorPassword, fetchDrafts, createDraft, updateDraft, deleteDraft } from '../../../shared/utils/backendClient';
-import type { CreateArticleRequest, Draft } from '../../../shared/utils/backendClient';
+import type { CreateArticleRequest } from '../../../shared/utils/backendClient';
 import type { Article } from '../../../shared/types';
 import BackButton from '../../../shared/components/BackButton';
 import MockIndicator from '../../../shared/components/MockIndicator';
@@ -101,11 +101,12 @@ const ArticleEditorPage: React.FC = () => {
     coverImage: '',
     link: '',
     type: 'Engineering',
+    isAI: false,
   });
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [articles, setArticles] = useState<Article[]>([]);
-  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [drafts, setDrafts] = useState<Article[]>([]);
   const [isLoadingArticles, setIsLoadingArticles] = useState(true);
   const [currentArticleId, setCurrentArticleId] = useState<string | undefined>(id);
   const [currentDraftId, setCurrentDraftId] = useState<string | undefined>(undefined);
@@ -240,14 +241,14 @@ const ArticleEditorPage: React.FC = () => {
     const loadArticlesAndDrafts = async () => {
       try {
         const [fetchedArticles, fetchedDrafts] = await Promise.all([
-          fetchArticles(),
+          fetchArticles(false),
           fetchDrafts()
         ]);
         setArticles(fetchedArticles.sort((a, b) => 
           new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
         ));
         setDrafts(fetchedDrafts.sort((a, b) => 
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+          new Date(b.updatedAt || b.publishDate).getTime() - new Date(a.updatedAt || a.publishDate).getTime()
         ));
       } catch (error) {
         console.error('Failed to load articles and drafts:', error);
@@ -293,6 +294,7 @@ const ArticleEditorPage: React.FC = () => {
                         coverImage: draft.coverImage || '',
                         link: draft.link || '',
                         type: draft.type || 'Engineering',
+                        isAI: draft.isAI || false,
                       });
                       setIsEditMode(true);
                     }
@@ -319,6 +321,7 @@ const ArticleEditorPage: React.FC = () => {
             coverImage: article.coverImage || '',
             link: article.link || '',
             type: article.type,
+            isAI: article.isAI || false,
           });
           setIsEditMode(true);
         } catch (error) {
@@ -395,7 +398,7 @@ const ArticleEditorPage: React.FC = () => {
       // 重新加载草稿列表
       const fetchedDrafts = await fetchDrafts();
       setDrafts(fetchedDrafts.sort((a, b) => 
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        new Date(b.updatedAt || b.publishDate).getTime() - new Date(a.updatedAt || a.publishDate).getTime()
       ));
     } catch (error) {
       console.error('Failed to save draft:', error);
@@ -532,6 +535,19 @@ const ArticleEditorPage: React.FC = () => {
         setLastSavedTime(new Date());
         // 清除对应的草稿
         localStorage.removeItem(`draft_${currentArticleId}`);
+      } else if (isDraftMode && currentDraftId) {
+        // 从草稿发布：更新内容并将 isDraft 设为 false
+        await updateArticle(currentDraftId, { ...publishData, isDraft: false });
+        setCurrentArticleId(currentDraftId);
+        setIsEditMode(true);
+        setIsDraftMode(false);
+        setCurrentDraftId(undefined);
+        if (isShortcut) {
+          showToast('success', '草稿已成功发布');
+        } else {
+          showAlert('发布成功', '草稿已成功发布为文章！');
+        }
+        setLastSavedTime(new Date());
       } else {
         const newArticle = await createArticle(publishData);
         setCurrentArticleId(newArticle.id);
@@ -543,27 +559,20 @@ const ArticleEditorPage: React.FC = () => {
         }
         setLastSavedTime(new Date());
         
-        // 如果是从草稿发布，删除草稿
-        if (isDraftMode && currentDraftId) {
-          await deleteDraft(currentDraftId);
-          setIsDraftMode(false);
-          setCurrentDraftId(undefined);
-        }
-        
         // 清除新建文章的草稿
         localStorage.removeItem('draft_new');
       }
       
       // 重新加载文章和草稿列表
       const [fetchedArticles, fetchedDrafts] = await Promise.all([
-        fetchArticles(),
+        fetchArticles(false),
         fetchDrafts()
       ]);
       setArticles(fetchedArticles.sort((a, b) => 
         new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
       ));
       setDrafts(fetchedDrafts.sort((a, b) => 
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        new Date(b.updatedAt || b.publishDate).getTime() - new Date(a.updatedAt || a.publishDate).getTime()
       ));
     } catch (error) {
       console.error('Failed to publish article:', error);
@@ -594,6 +603,7 @@ const ArticleEditorPage: React.FC = () => {
       coverImage: '',
       link: '',
       type: 'Engineering',
+      isAI: false,
     });
     setCurrentArticleId(undefined);
     setCurrentDraftId(undefined);
@@ -614,17 +624,18 @@ const ArticleEditorPage: React.FC = () => {
     setLastSavedTime(null);
   };
 
-  const handleLoadDraft = (draft: Draft) => {
+  const handleLoadDraft = (draft: Article) => {
     setFormData({
       title: draft.title,
       summary: draft.summary,
-      content: draft.content,
+      content: typeof draft.content === 'string' ? draft.content : '',
       publishDate: draft.publishDate,
       tags: draft.tags,
       readTime: draft.readTime,
       coverImage: draft.coverImage || '',
       link: draft.link || '',
       type: draft.type,
+      isAI: draft.isAI || false,
     });
     setCurrentDraftId(draft.id);
     setCurrentArticleId(undefined);
@@ -646,7 +657,7 @@ const ArticleEditorPage: React.FC = () => {
           showAlert('删除成功', '文章已成功删除');
           
           // 重新加载文章列表
-          const fetchedArticles = await fetchArticles();
+          const fetchedArticles = await fetchArticles(false);
           setArticles(fetchedArticles.sort((a, b) => 
             new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime()
           ));
@@ -680,7 +691,7 @@ const ArticleEditorPage: React.FC = () => {
           // 重新加载草稿列表
           const fetchedDrafts = await fetchDrafts();
           setDrafts(fetchedDrafts.sort((a, b) => 
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+            new Date(b.updatedAt || b.publishDate).getTime() - new Date(a.updatedAt || a.publishDate).getTime()
           ));
           
           // 如果删除的是当前草稿，清空编辑器
@@ -1410,6 +1421,32 @@ const ArticleEditorPage: React.FC = () => {
                  />
               </div>
 
+              <div>
+                <label className="flex items-center gap-3 cursor-pointer py-1">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI 生成</span>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={formData.isAI || false}
+                    onClick={() => setFormData(prev => ({ ...prev, isAI: !prev.isAI }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      formData.isAI ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        formData.isAI ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  {formData.isAI && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+                      ✨ AI
+                    </span>
+                  )}
+                </label>
+              </div>
+
                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">封面图片</label>
                   <div className="space-y-3">
@@ -1501,7 +1538,7 @@ const ArticleEditorPage: React.FC = () => {
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {new Date(draft.updatedAt).toLocaleDateString('zh-CN')}
+                                {new Date(draft.updatedAt || draft.publishDate).toLocaleDateString('zh-CN')}
                               </span>
                               <span className="text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
                                 {draft.type}

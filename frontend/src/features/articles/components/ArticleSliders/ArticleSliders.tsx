@@ -289,6 +289,17 @@ const ArticleSliders: React.FC<ArticleSlidersProps> = ({ article, onClose }) => 
                    {new Date(article.publishDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                </span>
                <span className="article-type-badge">{article.type}</span>
+               {article.isAI && (
+                 <span className="article-ai-badge" style={{
+                   fontSize: '0.75rem',
+                   fontWeight: 500,
+                   padding: '2px 8px',
+                   borderRadius: '4px',
+                   background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12))',
+                   color: '#7c3aed',
+                   letterSpacing: '0.05em',
+                 }}>✨ AI</span>
+               )}
            </div>
            
            <h1 className="article-title">{article.title}</h1>

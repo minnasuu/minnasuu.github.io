@@ -23,33 +23,8 @@ export interface CreateArticleRequest {
   coverImage?: string;
   link?: string;
   type: 'Engineering' | 'Experience' | 'AI' | 'Thinking';
-}
-
-export interface Draft {
-  id: string;
-  title: string;
-  summary: string;
-  content: string;
-  publishDate: string;
-  tags: string[];
-  readTime: number;
-  coverImage?: string;
-  link?: string;
-  type: 'Engineering' | 'Experience' | 'AI' | 'Thinking';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateDraftRequest {
-  title: string;
-  summary: string;
-  content: string;
-  publishDate: string;
-  tags: string[];
-  readTime: number;
-  coverImage?: string;
-  link?: string;
-  type: 'Engineering' | 'Experience' | 'AI' | 'Thinking';
+  isDraft?: boolean;
+  isAI?: boolean;
 }
 
 // Mock 模式配置
@@ -107,7 +82,7 @@ export const sendMessageToBackend = async (
   }
 };
 
-export const fetchArticles = async (): Promise<Article[]> => {
+export const fetchArticles = async (isDraft?: boolean): Promise<Article[]> => {
   // 如果启用 mock 模式或后端连接失败后的 fallback
   if (USE_MOCK_DATA) {
     console.log('📦 Using mock data for articles');
@@ -115,7 +90,12 @@ export const fetchArticles = async (): Promise<Article[]> => {
   }
 
   const backendUrl = getBackendUrl();
-  const url = `${backendUrl}/api/articles`;
+  const params = new URLSearchParams();
+  if (isDraft !== undefined) {
+    params.set('isDraft', String(isDraft));
+  }
+  const queryString = params.toString();
+  const url = `${backendUrl}/api/articles${queryString ? `?${queryString}` : ''}`;
 
   try {
     const response = await fetch(url);
@@ -389,104 +369,40 @@ export const verifyEditorPassword = async (password: string): Promise<VerifyPass
   }
 };
 
-// ==================== Drafts API ====================
+// ==================== Draft helpers (via Articles API with isDraft flag) ====================
 
-export const fetchDrafts = async (): Promise<Draft[]> => {
-  const backendUrl = getBackendUrl();
-  const url = `${backendUrl}/api/drafts`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch drafts: ${response.status}`);
-    }
-    const data: Draft[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching drafts:', error);
-    return [];
-  }
+export const fetchDrafts = async (): Promise<Article[]> => {
+  return fetchArticles(true);
 };
 
-export const fetchDraftById = async (id: string): Promise<Draft> => {
-  const backendUrl = getBackendUrl();
-  const url = `${backendUrl}/api/drafts/${id}`;
-
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch draft ${id}: ${response.status}`);
-    }
-    const data: Draft = await response.json();
-    return data;
-  } catch (error) {
-    console.error(`Error fetching draft ${id}:`, error);
-    throw error;
-  }
+export const createDraft = async (draft: CreateArticleRequest): Promise<Article> => {
+  return createArticle({ ...draft, isDraft: true });
 };
 
-export const createDraft = async (draft: CreateDraftRequest): Promise<Draft> => {
-  const backendUrl = getBackendUrl();
-  const url = `${backendUrl}/api/drafts`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(draft),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to create draft: ${response.status}`);
-    }
-    const data: Draft = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error creating draft:', error);
-    throw error;
-  }
+export const updateDraft = async (id: string, draft: CreateArticleRequest): Promise<Article> => {
+  return updateArticle(id, { ...draft, isDraft: true });
 };
 
-export const updateDraft = async (id: string, draft: CreateDraftRequest): Promise<Draft> => {
+export const deleteDraft = async (id: string): Promise<void> => {
+  return deleteArticle(id);
+};
+
+export const publishDraft = async (id: string): Promise<Article> => {
   const backendUrl = getBackendUrl();
-  const url = `${backendUrl}/api/drafts/${id}`;
+  const url = `${backendUrl}/api/articles/${id}/publish`;
 
   try {
     const response = await fetch(url, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(draft),
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update draft: ${response.status}`);
+      throw new Error(`Failed to publish article: ${response.status}`);
     }
-    const data: Draft = await response.json();
+    const data: Article = await response.json();
     return data;
   } catch (error) {
-    console.error('Error updating draft:', error);
-    throw error;
-  }
-};
-
-export const deleteDraft = async (id: string): Promise<void> => {
-  const backendUrl = getBackendUrl();
-  const url = `${backendUrl}/api/drafts/${id}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'DELETE',
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to delete draft: ${response.status}`);
-    }
-  } catch (error) {
-    console.error('Error deleting draft:', error);
+    console.error('Error publishing article:', error);
     throw error;
   }
 };

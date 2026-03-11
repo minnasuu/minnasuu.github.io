@@ -316,6 +316,17 @@ right: 0;
       background: rgba(0, 0, 0, 0.04);
     }
   }
+
+  .article-ai-badge {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12));
+    color: #7c3aed;
+    white-space: nowrap;
+  }
 }
 
 .article-content h2.article-title {

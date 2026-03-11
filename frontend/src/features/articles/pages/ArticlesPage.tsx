@@ -14,7 +14,7 @@ const ArticlesPage: React.FC = () => {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const data = await fetchArticles();
+        const data = await fetchArticles(false);
         setArticles(data);
       } catch (error) {
         console.error("Failed to load articles:", error);
@@ -111,6 +111,9 @@ const ArticlesPage: React.FC = () => {
                   {/* 标题行：包含类型标签 */}
                   <div className="article-meta-top">
                     <h2 className="article-title">{article.title}</h2>
+                    {article.isAI && (
+                      <span className="article-ai-badge">✨ AI</span>
+                    )}
                     <span 
                       className="article-type-badge"
                       data-type={article.type}

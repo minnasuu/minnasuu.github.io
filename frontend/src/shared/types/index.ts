@@ -33,7 +33,11 @@ export interface Article {
   coverImage?: string;
   link?: string; // 可选的链接
   type: 'Engineering' | 'Experience' | 'AI' | 'Thinking';
+  isDraft?: boolean; // 是否为草稿
+  isAI?: boolean; // 是否为 AI 生成
   markdownContent?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Project {

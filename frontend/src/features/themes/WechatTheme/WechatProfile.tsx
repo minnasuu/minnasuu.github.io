@@ -34,7 +34,7 @@ const WechatProfile: React.FC<WechatProfileProps> = ({ isOpen = true }) => {
   useEffect(() => {
     const loadArticleCovers = async () => {
       try {
-        const articles = await fetchArticles();
+        const articles = await fetchArticles(false);
         // 提取有封面的文章封面，最多取 5 张
         const photos = articles
           .filter((article: Article) => article.coverImage)

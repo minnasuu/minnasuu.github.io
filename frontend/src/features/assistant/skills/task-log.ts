@@ -40,7 +40,7 @@ const taskLog: SkillHandler = {
     try {
       // 并行查询文章、Crafts、工作流
       const [articles, crafts, workflows] = await Promise.all([
-        fetchArticles().catch(() => []),
+        fetchArticles(false).catch(() => []),
         fetchCrafts().catch(() => []),
         fetchWorkflows().catch(() => []),
       ]);

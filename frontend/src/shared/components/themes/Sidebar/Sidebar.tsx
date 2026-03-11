@@ -30,7 +30,7 @@ export default function Sidebar({ themeConfig }: SidebarProps) {
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const fetchedArticles = await fetchArticles();
+        const fetchedArticles = await fetchArticles(false);
         setArticles(fetchedArticles);
       } catch (error) {
         console.error('Failed to load articles:', error);

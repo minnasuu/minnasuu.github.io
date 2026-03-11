@@ -4,7 +4,7 @@ import { fetchArticles, fetchCrafts, callDifySkill } from '../../../shared/utils
 /** 收集现有文章标题列表 */
 async function collectArticleTitles(): Promise<string[]> {
   try {
-    const articles = await fetchArticles();
+    const articles = await fetchArticles(false);
     return articles.map((a: any) => a.title).filter(Boolean);
   } catch {
     return [];

@@ -230,7 +230,24 @@ const ArticleDetailPage: React.FC<ArticleDetailPageProps> = ({
       ) : (
         <div className="article-detail-container" ref={scrollRef}>
           <header className="article-detail-header">
-            <h1 className="article-detail-title">{article.title}</h1>
+            <h1 className="article-detail-title">
+              {article.title}
+              {article.isAI && (
+                <span className="article-ai-badge" style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12))',
+                  color: '#7c3aed',
+                  marginLeft: '10px',
+                  verticalAlign: 'middle',
+                  letterSpacing: '0.05em',
+                }}>✨ AI</span>
+              )}
+            </h1>
 
             <div className="article-meta">
               <span className="article-date">
