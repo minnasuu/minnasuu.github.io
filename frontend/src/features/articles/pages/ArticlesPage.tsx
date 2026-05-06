@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useLanguage } from "../../../shared/contexts/LanguageContext";
 import { fetchArticles } from "../../../shared/utils/backendClient";
 import type { Article } from "../../../shared/types";
@@ -8,14 +8,32 @@ import BackButton from "../../../shared/components/BackButton";
 
 const ArticlesPage: React.FC = () => {
   const { language } = useLanguage();
+  const location = useLocation();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isAdminMinna = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("admin") === "minna";
+  }, [location.search]);
 
   useEffect(() => {
     const loadArticles = async () => {
       try {
-        const data = await fetchArticles(false);
-        setArticles(data);
+        if (isAdminMinna) {
+          const [published, drafts] = await Promise.all([
+            fetchArticles(false),
+            fetchArticles(true),
+          ]);
+          const merged = [...published, ...drafts];
+          const deduped = Array.from(
+            new Map(merged.map((a) => [a.id, a])).values()
+          );
+          setArticles(deduped);
+        } else {
+          const data = await fetchArticles(false);
+          setArticles(data);
+        }
       } catch (error) {
         console.error("Failed to load articles:", error);
       } finally {
@@ -23,7 +41,7 @@ const ArticlesPage: React.FC = () => {
       }
     };
     loadArticles();
-  }, []);
+  }, [isAdminMinna]);
 
   // 按时间排序
   const sortedArticles = useMemo(() => {
@@ -111,6 +129,11 @@ const ArticlesPage: React.FC = () => {
                   {/* 标题行：包含类型标签 */}
                   <div className="article-meta-top">
                     <h2 className="article-title">{article.title}</h2>
+                    {article.isDraft && (
+                      <span className="article-draft-badge">
+                        {language === "zh" ? "草稿" : "Draft"}
+                      </span>
+                    )}
                     {article.isAI && (
                       <span className="article-ai-badge">✨ AI</span>
                     )}

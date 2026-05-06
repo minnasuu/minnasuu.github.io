@@ -280,6 +280,17 @@ right: 0;
   gap: 0.8rem;
   margin-bottom: 1rem;
   flex-wrap: wrap;
+
+  .article-draft-badge {
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.14);
+    color: #b45309;
+    white-space: nowrap;
+  }
   
   .article-type-badge {
     font-size: 0.75rem;

@@ -120,6 +120,7 @@ const ArticleEditorPage: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isParsingMarkdown, setIsParsingMarkdown] = useState(false);
+  const [lastMarkdownFile, setLastMarkdownFile] = useState<File | null>(null);
   
   // 图片上传状态跟踪
   const [uploadingImages, setUploadingImages] = useState<Set<string>>(new Set());
@@ -775,6 +776,30 @@ const ArticleEditorPage: React.FC = () => {
     return { metadata, content: mainContent };
   };
 
+  // 应用解析后的 Markdown 文本到表单
+  const applyMarkdownText = (text: string, fileName: string) => {
+    const { metadata, content } = parseFrontmatter(text);
+
+    setFormData(prev => ({
+      ...prev,
+      title: metadata.title || fileName.replace(/\.md$|\.markdown$/, ''),
+      summary: metadata.summary || metadata.description || '',
+      content: content.trim(),
+      tags: Array.isArray(metadata.tags) ? metadata.tags :
+            typeof metadata.tags === 'string' ? metadata.tags.split(',').map((t: string) => t.trim()) :
+            prev.tags,
+      readTime: metadata.readTime || metadata.read_time || prev.readTime,
+      coverImage: metadata.coverImage || metadata.cover || metadata.image || prev.coverImage,
+      link: metadata.link || metadata.url || prev.link,
+      type: ['Engineering', 'Experience', 'AI', 'Thinking'].includes(metadata.type) ? metadata.type : 'Engineering',
+      publishDate: metadata.date || metadata.publishDate ?
+                   new Date(metadata.date || metadata.publishDate).toISOString().split('T')[0] :
+                   prev.publishDate,
+    }));
+
+    showAlert('解析成功', '✅ Markdown 文件解析成功！已自动填充内容。');
+  };
+
   // 处理 Markdown 文件上传
   const handleMarkdownUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -802,52 +827,71 @@ const ArticleEditorPage: React.FC = () => {
         '上传新文件将会覆盖以下内容：\n• 标题\n• 摘要\n• 正文内容\n• 标签\n• 其他元数据\n\n是否继续上传？',
         async () => {
           closeDialog();
-          await parseAndFillMarkdown(file, e);
+          await parseAndFillMarkdown(file);
         },
         '继续上传',
         '取消'
       );
+      // 清空文件选择器，方便下次重新选择
+      e.target.value = '';
       return;
     }
 
-    await parseAndFillMarkdown(file, e);
+    await parseAndFillMarkdown(file);
+    // 清空文件选择器
+    e.target.value = '';
   };
 
   // 解析并填充 Markdown 内容
-  const parseAndFillMarkdown = async (file: File, e: React.ChangeEvent<HTMLInputElement>) => {
+  const parseAndFillMarkdown = async (file: File) => {
     setIsParsingMarkdown(true);
     try {
       const text = await file.text();
-      const { metadata, content } = parseFrontmatter(text);
-
-      // 自动填充表单数据
-      setFormData(prev => ({
-        ...prev,
-        title: metadata.title || file.name.replace(/\.md$|\.markdown$/, ''),
-        summary: metadata.summary || metadata.description || '',
-        content: content.trim(),
-        tags: Array.isArray(metadata.tags) ? metadata.tags : 
-              typeof metadata.tags === 'string' ? metadata.tags.split(',').map((t: string) => t.trim()) : 
-              prev.tags,
-        readTime: metadata.readTime || metadata.read_time || prev.readTime,
-        coverImage: metadata.coverImage || metadata.cover || metadata.image || prev.coverImage,
-        link: metadata.link || metadata.url || prev.link,
-        type: ['Engineering', 'Experience', 'AI', 'Thinking'].includes(metadata.type) ? metadata.type : 'Engineering',
-        publishDate: metadata.date || metadata.publishDate ? 
-                     new Date(metadata.date || metadata.publishDate).toISOString().split('T')[0] : 
-                     prev.publishDate,
-      }));
-
-      showAlert('解析成功', '✅ Markdown 文件解析成功！已自动填充内容。');
-      
-      // 清空文件选择器
-      e.target.value = '';
+      applyMarkdownText(text, file.name);
+      setLastMarkdownFile(file);
     } catch (error) {
       console.error('Failed to parse markdown file:', error);
       showAlert('解析失败', '❌ Markdown 文件解析失败，请检查文件格式');
-      e.target.value = '';
     } finally {
       setIsParsingMarkdown(false);
+    }
+  };
+
+  // 从上次上传的 Markdown 文件刷新内容
+  const handleRefreshFromLastMarkdown = async () => {
+    if (!lastMarkdownFile) {
+      showAlert('暂无可刷新文件', '当前会话中还没有上传过 Markdown 文件');
+      return;
+    }
+
+    const hasContent = formData.title.trim() || formData.content.trim() || formData.summary.trim();
+
+    const doRefresh = async () => {
+      setIsParsingMarkdown(true);
+      try {
+        const text = await lastMarkdownFile.text();
+        applyMarkdownText(text, lastMarkdownFile.name);
+      } catch (error) {
+        console.error('Failed to refresh markdown file:', error);
+        showAlert('刷新失败', '❌ 刷新 Markdown 内容失败，请重试或重新上传文件');
+      } finally {
+        setIsParsingMarkdown(false);
+      }
+    };
+
+    if (hasContent) {
+      showConfirm(
+        '确认刷新内容',
+        '将使用上次上传的 Markdown 文件内容覆盖当前编辑器中的：\n• 标题\n• 摘要\n• 正文内容\n• 标签\n• 其他元数据\n\n是否继续？',
+        async () => {
+          closeDialog();
+          await doRefresh();
+        },
+        '继续刷新',
+        '取消'
+      );
+    } else {
+      await doRefresh();
     }
   };
 
@@ -1256,6 +1300,16 @@ const ArticleEditorPage: React.FC = () => {
             />
               <Icon name='upload' strokeWidth={4} size={18}/>
           </label>
+          </LandPopOver>
+
+          <LandPopOver placement='bottom' content='从上次上传的 Markdown 文件刷新内容' theme='dark'>
+            <LandButton
+              variant='text'
+              onClick={handleRefreshFromLastMarkdown}
+              icon={<Icon name='refresh' strokeWidth={4} size={18}/>}
+              disabled={!lastMarkdownFile || isParsingMarkdown}
+            >
+            </LandButton>
           </LandPopOver>
 
           <LandButton
