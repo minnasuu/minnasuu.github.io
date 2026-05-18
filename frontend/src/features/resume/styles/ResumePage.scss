@@ -3,8 +3,9 @@ $color-bg: #f5f5f5;
 $color-paper: #ffffff;
 $color-text: #222222;
 $color-text-sub: #555555;
-$color-accent: #8b1f24; // 暗红色
-$color-divider: #8b1f24;
+$color-desc: #999999;
+$color-accent: #31467b; // 暗红色
+$color-divider: #bfc9e4;
 $color-meta-bg: #f3f3f3;
 
 .resume-page {
@@ -51,28 +52,23 @@ $color-meta-bg: #f3f3f3;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    background: $color-meta-bg;
-    padding: 8px 14px;
     font-size: 14px;
     color: $color-text;
-    margin-bottom: 8px;
     gap: 8px;
   }
 
   &__divider {
-    color: #bbb;
+    color: #ddd;
   }
 
   &__position {
-    background: $color-meta-bg;
-    padding: 6px 14px;
+     margin-bottom: 8px;
     font-size: 14px;
-    margin-bottom: 12px;
     display: inline-block;
   }
 
   &__status {
-    color: $color-text;
+    color: $color-desc;
     font-size: 14px;
     margin-top: 4px;
   }
@@ -80,8 +76,8 @@ $color-meta-bg: #f3f3f3;
   &__avatar {
     position: relative;
     flex-shrink: 0;
-    width: 100px;
-    height: 130px;
+    width: 110px;
+    height: 140px;
     background: #e8e8e8;
     overflow: hidden;
     display: flex;

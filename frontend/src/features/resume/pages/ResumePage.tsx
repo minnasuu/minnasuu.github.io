@@ -219,6 +219,18 @@ const ResumePage: React.FC = () => {
                 })
               }
             />
+             <Editable
+              as="div"
+              className="resume-header__position"
+              editing={editing}
+              value={basic.position}
+              onChange={(v) =>
+                update((d) => {
+                  d.basic.position = v;
+                  return d;
+                })
+              }
+            />
             <div className="resume-header__meta">
               {basic.meta.map((item, index) => (
                 <React.Fragment key={index}>
@@ -239,18 +251,6 @@ const ResumePage: React.FC = () => {
                 </React.Fragment>
               ))}
             </div>
-            <Editable
-              as="div"
-              className="resume-header__position"
-              editing={editing}
-              value={basic.position}
-              onChange={(v) =>
-                update((d) => {
-                  d.basic.position = v;
-                  return d;
-                })
-              }
-            />
             <Editable
               as="div"
               className="resume-header__status"
@@ -446,7 +446,7 @@ const ResumePage: React.FC = () => {
                 }
               />
             </div>
-            <div className="resume-block__subtitle">职责业绩：</div>
+            {/* <div className="resume-block__subtitle">职责业绩：</div> */}
             <ul className="resume-bullet-list">
               {work.duties.map((duty, di) => (
                 <li key={di}>
