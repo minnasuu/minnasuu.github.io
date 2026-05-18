@@ -1,0 +1,504 @@
+// 简历页面样式 - 还原图片中暗红色标题 + 黑色正文的简历风格
+$color-bg: #f5f5f5;
+$color-paper: #ffffff;
+$color-text: #222222;
+$color-text-sub: #555555;
+$color-accent: #8b1f24; // 暗红色
+$color-divider: #8b1f24;
+$color-meta-bg: #f3f3f3;
+
+.resume-page {
+  min-height: 100vh;
+  background-color: $color-bg;
+  padding: 40px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei",
+    "Helvetica Neue", Arial, sans-serif;
+  color: $color-text;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.resume-paper {
+  max-width: 880px;
+  margin: 0 auto;
+  background: $color-paper;
+  padding: 48px 56px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+// ============ 顶部信息 ============
+.resume-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 12px;
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 28px;
+    font-weight: 700;
+    color: $color-text;
+    margin: 0 0 16px 0;
+    letter-spacing: 1px;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background: $color-meta-bg;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: $color-text;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+
+  &__divider {
+    color: #bbb;
+  }
+
+  &__position {
+    background: $color-meta-bg;
+    padding: 6px 14px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    display: inline-block;
+  }
+
+  &__status {
+    color: $color-text;
+    font-size: 14px;
+    margin-top: 4px;
+  }
+
+  &__avatar {
+    position: relative;
+    flex-shrink: 0;
+    width: 100px;
+    height: 130px;
+    background: #e8e8e8;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.is-editable {
+      cursor: pointer;
+      outline: none;
+
+      &:hover .resume-header__avatar-mask,
+      &:focus-visible .resume-header__avatar-mask {
+        opacity: 1;
+      }
+
+      &:focus-visible {
+        box-shadow: 0 0 0 2px rgba(139, 31, 36, 0.45);
+      }
+    }
+  }
+
+  &__avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #d8d8d8, #b8b8b8);
+  }
+
+  &__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    object-position: center;
+  }
+
+  &__avatar-mask {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+  }
+
+  &__avatar-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    z-index: 2;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: $color-accent;
+    }
+  }
+
+  &__avatar-input {
+    display: none;
+  }
+}
+
+// ============ 章节标题 ============
+.resume-section-title {
+  position: relative;
+  font-size: 16px;
+  font-weight: 700;
+  color: $color-accent;
+  margin: 28px 0 14px 0;
+  padding-bottom: 6px;
+  border-bottom: 2px solid $color-divider;
+}
+
+// ============ 行 ============
+.resume-row {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  padding: 6px 0;
+  font-size: 14px;
+
+  &--bold {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  &__period {
+    flex-shrink: 0;
+    width: 160px;
+    color: $color-text;
+  }
+
+  &__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__sub {
+    color: $color-text;
+    min-width: 80px;
+  }
+
+  &__right {
+    flex-shrink: 0;
+    text-align: right;
+    color: $color-text;
+  }
+}
+
+// ============ 区块 ============
+.resume-block {
+  margin-bottom: 18px;
+
+  &__subtitle {
+    font-weight: 700;
+    margin: 8px 0 4px 0;
+    color: $color-text;
+  }
+
+  &__paragraph {
+    margin: 6px 0;
+    line-height: 1.7;
+    color: $color-text;
+  }
+}
+
+// ============ 列表 ============
+.resume-bullet-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0;
+
+  li {
+    position: relative;
+    padding-left: 14px;
+    margin-bottom: 4px;
+    line-height: 1.7;
+
+    &::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      top: -2px;
+      font-weight: 700;
+      font-size: 18px;
+      color: $color-text;
+    }
+  }
+}
+
+// ============ 技能 ============
+.resume-skills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: $color-text;
+
+  &__dot {
+    color: #999;
+  }
+}
+
+// ============ 顶部操作栏 ============
+.resume-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid #eaeaea;
+  margin: -40px -20px 24px;
+  padding: 0 20px;
+
+  &__inner {
+    max-width: 880px;
+    margin: 0 auto;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $color-text;
+  }
+
+  &__dirty {
+    font-style: normal;
+    font-size: 12px;
+    color: $color-accent;
+    margin-left: 6px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.resume-btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+  background: #ffffff;
+  color: $color-text;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1;
+
+  &:hover:not(:disabled) {
+    border-color: $color-accent;
+    color: $color-accent;
+  }
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &--ghost {
+    background: #ffffff;
+  }
+  &--primary {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+
+    &:hover:not(:disabled) {
+      background: #000;
+      color: #fff;
+      border-color: #000;
+    }
+  }
+  &--accent {
+    background: $color-accent;
+    color: #fff;
+    border-color: $color-accent;
+
+    &:hover:not(:disabled) {
+      background: #6f181c;
+      color: #fff;
+      border-color: #6f181c;
+    }
+  }
+}
+
+// ============ 编辑态 ============
+.resume-editable {
+  outline: none;
+  border-radius: 3px;
+  padding: 0 2px;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+  cursor: text;
+  min-width: 8px;
+  min-height: 1em;
+  display: inline-block;
+
+  &:hover {
+    background: rgba(139, 31, 36, 0.06);
+  }
+  &:focus {
+    background: #fff8f8;
+    box-shadow: 0 0 0 2px rgba(139, 31, 36, 0.25);
+  }
+
+  &:empty::before {
+    content: attr(data-placeholder);
+    color: #bbb;
+  }
+}
+
+.resume-page.is-editing {
+  .resume-editable {
+    background: rgba(0, 0, 0, 0.025);
+  }
+}
+
+// ============ Toast ============
+.resume-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.82);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 1000;
+  animation: resume-toast-in 0.18s ease-out;
+}
+
+@keyframes resume-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+// ============ 响应式 ============
+@media (max-width: 768px) {
+  .resume-page {
+    padding: 16px 8px;
+  }
+
+  .resume-paper {
+    padding: 24px 20px;
+  }
+
+  .resume-toolbar {
+    margin: -16px -8px 16px;
+    padding: 0 12px;
+
+    &__inner {
+      height: 48px;
+    }
+  }
+
+  .resume-header {
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    &__avatar {
+      align-self: flex-end;
+      margin-bottom: 12px;
+    }
+  }
+
+  .resume-row {
+    flex-wrap: wrap;
+    gap: 8px;
+
+    &__period {
+      width: 100%;
+    }
+
+    &__right {
+      text-align: left;
+    }
+  }
+}
+
+// ============ 打印 / 导出 PDF ============
+@media print {
+  // A4：宽 210mm × 高 297mm
+  @page {
+    size: A4;
+    margin: 12mm 14mm;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .resume-page {
+    background: #fff !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+
+  .resume-toolbar,
+  .resume-toast,
+  .resume-header__avatar-mask,
+  .resume-header__avatar-remove {
+    display: none !important;
+  }
+
+  .resume-paper {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  // 编辑高亮在打印时去掉
+  .resume-editable {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  // 避免标题与内容被分页切断
+  .resume-section-title {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  .resume-block,
+  .resume-row {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

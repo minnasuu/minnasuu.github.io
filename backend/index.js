@@ -17,6 +17,7 @@ const emailRoutes = require('./routes/email');
 const workflowRoutes = require('./routes/workflows');
 const workflowRunRoutes = require('./routes/workflowRuns');
 const assistantRoutes = require('./routes/assistants');
+const resumeRoutes = require('./routes/resume');
 
 // 加载环境变量 - 尝试多个可能的位置
 const possibleEnvPaths = [
@@ -99,6 +100,7 @@ app.use('/api/email', emailRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/workflow-runs', workflowRunRoutes);
 app.use('/api/assistants', assistantRoutes);
+app.use('/api/resume', resumeRoutes);
 
 // 启动服务器
 app.listen(PORT, () => {

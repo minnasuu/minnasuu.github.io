@@ -111,6 +111,23 @@ model WorkflowRun {
   createdAt         DateTime @default(now())
 }
 
+model Resume {
+  id        String   @id @default("default")
+  // 简历基础信息：{ name, meta[], position, status, avatar? }
+  basic           Json
+  // { bullets: [{ label, content }] }
+  selfEvaluation  Json
+  // [{ period, school, degree, major }]
+  education       Json
+  // [{ period, company, title, duties: [{ label, content }] }]
+  works           Json
+  // [{ period, name, role, background?, duties?, achievement? }]
+  projects        Json
+  skills          String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
 model Goal {
   id                    String   @id @default(uuid())
   title                 String

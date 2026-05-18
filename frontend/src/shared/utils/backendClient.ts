@@ -31,8 +31,8 @@ export interface CreateArticleRequest {
 const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK === 'true' || false;
 
 const getBackendUrl = (): string => {
-  // 如果设置了环境变量，优先使用
-  if (import.meta.env.VITE_BACKEND_URL) {
+  // 如果设置了环境变量，优先使用（包括显式设为空字符串的情况）
+  if (import.meta.env.VITE_BACKEND_URL !== undefined && import.meta.env.VITE_BACKEND_URL !== null) {
     return import.meta.env.VITE_BACKEND_URL;
   }
   // 生产环境（通过域名访问）使用相对路径，nginx会代理到后端
@@ -1029,6 +1029,75 @@ export const sendEmail = async (req: SendEmailRequest): Promise<SendEmailRespons
   } catch (error) {
     console.error('Error sending email:', error);
     return { success: false, error: String(error) };
+  }
+};
+
+// ==================== Resume API ====================
+
+export interface ResumeDTO {
+  basic: any;
+  selfEvaluation: any;
+  education: any[];
+  works: any[];
+  projects: any[];
+  skills: string[];
+  // 后端字段（GET 时存在）
+  id?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/** 获取后端简历，未保存过返回 null（404） */
+export const fetchResume = async (): Promise<ResumeDTO | null> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/resume`;
+
+  try {
+    const response = await fetch(url);
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(`Failed to fetch resume: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching resume:', error);
+    throw error;
+  }
+};
+
+/** 保存（upsert）简历到后端 */
+export const saveResumeToBackend = async (resume: ResumeDTO): Promise<ResumeDTO> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/resume`;
+
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      basic: resume.basic,
+      selfEvaluation: resume.selfEvaluation,
+      education: resume.education,
+      works: resume.works,
+      projects: resume.projects,
+      skills: resume.skills,
+    }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || `Failed to save resume: ${response.status}`);
+  }
+  return await response.json();
+};
+
+/** 重置（删除后端简历），用于"恢复默认" */
+export const resetResumeOnBackend = async (): Promise<void> => {
+  const backendUrl = getBackendUrl();
+  const url = `${backendUrl}/api/resume`;
+
+  const response = await fetch(url, { method: 'DELETE' });
+  if (!response.ok) {
+    throw new Error(`Failed to reset resume: ${response.status}`);
   }
 };
 

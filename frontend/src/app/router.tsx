@@ -11,6 +11,7 @@ import {
 import { personalDataMultiLang } from "../data/personalData";
 import { CraftsPage, CraftsPageDetailPage, CraftEditorPage } from '../features/crafts';
 import { AgentScrollLayout } from '../features/articles/demos/AgentScrollerLayout';
+import { ResumePage } from '../features/resume';
 // import DotsOverlayDemo from '../features/crafts/nodes/DotsOverlay/DotsOverlayDemo';
 // import { IdeasPage } from '../features/ideas';
 // import IdeasEditorPage from '../features/ideas/pages/IdeasEditorPage';
@@ -49,6 +50,8 @@ const AppRouter: React.FC = () => {
             <Route path='/crafts-editor' element={<CraftEditorPage/>}/>
             <Route path="/crafts/:id" element={<CraftsPageDetailPage />} />
 
+            <Route path="/resume" element={<ResumePage />} />
+
             {/* <Route path='/ideas' element={<IdeasPage/>}/>
             <Route path='/ideas-editor' element={<IdeasEditorPage/>}/> */}
 
@@ -58,6 +61,8 @@ const AppRouter: React.FC = () => {
 
             {/* ARTICLES DEMO */}
             <Route path='/articles/demo/AgentScrollLayout/:type' element={<AgentScrollLayout/>}/>
+
+            <Route path="*" element={<div>走丢了</div>} />
           </Routes>
         </Router>
       </ThemeProvider>
